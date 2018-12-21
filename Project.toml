@@ -1,0 +1,10 @@
+name = "Atoms"
+uuid = "e24b7630-0518-11e9-1346-1188d3abce50"
+authors = ["Stefanos Carlström <stefanos.carlstrom@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+AtomicLevels = "10933b4c-d60f-11e8-1fc6-bd9035a249a1"
+ContinuumArrays = "abb603bd-c6a4-5c0b-b5d0-50a836a7e82c"
+LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"

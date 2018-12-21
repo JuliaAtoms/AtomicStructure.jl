@@ -1,0 +1,74 @@
+#+TITLE: Atoms.jl
+#+AUTHOR: Stefanos Carlström
+#+EMAIL: stefanos.carlstrom@gmail.com
+
+[[https://travis-ci.org/JuliaAtoms/Atoms.jl][https://travis-ci.org/JuliaAtoms/Atoms.jl.svg?branch=master]]
+[[https://ci.appveyor.com/project/jagot/atoms-jl][https://img.shields.io/appveyor/ci/jagot/atoms-jl.svg?logo=appveyor]]
+[[https://codecov.io/gh/JuliaAtoms/Atoms.jl][https://codecov.io/gh/JuliaAtoms/Atoms.jl/branch/master/graph/badge.svg]]
+
+#+PROPERTY: header-args:julia :session *julia-README*
+
+This library provides structures for representing atoms as linear
+combinations of single-particle orbitals.
+
+* Usage
+  The radial coordinate is represented using a basis function
+  expansion that fulfils the [[https://github.com/JuliaApproximation/ContinuumArrays.jl][ContinuumArrays.jl]] interface. The
+  examples below use [[https://github.com/jagot/FiniteDifferencesQuasi.jl][FiniteDifferencesQuasi.jl]], but Atoms.jl is not
+  dependent on which basis you choose.
+  
+  #+BEGIN_SRC julia :exports code
+    using Atoms
+    using AtomicLevels
+    using FiniteDifferencesQuasi
+  #+END_SRC
+
+  #+RESULTS:
+  : nothing
+
+** Grid setup
+   #+BEGIN_SRC julia :exports both :results verbatim
+     rₘₐₓ = 300
+     ρ = 0.25 # Discretization interval
+     N = ceil(Int, rₘₐₓ/ρ + 1/2)
+     # Finite-difference scheme that accounts for the boundary condition at
+     # r = 0
+     R = RadialDifferences(N, ρ)
+   #+END_SRC
+
+   #+RESULTS:
+   : Radial finite differences basis {Float64} on 0.125..300.125 (formally 0..300.125) with 1201 points spaced by ρ = 0.25
+
+** Different atoms
+   Non-relativistic helium, one configuration state function:
+   #+BEGIN_SRC julia :exports both :results verbatim
+     Atom(R, csfs(c"1s2"))
+   #+END_SRC
+
+   #+RESULTS:
+   : Atom{Float64,RadialDifferences{Float64}} with 1 CSF: 1s²(₀¹S|¹S)+
+
+   Non-relativistic, with the =2s,2p= orbitals as possible correlation
+   orbitals:
+   #+BEGIN_SRC julia :exports both :results verbatim
+     Atom(R, csfs(excited_configurations(c"1s2", os"2[s-p]"...)))
+   #+END_SRC
+
+   #+RESULTS:
+   : Atom{Float64,RadialDifferences{Float64}} with 7 CSFs:
+   : 7-element Array{CSF{Orbital,IntermediateTerm,Term},1}:
+   :  1s²(₀¹S|¹S)+          
+   :  1s(₁²S|²S) 2s(₁²S|¹S)+
+   :  1s(₁²S|²S) 2s(₁²S|³S)+
+   :  2s²(₀¹S|¹S)+          
+   :  2p²(₀¹S|¹S)+          
+   :  2p²(₂¹D|¹D)+          
+   :  2p²(₂³P|³P)+          
+   
+   Relativistic helium, one configuration state function:
+   #+BEGIN_SRC julia :exports both :results verbatim
+     DiracAtom(R, csfs(rc"1s2"))
+   #+END_SRC
+
+   #+RESULTS:
+   : Atom{Atoms.TwoComponent{Float64},RadialDifferences{Float64}} with 1 CSF: 1s²(0|0)+
