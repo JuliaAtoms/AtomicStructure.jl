@@ -4,7 +4,17 @@ authors = ["Stefanos Carlström <stefanos.carlstrom@gmail.com>"]
 version = "0.1.0"
 
 [deps]
+ArnoldiMethod = "ec485272-7323-5ecc-a04f-4719b315124d"
 AtomicLevels = "10933b4c-d60f-11e8-1fc6-bd9035a249a1"
 ContinuumArrays = "abb603bd-c6a4-5c0b-b5d0-50a836a7e82c"
+Formatting = "59287772-0a20-5a39-b81b-1366585eb4c0"
 LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[extras]
+FiniteDifferencesQuasi = "2e420920-f185-11e8-29af-4b87f0732ba2"
+
+[targets]
+test = ["FiniteDifferencesQuasi"]

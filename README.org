@@ -27,48 +27,125 @@ combinations of single-particle orbitals.
   : nothing
 
 ** Grid setup
+   The grid can be tailored to a specific nucleus, which is why we
+   first decide the nuclear potential to be used, in this case a
+   point charge corresponding to helium:
+   #+BEGIN_SRC julia :exports both :results verbatim
+     nucleus = pc"He"
+   #+END_SRC
+
+   #+RESULTS:
+   : Z = 2 [He]
+
    #+BEGIN_SRC julia :exports both :results verbatim
      rₘₐₓ = 300
      ρ = 0.25 # Discretization interval
      N = ceil(Int, rₘₐₓ/ρ + 1/2)
      # Finite-difference scheme that accounts for the boundary condition at
      # r = 0
-     R = RadialDifferences(N, ρ)
+     R = RadialDifferences(N, ρ, charge(nucleus))
    #+END_SRC
 
    #+RESULTS:
    : Radial finite differences basis {Float64} on 0.125..300.125 (formally 0..300.125) with 1201 points spaced by ρ = 0.25
 
 ** Different atoms
-   Non-relativistic helium, one configuration state function:
-   #+BEGIN_SRC julia :exports both :results verbatim
-     Atom(R, csfs(c"1s2"))
+   Non-relativistic helium, one configuration state function, the
+   orbitals are automatically initialized to their hydrogenic values:
+   #+BEGIN_SRC julia :exports both :results output verbatim
+     Atom(R, csfs(c"1s2"), nucleus, verbosity=3)
    #+END_SRC
 
    #+RESULTS:
-   : Atom{Float64,RadialDifferences{Float64}} with 1 CSF: 1s²(₀¹S|¹S)+
+   #+begin_example
+   ⎡ Hydrogenic initialization of the orbitals of Atom{Float64,RadialDifferences{Float64,Int64}}(Z = 2 [He]) with 1 CSF
+   ⎢ ⎡ Diagonalizing symmetry ℓ = s, maximum n = 1 => 1 eigenvalues required
+   ⎢ ⎢ Target eigenvalue: ≤ -2.0 Ha
+   ⎢ ⎢ Diagonalizing via arnoldi_shift_invert
+   ⎢ ⎢ Schur values: [0.49955]
+   ⎢ ⎢ Hydrogenic energies [-1.9981975] Ha
+   ⎢ ⎢ Analytic energies   [-2.0000000] Ha
+   ⎢ ⎣ Δ                   [+1.803e-03] Ha
+   ⎢ 
+   ⎢ [ Initial norm of 1s: 0.500000, 1-normalized: 5.000000e-01
+   ⎣ 
 
-   Non-relativistic, with the =2s,2p= orbitals as possible correlation
-   orbitals:
-   #+BEGIN_SRC julia :exports both :results verbatim
-     Atom(R, csfs(excited_configurations(c"1s2", os"2[s-p]"...)))
+   Atom{Float64,RadialDifferences{Float64,Int64}}(Z = 2 [He]) with 1 CSF: 1s²(₀¹S|¹S)+
+   #+end_example
+
+   Non-relativistic, with the =2s,2p,3s,3p,3d= orbitals as possible
+   correlation orbitals:
+   #+BEGIN_SRC julia :exports both :results output verbatim
+     Atom(R, csfs(excited_configurations(c"1s2", os"2[s-p]"..., os"3[s-d]"...)), nucleus, verbosity=3)
    #+END_SRC
 
    #+RESULTS:
-   : Atom{Float64,RadialDifferences{Float64}} with 7 CSFs:
-   : 7-element Array{CSF{Orbital,IntermediateTerm,Term},1}:
-   :  1s²(₀¹S|¹S)+          
-   :  1s(₁²S|²S) 2s(₁²S|¹S)+
-   :  1s(₁²S|²S) 2s(₁²S|³S)+
-   :  2s²(₀¹S|¹S)+          
-   :  2p²(₀¹S|¹S)+          
-   :  2p²(₂¹D|¹D)+          
-   :  2p²(₂³P|³P)+          
+   #+begin_example
+   ⎡ Hydrogenic initialization of the orbitals of Atom{Float64,RadialDifferences{Float64,Int64}}(Z = 2 [He]) with 32 CSFs
+   ⎢ ⎡ Diagonalizing symmetry ℓ = s, maximum n = 3 => 3 eigenvalues required
+   ⎢ ⎢ Target eigenvalue: ≤ -2.0 Ha
+   ⎢ ⎢ Diagonalizing via arnoldi_shift_invert
+   ⎢ ⎢ Schur values: [0.49955, 0.285767, 0.264747]
+   ⎢ ⎢ Hydrogenic energies [-1.9981975, -0.5006417, -0.2228092] Ha
+   ⎢ ⎢ Analytic energies   [-2.0000000, -0.5000000, -0.2222222] Ha
+   ⎢ ⎣ Δ                   [+1.803e-03, -6.417e-04, -5.870e-04] Ha
+   ⎢ 
+   ⎢ ⎡ Diagonalizing symmetry ℓ = d, maximum n = 3 => 1 eigenvalues required
+   ⎢ ⎢ Target eigenvalue: ≤ -0.2222222222222222 Ha
+   ⎢ ⎢ Diagonalizing via arnoldi_shift_invert
+   ⎢ ⎢ Schur values: [4.5007]
+   ⎢ ⎢ Hydrogenic energies [-0.2222567] Ha
+   ⎢ ⎢ Analytic energies   [-0.2222222] Ha
+   ⎢ ⎣ Δ                   [-3.448e-05] Ha
+   ⎢ 
+   ⎢ ⎡ Diagonalizing symmetry ℓ = p, maximum n = 3 => 2 eigenvalues required
+   ⎢ ⎢ Target eigenvalue: ≤ -0.5 Ha
+   ⎢ ⎢ Diagonalizing via arnoldi_shift_invert
+   ⎢ ⎢ Schur values: [1.99957, 1.28594]
+   ⎢ ⎢ Hydrogenic energies [-0.4998912, -0.2223581] Ha
+   ⎢ ⎢ Analytic energies   [-0.5000000, -0.2222222] Ha
+   ⎢ ⎣ Δ                   [+1.088e-04, -1.359e-04] Ha
+   ⎢ 
+   ⎢ ⎡ Initial norm of 1s: 0.500000, 1-normalized: 5.000000e-01
+   ⎢ ⎢ Initial norm of 2s: 0.500000, 1-normalized: 5.000000e-01
+   ⎢ ⎢ Initial norm of 2p: 0.500000, 1-normalized: 5.000000e-01
+   ⎢ ⎢ Initial norm of 3s: 0.500000, 1-normalized: 5.000000e-01
+   ⎢ ⎢ Initial norm of 3p: 0.500000, 1-normalized: 5.000000e-01
+   ⎢ ⎣ Initial norm of 3d: 0.500000, 1-normalized: 5.000000e-01
+   ⎣ 
+
+   Atom{Float64,RadialDifferences{Float64,Int64}}(Z = 2 [He]) with 32 CSFs:
+   32-element Array{CSF{Orbital,IntermediateTerm,Term},1}:
+    1s²(₀¹S|¹S)+          
+    1s(₁²S|²S) 2s(₁²S|¹S)+
+    1s(₁²S|²S) 2s(₁²S|³S)+
+    1s(₁²S|²S) 3s(₁²S|¹S)+
+    1s(₁²S|²S) 3s(₁²S|³S)+
+    1s(₁²S|²S) 3d(₁²D|¹D)+
+    1s(₁²S|²S) 3d(₁²D|³D)+
+    2s²(₀¹S|¹S)+          
+    2s(₁²S|²S) 3s(₁²S|¹S)+
+    2s(₁²S|²S) 3s(₁²S|³S)+
+    2s(₁²S|²S) 3d(₁²D|¹D)+
+    ⋮                     
+    3s²(₀¹S|¹S)+          
+    3s(₁²S|²S) 3d(₁²D|¹D)+
+    3s(₁²S|²S) 3d(₁²D|³D)+
+    3p²(₀¹S|¹S)+          
+    3p²(₂¹D|¹D)+          
+    3p²(₂³P|³P)+          
+    3d²(₀¹S|¹S)+          
+    3d²(₂¹D|¹D)+          
+    3d²(₂¹G|¹G)+          
+    3d²(₂³P|³P)+          
+    3d²(₂³F|³F)+
+   #+end_example
    
-   Relativistic helium, one configuration state function:
+   Relativistic helium, one configuration state function
+   (initialization not yet supported):
    #+BEGIN_SRC julia :exports both :results verbatim
-     DiracAtom(R, csfs(rc"1s2"))
+     DiracAtom(undef, R, csfs(rc"1s2"), nucleus)
    #+END_SRC
 
    #+RESULTS:
-   : Atom{Atoms.TwoComponent{Float64},RadialDifferences{Float64}} with 1 CSF: 1s²(0|0)+
+   : Atom{Atoms.TwoComponent{Float64},RadialDifferences{Float64,Int64}}(Z = 2 [He]) with 1 CSF: 1s²(0|0)+
