@@ -2,6 +2,7 @@ module Atoms
 
 using AtomicLevels
 import AtomicLevels: AbstractOrbital, HalfInteger
+using AngularMomentumAlgebra
 
 using ContinuumArrays
 import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray
@@ -11,6 +12,7 @@ using LinearAlgebra
 using SparseArrays
 
 using ArnoldiMethod
+using SCF
 
 using Formatting
 
@@ -27,5 +29,6 @@ include("atom_types.jl")
 include("one_body.jl")
 include("utils.jl")
 include("hydrogenic.jl")
+include("scf_equations.jl")
 
 end # module
