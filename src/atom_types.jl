@@ -15,8 +15,21 @@ const RelativisticChannel = Channel{RelativisticOrbital,HalfInteger,HalfInteger}
 # radial orbital.
 
 const RadialCoeff{T<:Number} = Union{T,TwoComponent{T}}
-const RadialOrbital{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractVector}}}
+const RadialOrbital{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,1,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractVector}}}
 const RadialOrbitals{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractMatrix}}}
+
+function Base.similar(v::RO) where {T,B,RO<:Union{RadialOrbital{T,B},RadialOrbitals{T,B}}}
+    R,u = v.mul.factors
+    R*similar(u)
+end
+
+const RadialOperator{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractMatrix,<:QuasiAdjoint{<:Any,<:B}}}}
+matrix(o::RadialOperator) = o.mul.factors[2]
+
+function Base.:(+)(a::RadialOperator{T,B}, b::RadialOperator{T,B}) where {T,B}
+    R = first(a.mul.factors)
+    R*(matrix(a) + matrix(b))*R'
+end
 
 # An atom constitutes a set of single-electron radial orbitals, CSFs
 # which are comprised of anti-symmetrized combinations of such

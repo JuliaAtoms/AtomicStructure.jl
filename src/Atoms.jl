@@ -5,7 +5,7 @@ import AtomicLevels: AbstractOrbital, HalfInteger
 using AngularMomentumAlgebra
 
 using ContinuumArrays
-import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray
+import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint
 using LazyArrays
 
 using LinearAlgebra

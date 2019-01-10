@@ -9,7 +9,7 @@ function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,T,B,O,TC,C,CM}, orb::O
     
     V = Matrix(r -> ℓ*(ℓ+1)/(2r^2) + atom.potential(orb, r), R)
 
-    Tm,V
+    R*Tm*R', R*V*R'
 end
 one_body_hamiltonian(atom, orb) = +(one_body_hamiltonian(Tuple, atom, orb)...)
 
@@ -23,15 +23,16 @@ Base.eltype(S::ShiftInvert) = eltype(S.A⁻¹)
 LinearAlgebra.mul!(y, S::ShiftInvert, x) =
     ldiv!(y, S.A⁻¹, x)
 
-function diagonalize_one_body(H, nev::Int;
+function diagonalize_one_body(H::RadialOperator, nev::Int;
                               method::Symbol=:arnoldi_shift_invert, tol=1e-10, σ=-1,
                               verbosity=0, io=stdout)
+    Hm = matrix(H)
     verbosity > 2 && println(io, "Diagonalizing via $(method)")
     if method == :arnoldi || method == :arnoldi_shift_invert
         A,target = if method == :arnoldi
-            H,SR()
+            Hm,SR()
         else
-            ShiftInvert(factorize(H - σ*I)),LR()
+            ShiftInvert(factorize(Hm - σ*I)),LR()
         end
         schur,history = partialschur(A, nev=nev, tol=tol, which=target)
         verbosity > 3 && println(io, history)
@@ -46,7 +47,7 @@ function diagonalize_one_body(H, nev::Int;
             error("Could not converge the requested orbitals: $(history)")
         λ,schur.Q
     elseif method == :eigen
-        ee = eigen(H)
+        ee = eigen(Hm)
         ee.values[1:nev],ee.vectors[:,1:nev]
     else
         throw(ArgumentError("Unknown diagonalization method $(method)"))
