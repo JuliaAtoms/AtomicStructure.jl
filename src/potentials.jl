@@ -18,7 +18,7 @@ Base.show(io::IO, p::PointCharge{I}) where {I<:Integer} =
 Base.show(io::IO, p::PointCharge) =
     write(io, "Z = $(p.Z)")
 
-(p::PointCharge{T})(ℓ::Int, r::U) where {T,U} = -p.Z/r
+(p::PointCharge{T})(::O, r::U) where {T,O,U} = -p.Z/r
 
 charge(p::PointCharge) = p.Z
 

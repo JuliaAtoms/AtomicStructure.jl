@@ -1,14 +1,17 @@
-function one_body_hamiltonian(atom::Atom{T,T,B,O,TC,C,CM}, ℓ::Int) where {T,B,O,TC,C,CM}
+function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,T,B,O,TC,C,CM}, orb::O) where {T,B,O,TC,C,CM}
     R = radial_basis(atom)
     
     D = Derivative(axes(R,1))
     Tm = R'D'D*R
     Tm /= -2
-    
-    V = Matrix(r -> ℓ*(ℓ+1)/(2r^2) + atom.potential(ℓ, r), R)
 
-    Tm + V
+    ℓ = orb.ℓ
+    
+    V = Matrix(r -> ℓ*(ℓ+1)/(2r^2) + atom.potential(orb, r), R)
+
+    Tm,V
 end
+one_body_hamiltonian(atom, orb) = +(one_body_hamiltonian(Tuple, atom, orb)...)
 
 struct ShiftInvert{M}
     A⁻¹::M

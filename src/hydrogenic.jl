@@ -19,6 +19,12 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
 
         R,Φ = atom.radial_orbitals.mul.factors
         Φ .= zero(T)
+
+        # Orbitals are grouped by ℓ, since they have the same one-body
+        # Hamiltonian. They should rather be grouped by
+        # `symmetry(orb)`, where `symmetry` dispatches on the type of
+        # the orbital. This would allow for pseudo-potentials that are
+        # ℓ- and s-dependent.
         orbitals = Dict{Int,Vector{O}}()
         for orb in atom.orbitals
             orbitals[orb.ℓ] = vcat(get(orbitals, orb.ℓ, O[]), orb)
@@ -48,7 +54,7 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
                 verbosity > 2 &&
                     println(io, "Target eigenvalue: ≤ $(Iₚℓ) Ha")
 
-                H = one_body_hamiltonian(atom, ℓ)
+                H = one_body_hamiltonian(atom, first(orbitals[ℓ]))
                 λᴴ,Φᴴ = diagonalize_one_body(H, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
                 for orb in orbitals[ℓ]
                     j = findfirst(isequal(orb), atom.orbitals)
