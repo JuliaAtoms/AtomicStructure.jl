@@ -3,10 +3,13 @@ module Atoms
 using AtomicLevels
 import AtomicLevels: AbstractOrbital, HalfInteger
 using AngularMomentumAlgebra
+import AngularMomentumAlgebra: isdiagonal, isdirect, isexchange
+using Symbolics
 
 using ContinuumArrays
 import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint
 using LazyArrays
+import LazyArrays: ⋆, materialize
 
 using LinearAlgebra
 using SparseArrays
@@ -15,6 +18,7 @@ using ArnoldiMethod
 using SCF
 
 using Formatting
+using UnicodeFun
 
 function unique_orbitals(csfs::Vector{C}) where {C<:CSF}
     map(csfs) do csf

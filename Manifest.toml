@@ -6,7 +6,7 @@ version = "0.3.2"
 
 [[AngularMomentumAlgebra]]
 deps = ["AtomicLevels", "Formatting", "LaTeXStrings", "LightGraphs", "LinearAlgebra", "Parameters", "Printf", "Symbolics", "TikzGraphs", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "ed97a7fb4dc2ea3e09f4f9e0468b105a775b8c22"
+git-tree-sha1 = "2d8b9f728bdebeceead49b9217040f6b92f4b352"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
