@@ -5,8 +5,8 @@ uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
 version = "0.3.2"
 
 [[AngularMomentumAlgebra]]
-deps = ["AtomicLevels", "Formatting", "LaTeXStrings", "LightGraphs", "LinearAlgebra", "Parameters", "Symbolics", "TikzGraphs", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "6f3ddfa120ccf193cae2437375d1eb722314ad14"
+deps = ["AtomicLevels", "Formatting", "LaTeXStrings", "LightGraphs", "LinearAlgebra", "Parameters", "Printf", "Symbolics", "TikzGraphs", "Unicode", "UnicodeFun", "WignerSymbols"]
+git-tree-sha1 = "ed97a7fb4dc2ea3e09f4f9e0468b105a775b8c22"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -20,7 +20,7 @@ version = "0.0.4"
 
 [[AtomicLevels]]
 deps = ["BlockBandedMatrices", "Formatting", "Parameters", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "f9ce00c4aeacc887984f32eae825036e6a04e2c9"
+git-tree-sha1 = "c2693da77f768524f0f0f3ed7d83cb5d25a98d84"
 repo-rev = "revamp"
 repo-url = "https://github.com/JuliaAtoms/AtomicLevels.jl.git"
 uuid = "10933b4c-d60f-11e8-1fc6-bd9035a249a1"
