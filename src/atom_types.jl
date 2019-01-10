@@ -109,6 +109,24 @@ end
 
 radial_basis(atom::Atom) = first(atom.radial_orbitals.mul.factors)
 
+function orbital_index(atom::Atom{T,ΦT,B,O}, orb::O) where {T,ΦT,B,O}
+    i = findfirst(isequal(orb),atom.orbitals)
+    i === nothing && throw(BoundsError("$(orb) not present among $(atom.orbitals)"))
+    i
+end
+
+Base.getindex(atom::Atom, j::I) where {I<:Integer} =
+    radial_basis(atom)*atom.radial_orbitals.mul.factors[2][:,j]
+
+Base.getindex(atom::Atom{T,ΦT,B,O}, orb::O) where {T,ΦT,B,O} =
+    atom[orbital_index(atom, orb)]
+
+Base.view(atom::Atom, j::I) where {I<:Integer} =
+    radial_basis(atom)*view(atom.radial_orbitals.mul.factors[2], :, j)
+
+Base.view(atom::Atom{T,ΦT,B,O}, orb::O) where {T,ΦT,B,O} =
+    view(atom, orbital_index(atom, orb))
+
 # The idea behind the `convert` functions below is the following: it
 # is possible to convert along the chain CSF -> Level -> State (but
 # not the other direction), and at each step, the expansion
