@@ -15,7 +15,7 @@ function print_block(fun::Function,out=stdout)
     if length(data) == 1
         println(out, "[ $(data[1])")
     elseif length(data) > 1
-        for (p,dl) in zip(vcat("⎡", repeat(["⎢"], length(data)-2), "⎣"),data)
+        for (p,dl) in zip(vcat("╭", repeat(["│"], length(data)-2), "╰"),data)
             println(out, "$(p) $(dl)")
         end
     end
