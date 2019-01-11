@@ -71,16 +71,14 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
         end
 
         print_block(io) do io
+            linefmt = FormatExpr("{1:>4s} {2:12.7f} {3:12.5e}")
+            printfmtln(io, "     {1:12s}  {2:11s}", "Initial norm", "1-n")
             for j in eachindex(atom.orbitals)
-                # We index with the range j:j instead of the value j, since
-                # the latter produces a ContinuumArrays.QuasiArrays.SubQuasiArray
-                # which is tricky to dispatch on.
-                N₀ = norm(atom.radial_orbitals[:,j:j])
-                normalize!(atom.radial_orbitals[:,j:j])
+                n₀ = norm(atom[j])
+                normalize!(view(atom, j))
                 if verbosity > 2
-                    N = norm(atom.radial_orbitals[:,j:j])
-                    printfmtln(io, "Initial norm of {1:s}: {2:f}, 1-normalized: {3:e}",
-                               atom.orbitals[j], N₀, 1-N)
+                    n = norm(atom[j])
+                    printfmtln(io, linefmt, atom.orbitals[j], n₀, 1-n)
                 end
             end
         end
