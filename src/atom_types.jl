@@ -76,6 +76,11 @@ Atom(radial_orbitals::RadialOrbitals{ΦT,B}, orbitals::Vector{O},
                                        potential)
 
 function Atom(::UndefInitializer, ::Type{ΦT}, R::B, csfs::Vector{TC}, potential::P) where {T<:Number,ΦT<:RadialCoeff{T},B<:AbstractQuasiMatrix{T},TC,P}
+    isempty(csfs) &&
+        throw(ArgumentError("At least one CSF required to create an atom"))
+    all(isequal(num_electrons(first(csfs).config)),
+        map(csf -> num_electrons(csf.config), csfs)) ||
+            throw(ArgumentError("All CSFs need to have the same amount of electrons"))
     orbs = unique_orbitals(csfs)
     Φ = Matrix{ΦT}(undef, size(R,2), length(orbs))
     RΦ = MulQuasiArray{ΦT,2}(Mul(R,Φ))
