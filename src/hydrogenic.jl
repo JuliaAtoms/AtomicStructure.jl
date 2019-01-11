@@ -82,6 +82,22 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
                 end
             end
         end
+        if verbosity > 3
+            print_block(io) do io
+                ncsfs = min(10, length(atom.csfs))
+                ml = maximum(length.(string.(atom.csfs)))
+                csffmt = "{1:<$(ml+3)s}"
+                linefmt = FormatExpr("$(csffmt) {2:7.5f} {3:12.5e}")
+                N = num_electrons(atom)
+                printfmtln(io, "$(csffmt) {2:7s}  {3:11s} ", "CSF", "√N", "$(N)-N²")
+                for (i,csf) in enumerate(atom.csfs)
+                    i > ncsfs && break
+                    n = norm(atom, csf=i)
+                    printfmtln(io, linefmt, csf, n, N-n^2)
+                end
+                length(atom.csfs) > ncsfs && println(io, "⋮")
+            end
+        end
     end
 
     atom
