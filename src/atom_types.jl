@@ -107,8 +107,13 @@ DiracAtom(init::Init, R::B, csfs::Vector{TC}, potential::P; kwargs...) where {In
 Atom(R::B, csfs::Vector{TC}, potential::P; kwargs...) where {B<:AbstractQuasiMatrix,TC<:CSF,P<:AbstractPotential} =
     Atom(:hydrogenic, R, csfs, potential; kwargs...)
 
+AtomicLevels.num_electrons(atom::Atom) =
+    num_electrons(first(atom.csfs).config)
+
 function Base.show(io::IO, atom::Atom{T,ΦT,B,O,TC,C,M,P}) where {T,ΦT,B,O,TC,C,M,P}
-    write(io, "Atom{$(ΦT),$(B)}($(atom.potential)) with ")
+    Z = charge(atom.potential)
+    N = num_electrons(atom)
+    write(io, "Atom{$(ΦT),$(B)}($(atom.potential); $(N) e⁻ ⇒ Q = $(Z-N)) with ")
     TC != C && write(io, "$(length(atom.channels)) $(TC)s expanded over ")
     write(io, "$(length(atom.csfs)) CSF")
     length(atom.csfs) > 1 && write(io, "s")
