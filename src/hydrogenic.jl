@@ -71,8 +71,9 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
         end
 
         print_block(io) do io
-            linefmt = FormatExpr("{1:>4s} {2:12.7f} {3:12.5e}")
-            printfmtln(io, "     {1:12s}  {2:11s}", "Initial norm", "1-n")
+            ml = maximum(length.(string.(atom.orbitals)))
+            linefmt = FormatExpr("{1:$(ml)s} {2:<9.7f} {3:12.5e}")
+            printfmtln(io, "{1:$(ml)s} {2:9s}  {3:11s}", "", "Initial n", "1-n")
             for j in eachindex(atom.orbitals)
                 n₀ = norm(atom[j])
                 normalize!(view(atom, j))
