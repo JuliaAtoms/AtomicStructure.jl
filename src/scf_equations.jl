@@ -16,7 +16,7 @@ Base.show(io::IO, Y::DirectPotential) =
 const ExchangePotential{O,T,B,V} = HFPotential{:exchange,O,T,B,V}
 
 Base.show(io::IO, Y::ExchangePotential) =
-    write(io, "r⁻¹×|$(Y.orbital)⟩Y", to_superscript(Y.k), "($(Y.orbital), ●)")
+    write(io, "|$(Y.orbital)⟩r⁻¹×Y", to_superscript(Y.k), "($(Y.orbital), ●)")
 
 mutable struct OrbitalSplitHamiltonian{T,ΦT, #<:RadialCoeff{T},
                                        B<:AbstractQuasiMatrix,
@@ -28,6 +28,19 @@ mutable struct OrbitalSplitHamiltonian{T,ΦT, #<:RadialCoeff{T},
     cL̂::T
     direct_potentials::Vector{Pair{DirectPotential{O,ΦT,B,V},T}}
     exchange_potentials::Vector{Pair{ExchangePotential{O,ΦT,B,V},T}}
+end
+
+function Base.show(io::IO, hamiltonian::OrbitalSplitHamiltonian{T}) where T
+    hamiltonian.cL̂ != one(T) && show(io, hamiltonian.cL̂)
+    write(io, "𝓛")
+    for (p,c) in hamiltonian.direct_potentials
+        s = sign(c)
+        write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
+    end
+    for (p,c) in hamiltonian.exchange_potentials
+        s = sign(c)
+        write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
+    end
 end
 
 # const OrbitalHamiltonian{T,ΦT,B,O} = Union{OrbitalSplitHamiltonian{T,ΦT,B,O},RadialOperator{T,B}}
@@ -104,11 +117,6 @@ function HFEquation(atom::A, equation::E, orbital::O) where {T,ΦT, #<:RadialCoe
             throw(ArgumentError("Unknown Hartree–Fock equation term $(t)"))
         end
     end
-    println()
-
-    display(direct_potentials)
-    display(exchange_potentials)
-    println()
 
     hamiltonian = OrbitalSplitHamiltonian(L̂, cL̂, direct_potentials, exchange_potentials)
 
@@ -129,10 +137,8 @@ energy(hfeq::HFEquation{E,O,M}) where {E,O,M} =
     Inf # materialize(hfeq.ϕ' ⋆ hfeq.hamiltonian ⋆ hfeq.ϕ)[1]
 
 function Base.show(io::IO, hfeq::HFEquation)
-    eng = energy(hfeq)
-    write(io, "Hartree–Fock equation: 0 = (E[$(hfeq.orbital)] - 𝓗 )|$(hfeq.orbital)⟩ = ")
-    show(io, hfeq.equation)
-    write(io, "\n   ⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(energy(hfeq))")
+    write(io, "Hartree–Fock equation: 0 = [𝓗  - E($(hfeq.orbital))]|$(hfeq.orbital)⟩ = [$(hfeq.hamiltonian) - E($(hfeq.orbital))]|$(hfeq.orbital)⟩")
+    write(io, "\n    ⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(energy(hfeq))")
 end
 
 # * Setup Hartree–Fock equations
