@@ -6,7 +6,7 @@ version = "0.3.2"
 
 [[AngularMomentumAlgebra]]
 deps = ["AtomicLevels", "Formatting", "LaTeXStrings", "LightGraphs", "LinearAlgebra", "Parameters", "Printf", "Symbolics", "TikzGraphs", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "2d8b9f728bdebeceead49b9217040f6b92f4b352"
+git-tree-sha1 = "effaec8d4300fa6c96b4e5ebc652b250366a2c45"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -281,7 +281,7 @@ version = "0.2.0"
 
 [[SCF]]
 deps = ["ContinuumArrays", "Formatting", "LinearAlgebra", "SolverTraces", "UnicodeFun"]
-git-tree-sha1 = "81f61960faf3a72b34524fa8a300e592c6effa58"
+git-tree-sha1 = "37a67a8139915a03e03481ab8cb58ea5a397fa96"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"

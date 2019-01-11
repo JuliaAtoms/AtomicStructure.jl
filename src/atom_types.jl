@@ -23,7 +23,7 @@ function Base.similar(v::RO) where {T,B,RO<:Union{RadialOrbital{T,B},RadialOrbit
     R*similar(u)
 end
 
-const RadialOperator{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractMatrix,<:QuasiAdjoint{<:Any,<:B}}}}
+const RadialOperator{T<:RadialCoeff,B<:AbstractQuasiMatrix,M<:AbstractMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,M,<:QuasiAdjoint{<:Any,<:B}}}}
 matrix(o::RadialOperator) = o.mul.factors[2]
 
 function Base.:(+)(a::RadialOperator{T,B}, b::RadialOperator{T,B}) where {T,B}

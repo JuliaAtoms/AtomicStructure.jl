@@ -1,49 +1,4 @@
-# * Hartree–Fock operators
-
-mutable struct HFPotential{kind,O,T,B,V<:RadialOrbital{T,B}}
-    k::Int
-    orbital::O
-    v::V
-end
-HFPotential(kind::Symbol, k::Int, orbital::O, v::V) where {O,T,B,V<:RadialOrbital{T,B}} =
-    HFPotential{kind,O,T,B,V}(k, orbital, v)
-
-const DirectPotential{O,T,B,V} = HFPotential{:direct,O,T,B,V}
-
-Base.show(io::IO, Y::DirectPotential) =
-    write(io, "r⁻¹×Y", to_superscript(Y.k), "($(Y.orbital), $(Y.orbital))")
-
-const ExchangePotential{O,T,B,V} = HFPotential{:exchange,O,T,B,V}
-
-Base.show(io::IO, Y::ExchangePotential) =
-    write(io, "|$(Y.orbital)⟩r⁻¹×Y", to_superscript(Y.k), "($(Y.orbital), ●)")
-
-mutable struct OrbitalSplitHamiltonian{T,ΦT, #<:RadialCoeff{T},
-                                       B<:AbstractQuasiMatrix,
-                                       O<:AbstractOrbital,
-                                       # RO<:RadialOperator{ΦT,B},
-                                       LT, #<:Union{RO,NTuple{<:Any,RO}},
-                                       V<:RadialOrbital{ΦT,B}}
-    L̂::LT
-    cL̂::T
-    direct_potentials::Vector{Pair{DirectPotential{O,ΦT,B,V},T}}
-    exchange_potentials::Vector{Pair{ExchangePotential{O,ΦT,B,V},T}}
-end
-
-function Base.show(io::IO, hamiltonian::OrbitalSplitHamiltonian{T}) where T
-    hamiltonian.cL̂ != one(T) && show(io, hamiltonian.cL̂)
-    write(io, "𝓛")
-    for (p,c) in hamiltonian.direct_potentials
-        s = sign(c)
-        write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
-    end
-    for (p,c) in hamiltonian.exchange_potentials
-        s = sign(c)
-        write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
-    end
-end
-
-# const OrbitalHamiltonian{T,ΦT,B,O} = Union{OrbitalSplitHamiltonian{T,ΦT,B,O},RadialOperator{T,B}}
+# * Hartree–Fock equation
 
 mutable struct HFEquation{T, ΦT, #<:RadialCoeff{T},
                           B<:AbstractQuasiMatrix,
@@ -81,44 +36,64 @@ function HFEquation(atom::A, equation::E, orbital::O) where {T,ΦT, #<:RadialCoe
                                                              E<:Symbolic}
     R = radial_basis(atom)
 
-    L̂ = one_body_hamiltonian(atom, orbital)
-    cL̂ = one(T)
+    ĥ = one_body_hamiltonian(atom, orbital)
 
     eq_terms = equation_terms(equation)
     korb = Ket(orbital)
 
-    direct_potentials,exchange_potentials = map([:direct,:exchange]) do kind
-        pred = t -> (isproportional(t, SlaterPotential) &&
-                     ((kind == :direct) ⊻ isexchange(findfactor(t, SlaterPotential), orbital)))
-        map(filter(pred, eq_terms)) do t
-            Y = findfactor(t, SlaterPotential)
-            k = log(Y)
-            other = Y.a == orbital ? Y.b : Y.a
-            v = view(atom, other)
-            c = convert(T, (t*Sym(:r)/Y)/(kind == :direct ? korb : Ket(other)))
-
-            HFPotential(kind, k, other, v) => c
-        end
-    end
+    OV = typeof(view(atom, 1))
+    PO = typeof(R*Diagonal(Vector{T}(undef, size(R,2)))*R')
+    direct_potentials = Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}()
+    exchange_potentials = Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}()
 
     for t ∈ eq_terms
         args = t.args
         if isproportional(t, LagrangeMultiplier)
             lm = findfactor(t, LagrangeMultiplier)
+            # TODO: Apparently, off-diagonal Lagrange multipliers are
+            # only necessary between orbitals of the same symmetry,
+            # but which are varied separately (or only one of them is
+            # varied, e.g. when 1s is frozen and 2s is varied), and
+            # the other orbital needs to be projected out at each
+            # step. /However/ the rotation may be necessary in any
+            # case, to speed up convergence, since there are
+            # infinitely many solutions.
             isdiagonal(lm) ||
                 throw(ArgumentError("Orbital rotation necessary of off-diagonal Lagrange multipliers ($(lm)) not yet implemented."))
         elseif isproportional(t, Sym(:𝓛))
             isproportional(t, korb) ||
                 throw(ArgumentError("One-body term $(t) not pertaining to orbital under consideration ($(orbital))"))
-            cL̂ = convert(T,(t/korb)/Sym(:𝓛))
+            cL̂ = -convert(T,(t/korb)/Sym(:𝓛))
+            @assert cL̂ ≈ one(T)
         elseif isproportional(t, SlaterPotential)
+            Y = findfactor(t, SlaterPotential)
+            other = Y.a == orbital ? Y.b : Y.a
+            kind = isexchange(Y, orbital) && other != orbital ? :exchange : :direct
+            k = log(Y)
+            v = view(atom, other)
+            # We negate the coefficients of the Slater potentials here
+            # such that ĥ has +1 as coefficient. Furthermore, we
+            # divide by 2, since we want the HF equation to pertain to
+            # singly occupied orbital, i.e. we use ĥ as the one-body
+            # operator, not 𝓛 = 2ĥ. This has no effect on HF
+            # iterations, since we want to converge [H-E]|orb⟩ = 0 –
+            # which is not affected by this choice (E then pertains to
+            # the removal of a single electron from the orbital) – but
+            # it is useful for time propagation later.
+            c = -convert(T, (t*Sym(:r)/Y)/(kind == :direct ? korb : Ket(other)))/2
 
+            pc = HFPotential(kind, k, other, v) => c
+            if kind == :direct
+                push!(direct_potentials, pc)
+            else
+                push!(exchange_potentials, pc)
+            end
         else
             throw(ArgumentError("Unknown Hartree–Fock equation term $(t)"))
         end
     end
 
-    hamiltonian = OrbitalSplitHamiltonian(L̂, cL̂, direct_potentials, exchange_potentials)
+    hamiltonian = OrbitalSplitHamiltonian(ĥ, direct_potentials, exchange_potentials)
 
     HFEquation(atom, equation, orbital, view(atom, orbital), hamiltonian)
 end
@@ -133,15 +108,34 @@ end
 #     # y
 # end
 
-energy(hfeq::HFEquation{E,O,M}) where {E,O,M} =
-    Inf # materialize(hfeq.ϕ' ⋆ hfeq.hamiltonian ⋆ hfeq.ϕ)[1]
+energy(hfeq::HFEquation{E,O,M}) where {E,O,M} = (hfeq.ϕ' * hfeq.hamiltonian * hfeq.ϕ)[1]
 
 function Base.show(io::IO, hfeq::HFEquation)
     write(io, "Hartree–Fock equation: 0 = [𝓗  - E($(hfeq.orbital))]|$(hfeq.orbital)⟩ = [$(hfeq.hamiltonian) - E($(hfeq.orbital))]|$(hfeq.orbital)⟩")
-    write(io, "\n    ⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(energy(hfeq))")
+    write(io, "\n    ⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(energy(hfeq)) + correlation (not yet implemented)")
 end
 
 # * Setup Hartree–Fock equations
+
+function hf_equations(csf::NonRelativisticCSF, eng::Number; verbosity=0)
+    pconfig = peel(csf.config)
+    orbitals = pconfig.orbitals
+
+    λs = lagrange_multipliers(orbitals)
+    eng += λs
+
+    if verbosity > 2
+        println("Orbitals: $(orbitals)")
+        println("Lagrange multipliers: $(λs)")
+    end
+    verbosity > 1 && println("E = $eng\n")
+
+    map(pconfig) do (orb,occ,state)
+        equation = diff(eng, orb, occ)
+        verbosity > 2 && println("\n∂[$(orb)] E = $(equation)")
+        orb => equation
+    end
+end
 
 """
     hf_equations(csf[; verbosity=0])
@@ -152,35 +146,32 @@ assumed spectroscopic, i.e. they are all assigned Lagrange multipliers
 to ensure their orthonormality. Additionally, orbitals of the same `ℓ`
 but different `n` are assigned off-diagonal Lagrange multipliers.
 """
-function hf_equations(atom::Atom, csf::NonRelativisticCSF; verbosity=0)
+function hf_equations(csf::NonRelativisticCSF; verbosity=0)
     verbosity > 0 &&
         println("Deriving HF equations for $(csf)")
 
-    orbitals = csf.config.orbitals
     # energy_expression has to be provided by an angular momentum
     # library.
     eng = energy_expression(csf; verbosity=verbosity-3)[2][1]
-    λs = lagrange_multipliers(orbitals)
-    eng += λs
-
-    if verbosity > 2
-        println("Orbitals: $(orbitals)")
-        println("Lagrange multipliers: $(λs)")
-    end
-    verbosity > 1 && println("E = $eng\n")
-
-    map(peel(csf.config)) do (orb,occ,state)
-        hf_eq = diff(eng, orb, occ)
-        verbosity > 2 && println("∂[$(orb)] E = $(hf_eq)")
-        HFEquation(atom, hf_eq, orb)
-    end
+    hf_equations(csf, eng; verbosity=verbosity)
 end
 
-function Base.diff(atom::Atom; kwargs...)
+"""
+    diff(atom)
+
+Differentiate the energy expression associated with the `atom`'s
+CSF(s) with respect to the atomic orbitals to derive the Hartree–Fock
+equations for the orbitals.
+"""
+function Base.diff(atom::Atom; verbosity=0)
     length(atom.csfs) > 1 &&
         throw(ArgumentError("Cannot derive Hartree–Fock equations for a multi-configurational atom"))
 
-    hf_equations(atom, atom.csfs[1]; kwargs...)
+    map(hf_equations(atom.csfs[1]; verbosity=verbosity)) do (orb,equation)
+        hfeq = HFEquation(atom, equation, orb)
+        verbosity > 2 && println(hfeq)
+        hfeq
+    end
 end
 
 Base.view(fock::Fock{A,E}, args...) where {A<:Atom,E} =
