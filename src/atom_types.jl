@@ -150,6 +150,21 @@ Base.view(atom::Atom, j::I) where {I<:Integer} =
 Base.view(atom::Atom{T,ΦT,B,O}, orb::O) where {T,ΦT,B,O} =
     view(atom, orbital_index(atom, orb))
 
+"""
+    norm(atom[, p=2; csf=1])
+
+This calculates the _amplitude_ norm of the `atom`, i.e. ᵖ√N where N is
+the number electrons. By default, it uses the first `csf` of the
+`atom` to weight the individual orbital norms.
+"""
+function LinearAlgebra.norm(atom::Atom{T}, p::Real=2; csf::Int=1) where T
+    n = zero(T)
+    for (orb,occ,state) in atom.csfs[csf].config
+        n += occ*norm(view(atom, orb), p)^p
+    end
+    n^(one(T)/p) # Unsure why you'd ever want anything but the 2-norm, but hey
+end
+
 # The idea behind the `convert` functions below is the following: it
 # is possible to convert along the chain CSF -> Level -> State (but
 # not the other direction), and at each step, the expansion
