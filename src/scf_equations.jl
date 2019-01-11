@@ -18,11 +18,11 @@ const ExchangePotential{O,T,B,V} = HFPotential{:exchange,O,T,B,V}
 Base.show(io::IO, Y::ExchangePotential) =
     write(io, "r⁻¹×|$(Y.orbital)⟩Y", to_superscript(Y.k), "($(Y.orbital), ●)")
 
-mutable struct OrbitalSplitHamiltonian{T,ΦT<:RadialCoeff{T},
+mutable struct OrbitalSplitHamiltonian{T,ΦT, #<:RadialCoeff{T},
                                        B<:AbstractQuasiMatrix,
                                        O<:AbstractOrbital,
-                                       RO<:RadialOperator{ΦT,B},
-                                       LT<:Union{RO,NTuple{<:Any,RO}},
+                                       # RO<:RadialOperator{ΦT,B},
+                                       LT, #<:Union{RO,NTuple{<:Any,RO}},
                                        V<:RadialOrbital{ΦT,B}}
     L̂::LT
     cL̂::T
@@ -30,14 +30,15 @@ mutable struct OrbitalSplitHamiltonian{T,ΦT<:RadialCoeff{T},
     exchange_potentials::Vector{Pair{ExchangePotential{O,ΦT,B,V},T}}
 end
 
-const OrbitalHamiltonian{T,ΦT,B,O} = Union{OrbitalSplitHamiltonian{T,ΦT,B,O},RadialOperator{T,B}}
+# const OrbitalHamiltonian{T,ΦT,B,O} = Union{OrbitalSplitHamiltonian{T,ΦT,B,O},RadialOperator{T,B}}
 
-mutable struct HFEquation{T, ΦT<:RadialCoeff{T},
+mutable struct HFEquation{T, ΦT, #<:RadialCoeff{T},
                           B<:AbstractQuasiMatrix,
                           O<:AbstractOrbital,
                           A<:Atom{T,ΦT,B,O},
                           E<:Symbolic,
-                          M<:OrbitalHamiltonian{T,ΦT,B,O}}
+                          M# <:OrbitalHamiltonian{T,ΦT,B,O}
+                          }
     atom::A
     equation::E
     orbital::O
@@ -60,7 +61,7 @@ isproportional(equation::SymExpr, s::Number) =
 findfactor(equation::SymExpr, ::Type{T}) where T =
     equation.args[findfirst(a -> a isa T, equation.args)]
 
-function HFEquation(atom::A, equation::E, orbital::O) where {T,ΦT<:RadialCoeff{T},
+function HFEquation(atom::A, equation::E, orbital::O) where {T,ΦT, #<:RadialCoeff{T},
                                                              B<:AbstractQuasiMatrix,
                                                              O<:AbstractOrbital,
                                                              A<:Atom{T,ΦT,B,O},
