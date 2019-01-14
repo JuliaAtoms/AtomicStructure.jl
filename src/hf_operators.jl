@@ -40,6 +40,23 @@ Base.show(io::IO, Y::ExchangePotential) =
 
 update!(p::ExchangePotential) = p
 
+# ** Krylov wrapper
+mutable struct KrylovWrapper{T,B<:AbstractQuasiMatrix,Hamiltonian}
+    R::B
+    hamiltonian::Hamiltonian
+end
+
+Base.eltype(A::KrylovWrapper{T}) where T = T
+Base.size(A::KrylovWrapper) = (size(A.R,2),size(A.R,2))
+Base.size(A::KrylovWrapper, i) = size(A)[i]
+
+function Base.show(io::IO, kw::KrylovWrapper{T,B,Hamiltonian}) where {T,B,Hamiltonian}
+    write(io, "KrylovWrapper{$T} of size $(size(kw))")
+end
+
+LinearAlgebra.mul!(y::V, A::KrylovWrapper{T,B,Hamiltonian}, x::V) where {V,T,B,Hamiltonian} =
+    copyto!(A.R*y, A.hamiltonian⋆(A.R*x))
+
 # ** Split Hamiltonian
 
 mutable struct OrbitalSplitHamiltonian{T,ΦT, #<:RadialCoeff{T},
@@ -72,7 +89,7 @@ end
 
 # const OrbitalHamiltonian{T,ΦT,B,O} = Union{OrbitalSplitHamiltonian{T,ΦT,B,O},RadialOperator{T,B}}
 
-# ** Materialization
+# *** Materialization
 
 const OrbitalSplitHamiltonianMatrixElement{T,ΦT<:RadialCoeff{T},V<:AbstractVector,B<:AbstractQuasiMatrix} =
     Mul{<:Tuple,<:Tuple{<:Adjoint{T,V},<:QuasiAdjoint{T,B},<:OrbitalSplitHamiltonian{T,ΦT,B},B,V}}
@@ -110,4 +127,11 @@ LazyArrays.materialize(matvec::OrbitalSplitHamiltonianMatrixVectorProduct{T,ΦT,
 function LazyArrays.materialize(matel::OrbitalSplitHamiltonianMatrixElement{T,ΦT,V,B}) where {T,ΦT,V,B}
     a,R′,O,R,b = matel.factors
     a*R′*materialize(O⋆R⋆b)
+end
+
+# *** Krylov wrapper
+
+function KrylovWrapper(hamiltonian::OrbitalSplitHamiltonian{T,ΦT,B,O,PO,LT,OV}) where {T,ΦT,B,O,PO,LT,OV}
+    R = hamiltonian.ĥ.mul.factors[1]
+    KrylovWrapper{ΦT,B,OrbitalSplitHamiltonian{T,ΦT,B,O,PO,LT,OV}}(R, hamiltonian)
 end

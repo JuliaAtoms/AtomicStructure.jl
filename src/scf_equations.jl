@@ -179,6 +179,25 @@ Base.view(fock::Fock{A,E}, args...) where {A<:Atom,E} =
 
 # * Solve one iteration of the Hartree–Fock equations
 
-function LinearAlgebra.ldiv!(fock::Fock{A,E}, c::M) where {A<:Atom,E,M<:AbstractMatrix}
-    c .= rand() # Bogus solution of secular equations
+function LinearAlgebra.ldiv!(fock::Fock{A,E}, c::M;
+                             verbosity=0, method=:arnoldi,
+                             tol=1e-10, kwargs...) where {A<:Atom,E,M<:AbstractVecOrMat}
+    verbosity > 0 && println("Solving secular equations using $(method)")
+    atom = fock.quantum_system
+    for (j,eq) in enumerate(fock.equations)
+        verbosity > 1 && println(eq)
+        # Ideally, all direct potentials should be shared among the
+        # equations, such that they are only calculated once per
+        # iteration.
+        update!(eq.hamiltonian)
+        if method==:arnoldi
+            A = KrylovWrapper(eq.hamiltonian)
+            verbosity > 2 && println(A)
+            schur,history = partialschur(A, nev=1, tol=tol, which=SR())
+            verbosity > 2 && println(history)
+        else
+            throw(ArgumentError("Unknown diagonalization method $(method)"))
+        end
+    end
+    fock
 end
