@@ -191,9 +191,9 @@ function LinearAlgebra.ldiv!(fock::Fock{A,E}, c::M;
         # iteration.
         update!(eq.hamiltonian)
         if method==:arnoldi
-            A = KrylovWrapper(eq.hamiltonian)
-            verbosity > 2 && println(A)
-            schur,history = partialschur(A, nev=1, tol=tol, which=SR())
+            K = KrylovWrapper(eq.hamiltonian)
+            verbosity > 2 && println(K)
+            schur,history = partialschur(K, nev=1, tol=tol, which=SR())
             verbosity > 2 && println(history)
         else
             throw(ArgumentError("Unknown diagonalization method $(method)"))
