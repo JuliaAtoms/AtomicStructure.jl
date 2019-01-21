@@ -5,8 +5,8 @@ uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
 version = "0.3.2"
 
 [[AngularMomentumAlgebra]]
-deps = ["AtomicLevels", "Formatting", "LaTeXStrings", "LightGraphs", "LinearAlgebra", "Parameters", "Printf", "Symbolics", "TikzGraphs", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "effaec8d4300fa6c96b4e5ebc652b250366a2c45"
+deps = ["AtomicLevels", "AutoHashEquals", "Combinatorics", "Formatting", "LaTeXStrings", "LightGraphs", "LinearAlgebra", "Parameters", "Printf", "SparseArrays", "Symbolics", "TikzGraphs", "Unicode", "UnicodeFun", "WignerSymbols"]
+git-tree-sha1 = "bac26dda59a8bd24156240b433b52bef7d40745e"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -19,12 +19,17 @@ uuid = "ec485272-7323-5ecc-a04f-4719b315124d"
 version = "0.0.4"
 
 [[AtomicLevels]]
-deps = ["BlockBandedMatrices", "Formatting", "Parameters", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "c2693da77f768524f0f0f3ed7d83cb5d25a98d84"
+deps = ["BlockBandedMatrices", "Combinatorics", "Formatting", "Parameters", "UnicodeFun", "WignerSymbols"]
+git-tree-sha1 = "5c5dfdcdad7d2c6e26638a3d804735f232725474"
 repo-rev = "revamp"
 repo-url = "https://github.com/JuliaAtoms/AtomicLevels.jl.git"
 uuid = "10933b4c-d60f-11e8-1fc6-bd9035a249a1"
 version = "0.1.0"
+
+[[AutoHashEquals]]
+git-tree-sha1 = "45bb6705d93be619b81451bb2006b7ee5d4e4453"
+uuid = "15f4f7f2-30c1-5605-9d31-71845cf9641f"
+version = "0.2.0"
 
 [[BandedMatrices]]
 deps = ["FillArrays", "LazyArrays", "LinearAlgebra", "Random", "SparseArrays", "Test"]
@@ -58,6 +63,12 @@ deps = ["BandedMatrices", "BlockArrays", "Distributed", "FillArrays", "LazyArray
 git-tree-sha1 = "9afde8e994241a0d51fbea6eb2d5313ac4a6a944"
 uuid = "ffab5731-97b5-5995-9138-79e8c1846df0"
 version = "0.3.2"
+
+[[Combinatorics]]
+deps = ["LinearAlgebra", "Polynomials", "Test"]
+git-tree-sha1 = "50b3ae4d643dc27eaff69fb6be06ee094d5500c9"
+uuid = "861a8166-3701-5b0c-9a16-15d98fcdc6aa"
+version = "0.7.0"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
@@ -241,9 +252,9 @@ uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[Polynomials]]
 deps = ["LinearAlgebra", "SparseArrays", "Test"]
-git-tree-sha1 = "1a1eae52956658a6acae6fa1b6d6c3d488192895"
+git-tree-sha1 = "62142bd65d3f8aeb2226ec64dd8493349147df94"
 uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
-version = "0.5.1"
+version = "0.5.2"
 
 [[Primes]]
 deps = ["Test"]
@@ -281,7 +292,7 @@ version = "0.2.0"
 
 [[SCF]]
 deps = ["ContinuumArrays", "Formatting", "LinearAlgebra", "SolverTraces", "UnicodeFun"]
-git-tree-sha1 = "37a67a8139915a03e03481ab8cb58ea5a397fa96"
+git-tree-sha1 = "9906d970e5b54815bdd3e88576cd3ef8fe360bb7"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"
@@ -335,8 +346,8 @@ deps = ["LinearAlgebra", "SparseArrays"]
 uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [[Symbolics]]
-deps = ["DataStructures", "DiffRules", "Lazy", "LinearAlgebra", "Match", "SpecialFunctions", "Test"]
-git-tree-sha1 = "14e15eca15163636966ee045a48e6eaace43db92"
+deps = ["DataStructures", "DiffRules", "LaTeXStrings", "Lazy", "LinearAlgebra", "Match", "Printf", "SpecialFunctions", "Test"]
+git-tree-sha1 = "2b00cdd120e70304d38a1578a9ebda5c98f3768b"
 repo-rev = "master"
 repo-url = "https://github.com/MasonProtter/Symbolics.jl.git"
 uuid = "6ab9bfca-32f0-5769-8e9c-ef83b29e602a"
@@ -391,6 +402,6 @@ version = "1.1.3"
 
 [[WignerSymbols]]
 deps = ["LinearAlgebra", "Primes", "Test"]
-git-tree-sha1 = "66da5f3ac23d153bdb7892ceafe031bb0e05e701"
+git-tree-sha1 = "f7dc002bdfe862713ba7698bef239290248cd81a"
 uuid = "9f57e263-0b3d-5e2e-b1be-24f2bb48858b"
-version = "0.2.0"
+version = "0.3.0"
