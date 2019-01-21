@@ -53,5 +53,14 @@ using Test
             @test length(fock.equations) == 1
             @test isapprox(energy(fock.equations[1]), -0.5, atol=2e-5)
         end
+
+        @testset "Helium" begin
+            nucleus = pc"He"
+            R = RadialDifferences(N, ρ, charge(nucleus))
+            atom = Atom(R, spin_configurations(c"1s2"), nucleus, verbosity=Inf)
+
+            fock = Fock(atom; verbosity=Inf)
+            scf!(fock, ω=2/3, verbosity=Inf)
+        end
     end
 end

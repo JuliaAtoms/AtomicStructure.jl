@@ -4,7 +4,7 @@ mutable struct HFEquation{T, ΦT, #<:RadialCoeff{T},
                           B<:AbstractQuasiMatrix,
                           O<:AbstractOrbital,
                           A<:Atom{T,ΦT,B,O},
-                          E<:Symbolic,
+                          E,
                           M# <:OrbitalHamiltonian{T,ΦT,B,O}
                           }
     atom::A
@@ -98,6 +98,56 @@ function HFEquation(atom::A, equation::E, orbital::O) where {T,ΦT, #<:RadialCoe
     HFEquation(atom, equation, orbital, view(atom, orbital), hamiltonian)
 end
 
+function multipole_expand_coulomb(a::SpinOrbital, b::SpinOrbital)
+    [0 => 1.0]
+end
+
+function HFEquation(atom::A, (one_body,two_body)::E, orbital::O) where {T,ΦT, #<:RadialCoeff{T},
+                                                                        B<:AbstractQuasiMatrix,
+                                                                        O<:AbstractOrbital,
+                                                                        A<:Atom{T,ΦT,B,O},
+                                                                        E<:Tuple{Vector{<:OneBodyHamiltonian},Vector{<:DirectExchangePotentials}}}
+    R = radial_basis(atom)
+
+    ĥ = one_body_hamiltonian(atom, orbital)
+
+    korb = Ket(orbital)
+
+    OV = typeof(view(atom, 1))
+    PO = typeof(R*Diagonal(Vector{T}(undef, size(R,2)))*R')
+    direct_potentials = Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}()
+    exchange_potentials = Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}()
+
+    println(O)
+
+    count(iszero.(one_body)) == 1 ||
+        throw(ArgumentError("There can only be one one-body Hamiltonian per orbital"))
+
+    all(AngularMomentumAlgebra.isdiagonal.(two_body)) ||
+        throw(ArgumentError("Non-diagonal repulsion potentials not yet supported"))
+
+    for tb ∈ two_body
+        tb.o.v == orbital ||
+            throw(ArgumentError("Repulsion potential $(tb) not pertaining to $(orbital)"))
+
+        other = tb.a
+        v = view(atom, other)
+
+        for (k,c) in multipole_expand_coulomb(tb.a, tb.b)
+            push!(direct_potentials,
+                  HFPotential(:direct, k, other, v) => c)
+        end
+        for (k,c) in multipole_expand_coulomb(tb.a, tb.o.v)
+            push!(exchange_potentials,
+                  HFPotential(:exchange, k, other, v) => c)
+        end
+    end
+
+    hamiltonian = OrbitalSplitHamiltonian(ĥ, direct_potentials, exchange_potentials)
+
+    HFEquation(atom, (one_body,two_body), orbital, view(atom, orbital), hamiltonian)
+end
+
 # # We only define the action of the Hamiltonian on an arbitrary
 # # vector. The solution of the equation is implemented via iterative
 # # eigenfactorization.
@@ -156,6 +206,17 @@ function hf_equations(csf::NonRelativisticCSF; verbosity=0)
     hf_equations(csf, eng; verbosity=verbosity)
 end
 
+function hf_equations(config::Configuration{O}; verbosity=0) where {O<:SpinOrbital}
+    verbosity > 0 &&
+        println("Deriving HF equations for $(config)")
+    h = one_body_hamiltonian_matrix(O, [config])[1]
+    HC = two_body_hamiltonian_matrix(O, [config])[1]
+    map(config.orbitals) do orb
+        corb = Conjugate(orb)
+        orb,(diff.(h.integrals, Ref(corb)), diff.(HC.integrals, Ref(corb)))
+    end
+end
+
 """
     diff(atom)
 
@@ -164,10 +225,11 @@ CSF(s) with respect to the atomic orbitals to derive the Hartree–Fock
 equations for the orbitals.
 """
 function Base.diff(atom::Atom; verbosity=0)
-    length(atom.csfs) > 1 &&
+    length(atom.configurations) > 1 &&
         throw(ArgumentError("Cannot derive Hartree–Fock equations for a multi-configurational atom"))
 
-    map(hf_equations(atom.csfs[1]; verbosity=verbosity)) do (orb,equation)
+    map(hf_equations(atom.configurations[1]; verbosity=verbosity)) do (orb,equation)
+        verbosity > 3 && display(equation)
         hfeq = HFEquation(atom, equation, orb)
         verbosity > 2 && println(hfeq)
         hfeq
