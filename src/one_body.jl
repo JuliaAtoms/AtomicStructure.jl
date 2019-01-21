@@ -5,7 +5,7 @@ function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,T,B,O,TC,C,CM}, orb::O
     Tm = R'D'D*R
     Tm /= -2
 
-    ℓ = orb.ℓ
+    ℓ = getℓ(orb)
     
     V = Matrix(r -> ℓ*(ℓ+1)/(2r^2) + atom.potential(orb, r), R)
 

@@ -27,7 +27,7 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
         # ℓ- and s-dependent.
         orbitals = Dict{Int,Vector{O}}()
         for orb in atom.orbitals
-            orbitals[orb.ℓ] = vcat(get(orbitals, orb.ℓ, O[]), orb)
+            orbitals[getℓ(orb)] = vcat(get(orbitals, getℓ(orb), O[]), orb)
         end
 
         Z = charge(atom.potential)
@@ -46,7 +46,7 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
                 Iₚℓ = hydrogen_like_eng(min_n)
                 σ = 2Iₚℓ
 
-                max_n = maximum(o -> o.n, orbitals[ℓ])
+                max_n = maximum(getn, orbitals[ℓ])
                 nev = max_n - ℓ
 
                 verbosity > 1 &&
@@ -58,7 +58,7 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
                 λᴴ,Φᴴ = diagonalize_one_body(H, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
                 for orb in orbitals[ℓ]
                     j = findfirst(isequal(orb), atom.orbitals)
-                    copyto!(view(Φ, :, j), view(Φᴴ, :, orb.n-ℓ))
+                    copyto!(view(Φ, :, j), view(Φᴴ, :, getn(orb)-ℓ))
                 end
 
                 if verbosity > 2
@@ -85,18 +85,18 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
         end
         if verbosity > 3
             print_block(io) do io
-                ncsfs = min(10, length(atom.csfs))
-                ml = maximum(length.(string.(atom.csfs)))
-                csffmt = "{1:<$(ml+3)s}"
-                linefmt = FormatExpr("$(csffmt) {2:7.5f} {3:12.5e}")
+                nconfigs = min(10, length(atom.configurations))
+                ml = maximum(length.(string.(atom.configurations)))
+                configfmt = "{1:<$(ml+3)s}"
+                linefmt = FormatExpr("$(configfmt) {2:7.5f} {3:12.5e}")
                 N = num_electrons(atom)
-                printfmtln(io, "$(csffmt) {2:7s}  {3:11s} ", "CSF", "√N", "$(N)-N²")
-                for (i,csf) in enumerate(atom.csfs)
-                    i > ncsfs && break
-                    n = norm(atom, csf=i)
-                    printfmtln(io, linefmt, csf, n, N-n^2)
+                printfmtln(io, "$(configfmt) {2:7s}  {3:11s} ", "Cfg", "√N", "$(N)-N²")
+                for (i,config) in enumerate(atom.configurations)
+                    i > nconfigs && break
+                    n = norm(atom, configuration=i)
+                    printfmtln(io, linefmt, config, n, N-n^2)
                 end
-                length(atom.csfs) > ncsfs && println(io, "⋮")
+                length(atom.configurations) > nconfigs && println(io, "⋮")
             end
         end
     end

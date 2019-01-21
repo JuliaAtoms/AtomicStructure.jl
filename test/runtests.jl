@@ -25,8 +25,14 @@ using Test
         @testset "Helium" begin
             nucleus = pc"He"
             R=RadialDifferences(N, ρ, charge(nucleus))
-            atom = Atom(R, csfs([c"1s2", c"1s 2s", c"1s 2p", c"3s 3p", c"4s 3d", c"5s 5d"]),
-                        nucleus, verbosity=4)
+            @testset "CSFs" begin
+                atom = Atom(R, csfs([c"1s2", c"1s 2s", c"1s 2p", c"3s 3p", c"4s 3d", c"5s 5d"]),
+                            nucleus, verbosity=4)
+            end
+            @testset "Spin-configurations" begin
+                atom = Atom(R, spin_configurations([c"1s2", c"1s 2s", c"1s 2p", c"3s 3p", c"4s 3d", c"5s 5d"]),
+                            nucleus, verbosity=4)
+            end
         end
     end
 
@@ -38,7 +44,7 @@ using Test
 
             # Set up energy expression manually.
             eng = DiagonalIntegral(o"1s")
-            equations = map(Atoms.hf_equations(first(atom.csfs), eng)) do (orb,equation)
+            equations = map(Atoms.hf_equations(first(atom.configurations), eng)) do (orb,equation)
                 Atoms.HFEquation(atom, equation, orb)
             end
 

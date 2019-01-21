@@ -1,9 +1,14 @@
-# A channel represents the quantum numbers necessary to represtent a
+# A many-electron wave function configuration can either be given as a
+# CSF (summed over spins) or a configuration of spin-orbitals (where
+# all quantum numbers are specified).
+const ManyElectronWavefunction{O<:AbstractOrbital} = Union{CSF{O},Configuration{<:SpinOrbital}}
+
+# A channel represents the quantum numbers necessary to represent a
 # physical state of the many-electron wavefunction. Which quantum
 # numbers are necessary depends on the problem under consideration
 # (which symmetries/degeneracies are present).
 
-const Channel{O<:AbstractOrbital,IT,TT} = Union{CSF{O,IT,TT},Level{O,IT,TT},State{O,IT,TT}}
+const Channel{O<:AbstractOrbital,IT,TT} = Union{CSF{O,IT,TT},Level{O,IT,TT},State{O,IT,TT},Configuration{<:SpinOrbital}}
 const NonRelativisticChannel = Channel{Orbital,IntermediateTerm,Term}
 const RelativisticChannel = Channel{RelativisticOrbital,HalfInteger,HalfInteger}
 
@@ -31,65 +36,70 @@ function Base.:(+)(a::RadialOperator{T,B}, b::RadialOperator{T,B}) where {T,B}
     R*(matrix(a) + matrix(b))*R'
 end
 
-# An atom constitutes a set of single-electron radial orbitals, CSFs
-# which are comprised of anti-symmetrized combinations of such
-# orbitals, and channels which are linear combinations of CSFs. The
-# expansion coefficients of said channels are stored in a matrix,
-# where each row corresponds to a channel and each column to CSF. In
-# case the channels are CSFs, this matrix is the identity matrix.
+# An atom constitutes a set of single-electron radial orbitals,
+# ManyElectronWavefunction:s which are comprised of anti-symmetrized
+# combinations of such orbitals, and channels which are linear
+# combinations of ManyElectronWavefunction:s. The expansion
+# coefficients of said channels are stored in a matrix, where each row
+# corresponds to a channel and each column to
+# ManyElectronWavefunction. In case the channels are
+# ManyElectronWavefunction:s, this matrix is the identity matrix.
 #
 # The potential can be used to model either the nucleus by itself (a
 # point charge or a nucleus of finite extent) or the core orbitals
 # (i.e. a pseudo-potential).
 
-mutable struct Atom{T,ΦT<:RadialCoeff{T},B<:AbstractQuasiMatrix,O<:AbstractOrbital,TC<:CSF,C<:Channel,CM<:AbstractMatrix{T},P<:AbstractPotential}
+mutable struct Atom{T,ΦT<:RadialCoeff{T},B<:AbstractQuasiMatrix,O<:AbstractOrbital,TC<:ManyElectronWavefunction,C<:Channel,CM<:AbstractMatrix{T},P<:AbstractPotential}
     radial_orbitals::RadialOrbitals{ΦT,B}
     orbitals::Vector{O}
-    csfs::Vector{TC}
-    csf_orbital_indices::SparseMatrixCSC{Int}
+    configurations::Vector{TC}
+    config_orbital_indices::SparseMatrixCSC{Int}
     channels::Vector{C}
     coeffs::CM
     potential::P
 end
 
 """
-   get_csf_orbital_indices(orbitals, csfs)
+   get_config_orbital_indices(orbitals, configurations)
 
 Return matrix where each row indicates how many of each orbital the
-corresponding CSF is comprised of.
+corresponding configuration is comprised of.
 """
-function get_csf_orbital_indices(orbitals::Vector{O}, csfs::Vector{TC}) where {O<:AbstractOrbital,TC<:CSF}
-    indices = spzeros(Int, length(csfs), length(orbitals))
-    for (i,csf) in enumerate(csfs)
-        for (orb,occ,state) in csf.config
+function get_config_orbital_indices(orbitals::Vector{O}, configs::Vector{TC}) where {O<:AbstractOrbital,TC<:Configuration}
+    indices = spzeros(Int, length(configs), length(orbitals))
+    for (i,config) in enumerate(configs)
+        for (orb,occ,state) in config
             indices[i,findfirst(isequal(orb), orbitals)] = occ
         end
     end
     indices
 end
 
+get_config(config::Configuration) = config
+get_config(csf::CSF) = csf.config
+
 Atom(radial_orbitals::RadialOrbitals{ΦT,B}, orbitals::Vector{O},
-     csfs::Vector{<:TC}, potential::P) where {T<:Number,ΦT<:RadialCoeff{T},B,O,TC<:CSF,P} =
+     configurations::Vector{<:TC}, potential::P) where {T<:Number,ΦT<:RadialCoeff{T},B,O,TC<:ManyElectronWavefunction,P} =
     Atom{T,ΦT,B,O,TC,TC,Diagonal{T},P}(radial_orbitals, orbitals,
-                                       csfs, get_csf_orbital_indices(orbitals, csfs),
-                                       csfs, Diagonal(ones(T,length(csfs))),
+                                       configurations, get_config_orbital_indices(orbitals, get_config.(configurations)),
+                                       configurations, Diagonal(ones(T,length(configurations))),
                                        potential)
 
-function Atom(::UndefInitializer, ::Type{ΦT}, R::B, csfs::Vector{TC}, potential::P) where {T<:Number,ΦT<:RadialCoeff{T},B<:AbstractQuasiMatrix{T},TC,P}
-    isempty(csfs) &&
-        throw(ArgumentError("At least one CSF required to create an atom"))
-    all(isequal(num_electrons(first(csfs).config)),
-        map(csf -> num_electrons(csf.config), csfs)) ||
-            throw(ArgumentError("All CSFs need to have the same amount of electrons"))
-    orbs = unique_orbitals(csfs)
+function Atom(::UndefInitializer, ::Type{ΦT}, R::B, configurations::Vector{TC}, potential::P) where {T<:Number,ΦT<:RadialCoeff{T},B<:AbstractQuasiMatrix{T},TC,P}
+    isempty(configurations) &&
+        throw(ArgumentError("At least one configuration required to create an atom"))
+    all(isequal(num_electrons(first(configurations))),
+        map(config -> num_electrons(config), configurations)) ||
+            throw(ArgumentError("All configurations need to have the same amount of electrons"))
+    orbs = unique_orbitals(get_config.(configurations))
     Φ = Matrix{ΦT}(undef, size(R,2), length(orbs))
     RΦ = MulQuasiArray{ΦT,2}(Mul(R,Φ))
-    Atom(RΦ, orbs, csfs, potential)
+    Atom(RΦ, orbs, configurations, potential)
 end
 
-function Atom(init::Symbol, ::Type{ΦT}, R::B, csfs::Vector{TC},
+function Atom(init::Symbol, ::Type{ΦT}, R::B, configurations::Vector{TC},
               potential::P; kwargs...) where {T<:Number,ΦT<:RadialCoeff{T},B<:AbstractQuasiMatrix{T},TC,P}
-    atom = Atom(undef, ΦT, R, csfs, potential)
+    atom = Atom(undef, ΦT, R, configurations, potential)
     if init == :hydrogenic
         hydrogenic!(atom; kwargs...)
     else
@@ -99,34 +109,34 @@ end
 
 const DiracAtom{T,B,TC<:RelativisticCSF,C<:RelativisticChannel,CM,P} = Atom{T,TwoComponent{T},B,TC,C,CM,P}
 
-Atom(init::Init, R::B, csfs::Vector{TC}, potential::P; kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC,P<:AbstractPotential} =
-    Atom(init, T, R, csfs, potential; kwargs...)
-DiracAtom(init::Init, R::B, csfs::Vector{TC}, potential::P; kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC<:RelativisticCSF,P<:AbstractPotential} =
-    Atom(init, TwoComponent{T}, R, csfs, potential; kwargs...)
+Atom(init::Init, R::B, configurations::Vector{TC}, potential::P; kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC,P<:AbstractPotential} =
+    Atom(init, T, R, configurations, potential; kwargs...)
+DiracAtom(init::Init, R::B, configurations::Vector{TC}, potential::P; kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC<:RelativisticCSF,P<:AbstractPotential} =
+    Atom(init, TwoComponent{T}, R, configurations, potential; kwargs...)
 
-Atom(R::B, csfs::Vector{TC}, potential::P; kwargs...) where {B<:AbstractQuasiMatrix,TC<:CSF,P<:AbstractPotential} =
-    Atom(:hydrogenic, R, csfs, potential; kwargs...)
+Atom(R::B, configurations::Vector{<:TC}, potential::P; kwargs...) where {B<:AbstractQuasiMatrix,TC<:ManyElectronWavefunction,P<:AbstractPotential} =
+    Atom(:hydrogenic, R, configurations, potential; kwargs...)
 
 AtomicLevels.num_electrons(atom::Atom) =
-    num_electrons(first(atom.csfs).config)
+    num_electrons(first(atom.configurations))
 
 function Base.show(io::IO, atom::Atom{T,ΦT,B,O,TC,C,M,P}) where {T,ΦT,B,O,TC,C,M,P}
     Z = charge(atom.potential)
     N = num_electrons(atom)
     write(io, "Atom{$(ΦT),$(B)}($(atom.potential); $(N) e⁻ ⇒ Q = $(Z-N)) with ")
-    TC != C && write(io, "$(length(atom.channels)) $(TC)s expanded over ")
-    write(io, "$(length(atom.csfs)) CSF")
-    length(atom.csfs) > 1 && write(io, "s")
+    TC != C && write(io, "$(length(atom.channels)) $(C)s expanded over ")
+    write(io, "$(length(atom.configurations)) $(TC)")
+    length(atom.configurations) > 1 && write(io, "s")
 end
 
 function Base.show(io::IO, ::MIME"text/plain", atom::Atom{T,ΦT,B,O,TC,C,M,P}) where {T,ΦT,B,O,TC,C,M,P}
     show(io, atom)
-    if length(atom.csfs) > 1
+    if length(atom.configurations) > 1
         write(io, ":\n")
-        show(io, "text/plain", atom.csfs)
+        show(io, "text/plain", atom.configurations)
     else
         write(io, ": ")
-        show(io, atom.csfs[1])
+        show(io, atom.configurations[1])
     end
 end
 
@@ -151,15 +161,15 @@ Base.view(atom::Atom{T,ΦT,B,O}, orb::O) where {T,ΦT,B,O} =
     view(atom, orbital_index(atom, orb))
 
 """
-    norm(atom[, p=2; csf=1])
+    norm(atom[, p=2; configuration=1])
 
-This calculates the _amplitude_ norm of the `atom`, i.e. ᵖ√N where N is
-the number electrons. By default, it uses the first `csf` of the
-`atom` to weight the individual orbital norms.
+This calculates the _amplitude_ norm of the `atom`, i.e. ᵖ√N where N
+is the number electrons. By default, it uses the first `configuration`
+of the `atom` to weight the individual orbital norms.
 """
-function LinearAlgebra.norm(atom::Atom{T}, p::Real=2; csf::Int=1) where T
+function LinearAlgebra.norm(atom::Atom{T}, p::Real=2; configuration::Int=1) where T
     n = zero(T)
-    for (orb,occ,state) in atom.csfs[csf].config
+    for (orb,occ,state) in get_config(atom.configurations[configuration])
         n += occ*norm(view(atom, orb), p)^p
     end
     n^(one(T)/p) # Unsure why you'd ever want anything but the 2-norm, but hey
@@ -185,7 +195,7 @@ for (C,C′) in [(CSF,Level),(Level,State)]
                 append!(channels′, c′)
                 append!(coeffs′, repeat(atom.coeffs[i,:], length(c′)))
             end
-            Atom(atom.radial_orbitals,atom.csfs,channels′,vcat(coeffs′...))
+            Atom(atom.radial_orbitals,atom.configurations,channels′,vcat(coeffs′...))
         end
     end
 end
