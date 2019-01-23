@@ -98,15 +98,12 @@ function HFEquation(atom::A, equation::E, orbital::O) where {T,ΦT, #<:RadialCoe
     HFEquation(atom, equation, orbital, view(atom, orbital), hamiltonian)
 end
 
-function multipole_expand_coulomb(a::SpinOrbital, b::SpinOrbital)
-    [0 => 1.0]
-end
-
-function HFEquation(atom::A, (one_body,two_body)::E, orbital::O) where {T,ΦT, #<:RadialCoeff{T},
-                                                                        B<:AbstractQuasiMatrix,
-                                                                        O<:AbstractOrbital,
-                                                                        A<:Atom{T,ΦT,B,O},
-                                                                        E<:Tuple{Vector{<:OneBodyHamiltonian},Vector{<:DirectExchangePotentials}}}
+function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
+                    orbital::O) where {T,ΦT, #<:RadialCoeff{T},
+                                       B<:AbstractQuasiMatrix,
+                                       O<:AbstractOrbital,
+                                       A<:Atom{T,ΦT,B,O},
+                                       E<:Tuple{Vector{<:OneBodyHamiltonian},Tuple{Vector{<:DirectExchangePotentials},Vector{NTuple{2,Vector{Pair{Int,Float64}}}}}}}
     R = radial_basis(atom)
 
     ĥ = one_body_hamiltonian(atom, orbital)
@@ -118,26 +115,24 @@ function HFEquation(atom::A, (one_body,two_body)::E, orbital::O) where {T,ΦT, #
     direct_potentials = Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}()
     exchange_potentials = Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}()
 
-    println(O)
-
     count(iszero.(one_body)) == 1 ||
         throw(ArgumentError("There can only be one one-body Hamiltonian per orbital"))
 
     all(AngularMomentumAlgebra.isdiagonal.(two_body)) ||
         throw(ArgumentError("Non-diagonal repulsion potentials not yet supported"))
 
-    for tb ∈ two_body
+    for (tb,mpt) ∈ zip(two_body,multipole_terms)
         tb.o.v == orbital ||
             throw(ArgumentError("Repulsion potential $(tb) not pertaining to $(orbital)"))
 
         other = tb.a
         v = view(atom, other)
 
-        for (k,c) in multipole_expand_coulomb(tb.a, tb.b)
+        for (k,c) in mpt[1]
             push!(direct_potentials,
                   HFPotential(:direct, k, other, v) => c)
         end
-        for (k,c) in multipole_expand_coulomb(tb.a, tb.o.v)
+        for (k,c) in mpt[2]
             push!(exchange_potentials,
                   HFPotential(:exchange, k, other, v) => c)
         end
@@ -213,7 +208,8 @@ function hf_equations(config::Configuration{O}; verbosity=0) where {O<:SpinOrbit
     HC = two_body_hamiltonian_matrix(O, [config])[1]
     map(config.orbitals) do orb
         corb = Conjugate(orb)
-        orb,(diff.(h.integrals, Ref(corb)), diff.(HC.integrals, Ref(corb)))
+        multipole_terms = multipole_expand.(HC.integrals)
+        orb,(diff.(h.integrals, Ref(corb)), (diff.(HC.integrals, Ref(corb)), multipole_terms))
     end
 end
 
