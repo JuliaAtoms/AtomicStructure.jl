@@ -6,7 +6,7 @@ version = "0.3.2"
 
 [[AngularMomentumAlgebra]]
 deps = ["AtomicLevels", "AutoHashEquals", "Combinatorics", "Formatting", "LaTeXStrings", "LightGraphs", "LinearAlgebra", "Parameters", "Printf", "SparseArrays", "Symbolics", "TikzGraphs", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "5e21515f707234666817c57075e0d6bc431339e3"
+git-tree-sha1 = "268cfec81bda243fea5da88f43cf46797b3969f3"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -20,7 +20,7 @@ version = "0.0.4"
 
 [[AtomicLevels]]
 deps = ["BlockBandedMatrices", "Combinatorics", "Formatting", "Parameters", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "1beee985ef3fc68c5375d3953791508c1b68bc26"
+git-tree-sha1 = "f74ccd0ac7f15ac4b4ceb92dfcd85406afe0d90f"
 repo-rev = "revamp"
 repo-url = "https://github.com/JuliaAtoms/AtomicLevels.jl.git"
 uuid = "10933b4c-d60f-11e8-1fc6-bd9035a249a1"
@@ -84,7 +84,7 @@ version = "1.1.1"
 
 [[ContinuumArrays]]
 deps = ["BandedMatrices", "DomainSets", "FillArrays", "InfiniteArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "Test"]
-git-tree-sha1 = "c2e4f24787c7d6c22201bcebcd695f8073d7d615"
+git-tree-sha1 = "616fe6d93ac6118f2b53d4e39ab372492ff45d58"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaApproximation/ContinuumArrays.jl.git"
 uuid = "abb603bd-c6a4-5c0b-b5d0-50a836a7e82c"
@@ -365,9 +365,9 @@ version = "1.0.1"
 
 [[TikzPictures]]
 deps = ["LaTeXStrings", "Test"]
-git-tree-sha1 = "959407c786a55ed0822dea108e6b97422849a44f"
+git-tree-sha1 = "ac56bb1d22f3d11a835c5fbb486f180be5d2097d"
 uuid = "37f6aa50-8035-52d0-81c2-5a1d08754b2d"
-version = "3.0.3"
+version = "3.0.4"
 
 [[URIParser]]
 deps = ["Test", "Unicode"]

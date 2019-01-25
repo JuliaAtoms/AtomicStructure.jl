@@ -23,11 +23,6 @@ const RadialCoeff{T<:Number} = Union{T,TwoComponent{T}}
 const RadialOrbital{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,1,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractVector}}}
 const RadialOrbitals{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractMatrix}}}
 
-function Base.similar(v::RO) where {T,B,RO<:Union{RadialOrbital{T,B},RadialOrbitals{T,B}}}
-    R,u = v.mul.factors
-    R*similar(u)
-end
-
 const RadialOperator{T<:RadialCoeff,B<:AbstractQuasiMatrix,M<:AbstractMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,M,<:QuasiAdjoint{<:Any,<:B}}}}
 matrix(o::RadialOperator) = o.mul.factors[2]
 
