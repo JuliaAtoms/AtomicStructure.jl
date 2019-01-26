@@ -76,7 +76,8 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
             verbosity > 2 && printfmtln(io, "{1:$(ml)s} {2:9s}  {3:11s}", "", "Initial n", "1-n")
             for j in eachindex(atom.orbitals)
                 n₀ = norm(atom[j])
-                normalize!(view(atom, j))
+                norm_rot!(view(atom, j))
+
                 if verbosity > 2
                     n = norm(atom[j])
                     printfmtln(io, linefmt, atom.orbitals[j], n₀, 1-n)
