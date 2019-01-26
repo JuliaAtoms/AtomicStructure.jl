@@ -149,3 +149,33 @@ combinations of single-particle orbitals.
 
    #+RESULTS:
    : Atom{Atoms.TwoComponent{Float64},RadialDifferences{Float64,Int64}}(Z = 2 [He]) with 1 CSF: 1s²(0|0)+
+
+* TODO/Ideas
+  - [ ] Multiple eigenvalues per symmetry and/or Lagrange multipliers
+    for orthogonality
+  - [ ] Warn if core modelled by potential differs too much from core
+    of configuration(s) to optimize
+    - [ ] Optimize "frozen" orbitals as well
+  - [ ] Virial theorem V/T = -2 as accuracy indicator
+  - [ ] Number of eigenvalues required per equation
+  - [ ] Tabulate bound spectra
+  - [ ] Extension of atom
+    - [ ] onto larger grid
+    - [ ] more configurations (e.g. continuum)
+  - [ ] Evaluate smaller effect [eg. (hyper)fine structure] by
+    inclusion of new operators
+    - [ ] via perturbation theory
+      - [ ] tests of accuracy using analytic perturbation theory
+        formulas, e.g. hyperfine splitting of Rb in magnetic fields.
+    - [ ] reoptimization of orbitals (requires expansion of basis, if
+      not working with spin-orbitals)
+  - [ ] Generalize atomic operators
+    - [ ] =AbstractAtomicOperator=
+    - [ ] =DiagonalIntegral=
+    - [ ] =RepulsionIntegral=
+    - [ ] =MultipoleInteraction=
+    - [ ] =Spin–orbit interaction=
+    - [ ] &c.
+  - [ ] Generalize notion of energy expression to derive arbitrary
+    equations of motion, either for optimization of orbitals or for
+    time propagation.
