@@ -1,12 +1,12 @@
 function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,T,B,O,TC,C,CM}, orb::O) where {T,B,O,TC,C,CM}
     R = radial_basis(atom)
-    
+
     D = Derivative(axes(R,1))
     Tm = R'D'D*R
     Tm /= -2
 
     ℓ = getℓ(orb)
-    
+
     V = Matrix(r -> ℓ*(ℓ+1)/(2r^2) + atom.potential(orb, r), R)
 
     R*Tm*R', R*V*R'
@@ -51,5 +51,5 @@ function diagonalize_one_body(H::RadialOperator, nev::Int;
         ee.values[1:nev],ee.vectors[:,1:nev]
     else
         throw(ArgumentError("Unknown diagonalization method $(method)"))
-    end    
+    end
 end

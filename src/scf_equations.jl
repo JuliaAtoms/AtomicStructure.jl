@@ -143,21 +143,12 @@ function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
     HFEquation(atom, (one_body,two_body), orbital, view(atom, orbital), hamiltonian)
 end
 
-# # We only define the action of the Hamiltonian on an arbitrary
-# # vector. The solution of the equation is implemented via iterative
-# # eigenfactorization.
-# LinearAlgebra.mul!(y, hfeq::HFEquation, x) = mul!(y, hfeq.hamiltonian, x)
-# function Base.:(*)(hfeq::HFEquation, x)
-#     # y = similar(x)
-#     # y .= hfeq.hamiltonian ⋆ x
-#     # y
-# end
-
-energy(hfeq::HFEquation{E,O,M}) where {E,O,M} = (hfeq.ϕ' * hfeq.hamiltonian * hfeq.ϕ)[1]
+SCF.energy(hfeq::HFEquation{E,O,M}) where {E,O,M} = (hfeq.ϕ' * hfeq.hamiltonian * hfeq.ϕ)[1]
 
 function Base.show(io::IO, hfeq::HFEquation)
     write(io, "Hartree–Fock equation: 0 = [𝓗  - E($(hfeq.orbital))]|$(hfeq.orbital)⟩ = [$(hfeq.hamiltonian) - E($(hfeq.orbital))]|$(hfeq.orbital)⟩")
-    write(io, "\n    ⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(energy(hfeq)) + correlation (not yet implemented)")
+    EHa = SCF.energy(hfeq)
+    write(io, "\n    ⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(EHa) Ha = $(27.211EHa) eV")
 end
 
 # * Setup Hartree–Fock equations
@@ -242,19 +233,27 @@ function LinearAlgebra.ldiv!(fock::Fock{A,E}, c::M;
                              tol=1e-10, kwargs...) where {A<:Atom,E,M<:AbstractVecOrMat}
     verbosity > 0 && println("Solving secular equations using $(method)")
     atom = fock.quantum_system
+    R = radial_basis(atom)
     for (j,eq) in enumerate(fock.equations)
-        verbosity > 1 && println(eq)
-        # Ideally, all direct potentials should be shared among the
-        # equations, such that they are only calculated once per
-        # iteration.
-        update!(eq.hamiltonian)
-        if method==:arnoldi
-            K = KrylovWrapper(eq.hamiltonian)
-            verbosity > 2 && println(K)
-            schur,history = partialschur(K, nev=1, tol=tol, which=SR())
-            verbosity > 2 && println(history)
-        else
-            throw(ArgumentError("Unknown diagonalization method $(method)"))
+        print_block() do io
+            # Ideally, all direct potentials should be shared among the
+            # equations, such that they are only calculated once per
+            # iteration.
+            verbosity > 1 && println(io, eq)
+            update!(eq.hamiltonian; verbosity=max(0,verbosity-2), io=io)
+            if method==:arnoldi
+                K = KrylovWrapper(eq.hamiltonian)
+                schur,history = partialschur(K, nev=1, tol=tol, which=SR())
+                vcj = view(c,:,j)
+                copyto!(vcj, schur.Q[:,1])
+                norm_rot!(R*vcj)
+
+                verbosity > 2 && println(io, "Secular equation solution: ", history)
+                verbosity > 2 && println(io, "Change in equation $j: ",
+                                        norm(c[:,j] - eq.ϕ.mul.factors[2]))
+            else
+                throw(ArgumentError("Unknown diagonalization method $(method)"))
+            end
         end
     end
     fock

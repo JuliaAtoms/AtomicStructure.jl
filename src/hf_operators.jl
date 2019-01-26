@@ -3,19 +3,22 @@
 
 const HFPotentialOperator{T,B} = RadialOperator{T,B,Diagonal{T,Vector{T}}}
 
-mutable struct HFPotential{kind,O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B},RO<:HFPotentialOperator{T,B}}
+mutable struct HFPotential{kind,O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B},RO<:HFPotentialOperator{T,B},P<:PoissonProblem}
     k::Int
     orbital::O
     ov::OV
     V̂::RO
+    poisson::P
 end
-HFPotential(kind::Symbol, k::Int, orbital::O, ov::OV, V̂::RO) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B},RO<:RadialOperator{T,B}} =
-    HFPotential{kind,O,T,ΦT,B,OV,RO}(k, orbital, ov, V̂)
-    
+HFPotential(kind::Symbol, k::Int, orbital::O, ov::OV, V̂::RO, poisson::P) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B},RO<:RadialOperator{T,B},P} =
+    HFPotential{kind,O,T,ΦT,B,OV,RO,P}(k, orbital, ov, V̂, poisson)
+
 function HFPotential(kind::Symbol, k::Int, orbital::O, ov::OV) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B}}
     R = ov.mul.factors[1]
-    V̂ = R*Diagonal(Vector{T}(undef, size(R,2)))*R'
-    update!(HFPotential(kind, k, orbital, ov, V̂))
+    D = Diagonal(Vector{T}(undef, size(R,2)))
+    V̂ = R*D*R'
+    poisson = PoissonProblem(k, ov, ov, w′=R*D.diag)
+    update!(HFPotential(kind, k, orbital, ov, V̂, poisson))
 end
 
 # *** Direct potential
@@ -25,9 +28,8 @@ const DirectPotential{O,T,ΦT,B,OV,RO} = HFPotential{:direct,O,T,ΦT,B,OV,RO}
 Base.show(io::IO, Y::DirectPotential) =
     write(io, "r⁻¹×Y", to_superscript(Y.k), "($(Y.orbital), $(Y.orbital))")
 
-function update!(p::DirectPotential{O,T,ΦT,B,OV,RO}) where {O,T,ΦT,B,OV,RO}
-    # TODO: Solve Poisson
-    p.V̂.mul.factors[2].diag .= zero(T)
+function update!(p::DirectPotential{O,T,ΦT,B,OV,RO}; kwargs...) where {O,T,ΦT,B,OV,RO}
+    p.poisson(;kwargs...)
     p
 end
 
@@ -38,7 +40,9 @@ const ExchangePotential{O,T,B,OV,RO} = HFPotential{:exchange,O,T,B,OV,RO}
 Base.show(io::IO, Y::ExchangePotential) =
     write(io, "|$(Y.orbital)⟩r⁻¹×Y", to_superscript(Y.k), "($(Y.orbital), ●)")
 
-update!(p::ExchangePotential) = p
+# We can't update the exchange potentials, since they depend on the
+# orbital they act on.
+update!(p::ExchangePotential; kwargs...) = p
 
 # ** Krylov wrapper
 mutable struct KrylovWrapper{T,B<:AbstractQuasiMatrix,Hamiltonian}
@@ -54,7 +58,7 @@ function Base.show(io::IO, kw::KrylovWrapper{T,B,Hamiltonian}) where {T,B,Hamilt
     write(io, "KrylovWrapper{$T} of size $(size(kw))")
 end
 
-LinearAlgebra.mul!(y::V, A::KrylovWrapper{T,B,Hamiltonian}, x::V) where {V,T,B,Hamiltonian} =
+LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,B,Hamiltonian}, x::V₂) where {V₁,V₂,T,B,Hamiltonian} =
     copyto!(A.R*y, A.hamiltonian⋆(A.R*x))
 
 # ** Split Hamiltonian
@@ -72,8 +76,8 @@ end
 
 Base.axes(hamiltonian::OrbitalSplitHamiltonian, args...) = axes(hamiltonian.ĥ, args...)
 
-update!(hamiltonian::OrbitalSplitHamiltonian) = 
-    foreach(pc -> update!(pc[1]), hamiltonian.direct_potentials)
+update!(hamiltonian::OrbitalSplitHamiltonian; kwargs...) =
+    foreach(pc -> update!(pc[1]; kwargs...), hamiltonian.direct_potentials)
 
 function Base.show(io::IO, hamiltonian::OrbitalSplitHamiltonian{T}) where T
     write(io, "ĥ")
@@ -109,10 +113,16 @@ function Base.copyto!(dest::RadialOrbital{ΦT,B}, matvec::OrbitalSplitHamiltonia
     copyto!(v, ĥ⋆b)
 
     for (p,c) in A.direct_potentials
+        materialize!(MulAdd(c, p.V̂.mul.factors[2], b, one(T), dest.mul.factors[2]))
+        # # This is how we want to write it, to be basis-agnostic
+        # materialize!(MulAdd(c, p.V̂, R*b, one(T), dest))
     end
     for (p,c) in A.exchange_potentials
+        p.poisson(R*b) # Form exchange potential from conj(p.ov)*b
+        error("Not yet implemented")
+        # materialize!(MulAdd(c, p.V̂, p.ov, one(T), dest)) # Act on p.ov
     end
-    
+
     dest
 end
 

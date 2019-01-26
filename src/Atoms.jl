@@ -9,13 +9,14 @@ using Symbolics
 using ContinuumArrays
 import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint
 using LazyArrays
-import LazyArrays: ⋆, materialize
+import LazyArrays: ⋆, materialize, materialize!, MulAdd
 
 using LinearAlgebra
 using SparseArrays
 
 using ArnoldiMethod
 using SCF
+using CoulombIntegrals
 
 using Formatting
 using UnicodeFun
