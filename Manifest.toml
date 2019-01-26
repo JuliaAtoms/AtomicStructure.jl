@@ -339,8 +339,8 @@ uuid = "189a3867-3050-52da-a836-e630ba90ab69"
 version = "0.2.0"
 
 [[SCF]]
-deps = ["ContinuumArrays", "Formatting", "LinearAlgebra", "SolverTraces", "UnicodeFun"]
-git-tree-sha1 = "9906d970e5b54815bdd3e88576cd3ef8fe360bb7"
+deps = ["ArnoldiMethod", "ContinuumArrays", "Formatting", "LinearAlgebra", "SolverTraces", "UnicodeFun"]
+git-tree-sha1 = "bba9fcfd2d93e976c3d951fb9110901f7880799b"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"

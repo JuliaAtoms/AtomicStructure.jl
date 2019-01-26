@@ -16,6 +16,7 @@ using SparseArrays
 
 using ArnoldiMethod
 using SCF
+import SCF: norm_rot!, update!, KrylovWrapper, print_block
 using CoulombIntegrals
 
 using Formatting

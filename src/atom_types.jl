@@ -151,6 +151,15 @@ function LinearAlgebra.norm(atom::Atom{T}, p::Real=2; configuration::Int=1) wher
     n^(one(T)/p) # Unsure why you'd ever want anything but the 2-norm, but hey
 end
 
+LinearAlgebra.normalize!(fock::Fock{A}, v::V) where {A<:Atom,V<:AbstractVector} =
+    normalize!(radial_basis(fock.quantum_system)*v)
+
+function SCF.norm_rot!(ro::RO) where {RO<:RadialOrbital}
+    normalize!(ro)
+    SCF.rotate_max_lobe!(ro.mul.factors[2])
+    ro
+end
+
 # The idea behind the `convert` functions below is the following: it
 # is possible to convert along the chain CSF -> Level -> State (but
 # not the other direction), and at each step, the expansion

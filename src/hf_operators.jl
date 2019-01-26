@@ -28,7 +28,7 @@ const DirectPotential{O,T,ΦT,B,OV,RO} = HFPotential{:direct,O,T,ΦT,B,OV,RO}
 Base.show(io::IO, Y::DirectPotential) =
     write(io, "r⁻¹×Y", to_superscript(Y.k), "($(Y.orbital), $(Y.orbital))")
 
-function update!(p::DirectPotential{O,T,ΦT,B,OV,RO}; kwargs...) where {O,T,ΦT,B,OV,RO}
+function SCF.update!(p::DirectPotential{O,T,ΦT,B,OV,RO}; kwargs...) where {O,T,ΦT,B,OV,RO}
     p.poisson(;kwargs...)
     p
 end
@@ -42,24 +42,7 @@ Base.show(io::IO, Y::ExchangePotential) =
 
 # We can't update the exchange potentials, since they depend on the
 # orbital they act on.
-update!(p::ExchangePotential; kwargs...) = p
-
-# ** Krylov wrapper
-mutable struct KrylovWrapper{T,B<:AbstractQuasiMatrix,Hamiltonian}
-    R::B
-    hamiltonian::Hamiltonian
-end
-
-Base.eltype(A::KrylovWrapper{T}) where T = T
-Base.size(A::KrylovWrapper) = (size(A.R,2),size(A.R,2))
-Base.size(A::KrylovWrapper, i) = size(A)[i]
-
-function Base.show(io::IO, kw::KrylovWrapper{T,B,Hamiltonian}) where {T,B,Hamiltonian}
-    write(io, "KrylovWrapper{$T} of size $(size(kw))")
-end
-
-LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,B,Hamiltonian}, x::V₂) where {V₁,V₂,T,B,Hamiltonian} =
-    copyto!(A.R*y, A.hamiltonian⋆(A.R*x))
+SCF.update!(p::ExchangePotential; kwargs...) = p
 
 # ** Split Hamiltonian
 
@@ -76,7 +59,7 @@ end
 
 Base.axes(hamiltonian::OrbitalSplitHamiltonian, args...) = axes(hamiltonian.ĥ, args...)
 
-update!(hamiltonian::OrbitalSplitHamiltonian; kwargs...) =
+SCF.update!(hamiltonian::OrbitalSplitHamiltonian; kwargs...) =
     foreach(pc -> update!(pc[1]; kwargs...), hamiltonian.direct_potentials)
 
 function Base.show(io::IO, hamiltonian::OrbitalSplitHamiltonian{T}) where T
@@ -113,9 +96,9 @@ function Base.copyto!(dest::RadialOrbital{ΦT,B}, matvec::OrbitalSplitHamiltonia
     copyto!(v, ĥ⋆b)
 
     for (p,c) in A.direct_potentials
-        materialize!(MulAdd(c, p.V̂.mul.factors[2], b, one(T), dest.mul.factors[2]))
         # # This is how we want to write it, to be basis-agnostic
         # materialize!(MulAdd(c, p.V̂, R*b, one(T), dest))
+        materialize!(MulAdd(c, p.V̂.mul.factors[2], b, one(T), dest.mul.factors[2]))
     end
     for (p,c) in A.exchange_potentials
         p.poisson(R*b) # Form exchange potential from conj(p.ov)*b
@@ -141,7 +124,10 @@ end
 
 # *** Krylov wrapper
 
-function KrylovWrapper(hamiltonian::OrbitalSplitHamiltonian{T,ΦT,B,O,PO,LT,OV}) where {T,ΦT,B,O,PO,LT,OV}
+function SCF.KrylovWrapper(hamiltonian::OrbitalSplitHamiltonian{T,ΦT,B,O,PO,LT,OV}) where {T,ΦT,B,O,PO,LT,OV}
     R = hamiltonian.ĥ.mul.factors[1]
     KrylovWrapper{ΦT,B,OrbitalSplitHamiltonian{T,ΦT,B,O,PO,LT,OV}}(R, hamiltonian)
 end
+
+LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,B,Hamiltonian}, x::V₂) where {V₁,V₂,T,B,Hamiltonian<:OrbitalSplitHamiltonian} =
+    copyto!(A.R*y, A.hamiltonian⋆(A.R*x))

@@ -16,17 +16,3 @@ function Base.:(+)(a::RadialOperator{T,B}, b::RadialOperator{T,B}) where {T,B}
     R = first(a.mul.factors)
     R*(matrix(a) + matrix(b))*R'
 end
-
-"""
-    norm_rot!(ro)
-
-Normalize and rotate the radial orbital `ro` such that the largest
-lobe has positive sign.
-"""
-function norm_rot!(ro::RO) where {RO<:RadialOrbital}
-    normalize!(ro)
-    c = ro.mul.factors[2]
-    i = argmax(abs.(c))
-    lmul!(sign(c[i]), c)
-    ro
-end
