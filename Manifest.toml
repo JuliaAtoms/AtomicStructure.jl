@@ -32,6 +32,14 @@ repo-url = "https://github.com/JuliaAtoms/AtomicLevels.jl.git"
 uuid = "10933b4c-d60f-11e8-1fc6-bd9035a249a1"
 version = "0.1.0"
 
+[[AtomicPotentials]]
+deps = ["AtomicLevels"]
+git-tree-sha1 = "13502d421a918a08163b3818ef9d95f615686031"
+repo-rev = "master"
+repo-url = "https://github.com/JuliaAtoms/AtomicPotentials.jl.git"
+uuid = "eac66916-230f-11e9-03e5-b9a8fe2fc74a"
+version = "0.1.0"
+
 [[AutoHashEquals]]
 git-tree-sha1 = "45bb6705d93be619b81451bb2006b7ee5d4e4453"
 uuid = "15f4f7f2-30c1-5605-9d31-71845cf9641f"

@@ -19,6 +19,8 @@ using SCF
 import SCF: norm_rot!, update!, KrylovWrapper, print_block
 using CoulombIntegrals
 
+using AtomicPotentials
+
 using Formatting
 using UnicodeFun
 
@@ -35,8 +37,6 @@ getℓ(orb::Orbital) = orb.ℓ
 getℓ(orb::SpinOrbital) = orb.orb.ℓ
 
 include("two_components.jl")
-include("table_of_elements.jl")
-include("potentials.jl")
 include("radial_orbitals.jl")
 include("atom_types.jl")
 include("one_body.jl")

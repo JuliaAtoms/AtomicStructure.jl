@@ -1,5 +1,6 @@
 using Atoms
 using AtomicLevels
+using AtomicPotentials
 using AngularMomentumAlgebra
 using SCF
 # Needed as /an/ implementation of an AbstractQuasiMatrix, not the
