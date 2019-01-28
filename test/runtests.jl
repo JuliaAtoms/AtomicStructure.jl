@@ -1,5 +1,4 @@
 using Atoms
-import Atoms: energy
 using AtomicLevels
 using AngularMomentumAlgebra
 using SCF
@@ -51,7 +50,7 @@ using Test
             fock = Fock(atom, equations)
 
             @test length(fock.equations) == 1
-            @test isapprox(energy(fock.equations[1]), -0.5, atol=2e-5)
+            @test isapprox(SCF.energy(fock.equations[1]), -0.5, atol=2e-5)
         end
 
         @testset "Helium" begin
@@ -60,7 +59,11 @@ using Test
             atom = Atom(R, spin_configurations(c"1s2"), nucleus, verbosity=Inf)
 
             fock = Fock(atom; verbosity=Inf)
-            scf!(fock, ω=2/3, verbosity=Inf)
+            scf!(fock, verbosity=Inf, num_printouts=typemax(Int))
+            display(fock)
+            println()
+
+            @test all(isapprox.(SCF.energy.(fock.equations), -24.587387/27.211, rtol=0.1))
         end
     end
 end

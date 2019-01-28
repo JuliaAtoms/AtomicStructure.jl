@@ -98,7 +98,7 @@ version = "0.0.0"
 
 [[CoulombIntegrals]]
 deps = ["AlgebraicMultigrid", "ContinuumArrays", "FEDVRQuasi", "FiniteDifferencesQuasi", "IterativeSolvers", "LazyArrays", "LinearAlgebra", "SparseArrays", "SpecialFunctions", "Test"]
-git-tree-sha1 = "f81f8bc5884ffa831423062a87b94341ea964282"
+git-tree-sha1 = "7bb945307e485525ab530ac12ba63debefc0876c"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/CoulombIntegrals.jl.git"
 uuid = "42e5845a-f9f1-11e8-0afe-795ea56ed153"
@@ -132,9 +132,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[DiffRules]]
 deps = ["Random", "Test"]
-git-tree-sha1 = "c49ec69428ffea0c1d1bbdc63d1a70f5df5860ad"
+git-tree-sha1 = "09d69da75967ec48a8b1ad0897ec9144ee052bf9"
 uuid = "b552c78f-8df3-52c6-915a-8e097449b14b"
-version = "0.0.7"
+version = "0.0.8"
 
 [[Distributed]]
 deps = ["LinearAlgebra", "Random", "Serialization", "Sockets"]
@@ -174,7 +174,7 @@ version = "0.4.0"
 
 [[FiniteDifferencesQuasi]]
 deps = ["ContinuumArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "Printf", "Test"]
-git-tree-sha1 = "262a72786c25a99be49db3324e25c138b90dc377"
+git-tree-sha1 = "745699ec0c379f80e1ffe24649f39873bbcca2df"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/FiniteDifferencesQuasi.jl.git"
 uuid = "2e420920-f185-11e8-29af-4b87f0732ba2"
@@ -340,7 +340,7 @@ version = "0.2.0"
 
 [[SCF]]
 deps = ["ArnoldiMethod", "ContinuumArrays", "Formatting", "LinearAlgebra", "SolverTraces", "UnicodeFun"]
-git-tree-sha1 = "bba9fcfd2d93e976c3d951fb9110901f7880799b"
+git-tree-sha1 = "eacb7b5b844a6c13e586fbfc7cb4e8e88bcfa5d7"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"
