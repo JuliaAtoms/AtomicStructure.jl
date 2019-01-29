@@ -117,12 +117,13 @@ function hf_equations(csf::NonRelativisticCSF; verbosity=0)
     hf_equations(csf, eng; verbosity=verbosity)
 end
 
-function hf_equations(config::Configuration{O}; verbosity=0) where {O<:SpinOrbital}
+function hf_equations(config::Configuration{O}; verbosity=0,
+                      selector::Function = peel) where {O<:SpinOrbital}
     verbosity > 0 &&
         println("Deriving HF equations for $(config)")
-    h = one_body_hamiltonian_matrix(O, [config])[1]
-    HC = two_body_hamiltonian_matrix(O, [config])[1]
-    map(config.orbitals) do orb
+    h = one_body_hamiltonian_matrix(O, [config], selector=selector)[1]
+    HC = two_body_hamiltonian_matrix(O, [config], selector=selector)[1]
+    map(selector(config).orbitals) do orb
         corb = Conjugate(orb)
 
         ∂h = filter(d -> !iszero(d), diff.(h.integrals, Ref(corb)))
