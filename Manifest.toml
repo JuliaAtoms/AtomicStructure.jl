@@ -26,7 +26,7 @@ version = "0.0.4"
 
 [[AtomicLevels]]
 deps = ["BlockBandedMatrices", "Combinatorics", "Formatting", "Parameters", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "f74ccd0ac7f15ac4b4ceb92dfcd85406afe0d90f"
+git-tree-sha1 = "dc867562367c034dddf90d25e7eea0ad3f062563"
 repo-rev = "revamp"
 repo-url = "https://github.com/JuliaAtoms/AtomicLevels.jl.git"
 uuid = "10933b4c-d60f-11e8-1fc6-bd9035a249a1"
@@ -106,7 +106,7 @@ version = "0.0.0"
 
 [[CoulombIntegrals]]
 deps = ["AlgebraicMultigrid", "ContinuumArrays", "FEDVRQuasi", "FiniteDifferencesQuasi", "IterativeSolvers", "LazyArrays", "LinearAlgebra", "SparseArrays", "SpecialFunctions", "Test"]
-git-tree-sha1 = "7bb945307e485525ab530ac12ba63debefc0876c"
+git-tree-sha1 = "85f857338cea68d30f5bff79a9ba2967c1986246"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/CoulombIntegrals.jl.git"
 uuid = "42e5845a-f9f1-11e8-0afe-795ea56ed153"

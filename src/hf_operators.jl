@@ -74,6 +74,22 @@ function Base.show(io::IO, hamiltonian::OrbitalSplitHamiltonian{T}) where T
     end
 end
 
+emptyvec(::V) where {V<:AbstractVector} = V()
+
+function Base.getindex(H::OrbitalSplitHamiltonian, term::Symbol)
+    if term == :all
+        H
+    elseif term == :onebody
+        OrbitalSplitHamiltonian(H.ĥ, emptyvec(H.direct_potentials), emptyvec(H.exchange_potentials))
+    elseif term == :direct
+        OrbitalSplitHamiltonian(zero(H.ĥ), H.direct_potentials, emptyvec(H.exchange_potentials))
+    elseif term == :exchange
+        OrbitalSplitHamiltonian(zero(H.ĥ), emptyvec(H.direct_potentials), H.exchange_potentials)
+    else
+        throw(ArgumentError("Unknown Hamiltonian term $term"))
+    end
+end
+
 # const OrbitalHamiltonian{T,ΦT,B,O} = Union{OrbitalSplitHamiltonian{T,ΦT,B,O},RadialOperator{T,B}}
 
 # *** Materialization
@@ -102,8 +118,9 @@ function Base.copyto!(dest::RadialOrbital{ΦT,B}, matvec::OrbitalSplitHamiltonia
     end
     for (p,c) in A.exchange_potentials
         p.poisson(R*b) # Form exchange potential from conj(p.ov)*b
-        error("Not yet implemented")
-        # materialize!(MulAdd(c, p.V̂, p.ov, one(T), dest)) # Act on p.ov
+        # # This is how we want to write it, to be basis-agnostic
+        # # materialize!(MulAdd(c, p.V̂, p.ov, one(T), dest)) # Act on p.ov
+        materialize!(MulAdd(c, p.V̂.mul.factors[2], p.ov.mul.factors[2], one(T), dest.mul.factors[2])) # Act on p.ov
     end
 
     dest

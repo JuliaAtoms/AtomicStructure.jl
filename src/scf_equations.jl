@@ -64,12 +64,16 @@ function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
     HFEquation(atom, (one_body,two_body), orbital, view(atom, orbital), hamiltonian)
 end
 
-SCF.energy(hfeq::HFEquation{E,O,M}) where {E,O,M} = (hfeq.ϕ' * hfeq.hamiltonian * hfeq.ϕ)[1]
+SCF.energy(hfeq::HFEquation{E,O,M}, term::Symbol=:all) where {E,O,M} = (hfeq.ϕ' * hfeq.hamiltonian[term] * hfeq.ϕ)[1]
 
 function Base.show(io::IO, hfeq::HFEquation)
     write(io, "Hartree–Fock equation: 0 = [𝓗  - E($(hfeq.orbital))]|$(hfeq.orbital)⟩ = [$(hfeq.hamiltonian) - E($(hfeq.orbital))]|$(hfeq.orbital)⟩")
     EHa = SCF.energy(hfeq)
     write(io, "\n    ⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(EHa) Ha = $(27.211EHa) eV")
+    Eh = (hfeq.ϕ' * hfeq.hamiltonian[:onebody] * hfeq.ϕ)[1]
+    Ed = (hfeq.ϕ' * hfeq.hamiltonian[:direct] * hfeq.ϕ)[1]
+    Ex = (hfeq.ϕ' * hfeq.hamiltonian[:exchange] * hfeq.ϕ)[1]
+    write(io, " (⟨h⟩ = $(Eh) Ha, ⟨J⟩ = $(Ed) Ha, ⟨K⟩ = $(Ex) Ha)")
 end
 
 # * Setup Hartree–Fock equations

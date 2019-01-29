@@ -11,6 +11,10 @@ const RadialOrbitals{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,2,
 
 const RadialOperator{T<:RadialCoeff,B<:AbstractQuasiMatrix,M<:AbstractMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,M,<:QuasiAdjoint{<:Any,<:B}}}}
 matrix(o::RadialOperator) = o.mul.factors[2]
+function Base.zero(o::RadialOperator)
+    A,B,C = o.mul.factors
+    A*Diagonal(zeros(eltype(B),size(B,1)))*C
+end
 
 function Base.:(+)(a::RadialOperator{T,B}, b::RadialOperator{T,B}) where {T,B}
     R = first(a.mul.factors)
