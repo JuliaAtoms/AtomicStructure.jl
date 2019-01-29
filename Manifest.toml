@@ -12,7 +12,7 @@ version = "0.2.1"
 
 [[AngularMomentumAlgebra]]
 deps = ["AtomicLevels", "AutoHashEquals", "Combinatorics", "Formatting", "LaTeXStrings", "LightGraphs", "LinearAlgebra", "Parameters", "Printf", "SparseArrays", "Symbolics", "TikzGraphs", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "268cfec81bda243fea5da88f43cf46797b3969f3"
+git-tree-sha1 = "e80edf464a36202ca43e89e3d3c04e55d75ed940"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -34,7 +34,7 @@ version = "0.1.0"
 
 [[AtomicPotentials]]
 deps = ["AtomicLevels"]
-git-tree-sha1 = "13502d421a918a08163b3818ef9d95f615686031"
+git-tree-sha1 = "e149a6ec18cc502d8ef187f3159de3df2dafe3f3"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/AtomicPotentials.jl.git"
 uuid = "eac66916-230f-11e9-03e5-b9a8fe2fc74a"

@@ -36,7 +36,7 @@ function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
     direct_potentials = Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}()
     exchange_potentials = Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}()
 
-    count(iszero.(one_body)) == 1 ||
+    count(.!iszero.(one_body)) == 1 ||
         throw(ArgumentError("There can only be one one-body Hamiltonian per orbital"))
 
     all(AngularMomentumAlgebra.isdiagonal.(two_body)) ||
@@ -120,8 +120,13 @@ function hf_equations(config::Configuration{O}; verbosity=0) where {O<:SpinOrbit
     HC = two_body_hamiltonian_matrix(O, [config])[1]
     map(config.orbitals) do orb
         corb = Conjugate(orb)
-        multipole_terms = multipole_expand.(HC.integrals)
-        orb,(diff.(h.integrals, Ref(corb)), (diff.(HC.integrals, Ref(corb)), multipole_terms))
+
+        ∂h = filter(d -> !iszero(d), diff.(h.integrals, Ref(corb)))
+        ∂HC = diff.(HC.integrals, Ref(corb))
+        nz = .!map(iszero, ∂HC)
+
+        multipole_terms = multipole_expand.(HC.integrals[nz])
+        orb,(∂h, (∂HC[nz], multipole_terms))
     end
 end
 
