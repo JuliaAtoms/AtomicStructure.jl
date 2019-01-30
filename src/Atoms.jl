@@ -42,6 +42,7 @@ include("atom_types.jl")
 include("one_body.jl")
 include("utils.jl")
 include("hydrogenic.jl")
+include("projectors.jl")
 include("hf_operators.jl")
 include("scf_equations.jl")
 

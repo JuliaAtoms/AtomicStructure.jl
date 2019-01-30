@@ -85,6 +85,9 @@ end
         @testset "Beryllium" begin
             nucleus = pc"Be"
             Z = charge(nucleus)
+            rₘₐₓ = 50
+            ρ = 0.15
+            N = ceil(Int, rₘₐₓ/ρ + 1/2)
             R = RadialDifferences(N, ρ, charge(nucleus))
             atom = Atom(R, spin_configurations(c"1s2 2s2"),
                         nucleus, verbosity=Inf)
@@ -116,9 +119,12 @@ end
             for test in tests
                 @eval @test $test
             end
-            # scf!(fock, verbosity=Inf, num_printouts=typemax(Int))
-            # display(fock)
+            scf!(fock, ω=0.1, verbosity=2, num_printouts=typemax(Int))
+            display(fock)
             println()
+
+            @test isapprox(27.211SCF.energy(fock.equations[3]), -9.3227, rtol=0.04)
+            @test isapprox(27.211SCF.energy(fock.equations[4]), -9.3227, rtol=0.04)
         end
     end
 end

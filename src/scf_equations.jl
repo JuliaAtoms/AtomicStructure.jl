@@ -20,7 +20,8 @@ SCF.KrylovWrapper(eq::HFEquation) = KrylovWrapper(eq.hamiltonian)
 include("symbolic_hfequations.jl")
 
 function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
-                    orbital::O) where {T,ΦT, #<:RadialCoeff{T},
+                    orbital::O,
+                    symmetry_orbitals::Vector{O}) where {T,ΦT, #<:RadialCoeff{T},
                                        B<:AbstractQuasiMatrix,
                                        O<:AbstractOrbital,
                                        A<:Atom{T,ΦT,B,O},
@@ -59,7 +60,11 @@ function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
         end
     end
 
-    hamiltonian = OrbitalSplitHamiltonian(ĥ, direct_potentials, exchange_potentials)
+    projector = Projector(OV[view(atom, other)
+                             for other in symmetry_orbitals])
+
+    hamiltonian = OrbitalSplitHamiltonian(ĥ, direct_potentials, exchange_potentials,
+                                          projector)
 
     HFEquation(atom, (one_body,two_body), orbital, view(atom, orbital), hamiltonian)
 end
@@ -75,6 +80,18 @@ function Base.show(io::IO, hfeq::HFEquation)
     Ex = (hfeq.ϕ' * hfeq.hamiltonian[:exchange] * hfeq.ϕ)[1]
     write(io, " (⟨h⟩ = $(Eh) Ha, ⟨J⟩ = $(Ed) Ha, ⟨K⟩ = $(Ex) Ha)")
 end
+
+# * Orbital symmetries
+"""
+    find_symmetries(orbitals)
+
+Group all orbitals according to their symmetries, e.g. ℓ for
+`Orbital`s. This is used to determine which off-diagonal Lagrange
+multipliers are necessary to maintain orthogonality.
+"""
+find_symmetries(orbitals::Vector{O}) where {O<:AbstractOrbital} =
+    merge!(vcat, [Dict(symmetry(orb) => [orb])
+                  for orb in orbitals]...)
 
 # * Setup Hartree–Fock equations
 
@@ -123,7 +140,11 @@ function hf_equations(config::Configuration{O}; verbosity=0,
         println("Deriving HF equations for $(config)")
     h = one_body_hamiltonian_matrix(O, [config], selector=selector)[1]
     HC = two_body_hamiltonian_matrix(O, [config], selector=selector)[1]
-    map(selector(config).orbitals) do orb
+
+    orbitals = selector(config).orbitals
+    symmetries = find_symmetries(orbitals)
+
+    map(orbitals) do orb
         corb = Conjugate(orb)
 
         ∂h = filter(d -> !iszero(d), diff.(h.integrals, Ref(corb)))
@@ -131,7 +152,13 @@ function hf_equations(config::Configuration{O}; verbosity=0,
         nz = .!map(iszero, ∂HC)
 
         multipole_terms = multipole_expand.(HC.integrals[nz])
-        orb,(∂h, (∂HC[nz], multipole_terms))
+
+        # Find all other orbitals of the same symmetry as the current
+        # one. These will be used to create a projector, that projects
+        # out their components.
+        symmetry_orbitals = filter(o -> o != orb, symmetries[symmetry(orb)])
+
+        orb,(∂h, (∂HC[nz], multipole_terms)),symmetry_orbitals
     end
 end
 
@@ -146,9 +173,9 @@ function Base.diff(atom::Atom; verbosity=0)
     length(atom.configurations) > 1 &&
         throw(ArgumentError("Cannot derive Hartree–Fock equations for a multi-configurational atom"))
 
-    map(hf_equations(atom.configurations[1]; verbosity=verbosity)) do (orb,equation)
+    map(hf_equations(atom.configurations[1]; verbosity=verbosity)) do (orb,equation,symmetry_orbitals)
         verbosity > 3 && display(equation)
-        hfeq = HFEquation(atom, equation, orb)
+        hfeq = HFEquation(atom, equation, orb, symmetry_orbitals)
         verbosity > 2 && println(hfeq)
         hfeq
     end

@@ -47,6 +47,7 @@ function HFEquation(atom::A, equation::E, orbital::O) where {T,ΦT, #<:RadialCoe
             # infinitely many solutions.
             isdiagonal(lm) ||
                 throw(ArgumentError("Orbital rotation necessary of off-diagonal Lagrange multipliers ($(lm)) not yet implemented."))
+            # TODO Translate LagrangeMultiplier to orbital symmetries
         elseif isproportional(t, Sym(:𝓛))
             isproportional(t, korb) ||
                 throw(ArgumentError("One-body term $(t) not pertaining to orbital under consideration ($(orbital))"))
@@ -80,7 +81,9 @@ function HFEquation(atom::A, equation::E, orbital::O) where {T,ΦT, #<:RadialCoe
         end
     end
 
-    hamiltonian = OrbitalSplitHamiltonian(ĥ, direct_potentials, exchange_potentials)
+    projector = nothing
+
+    hamiltonian = OrbitalSplitHamiltonian(ĥ, direct_potentials, exchange_potentials, projector)
 
     HFEquation(atom, equation, orbital, view(atom, orbital), hamiltonian)
 end

@@ -16,6 +16,7 @@ HFPotential(kind::Symbol, k::Int, orbital::O, ov::OV, V̂::RO, poisson::P) where
 function HFPotential(kind::Symbol, k::Int, orbital::O, ov::OV) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B}}
     R = ov.mul.factors[1]
     D = Diagonal(Vector{T}(undef, size(R,2)))
+    D.diag .= zero(T)
     V̂ = R*D*R'
     poisson = PoissonProblem(k, ov, ov, w′=R*D.diag)
     update!(HFPotential(kind, k, orbital, ov, V̂, poisson))
@@ -51,10 +52,12 @@ mutable struct OrbitalSplitHamiltonian{T,ΦT, #<:RadialCoeff{T},
                                        O<:AbstractOrbital,
                                        PO<:HFPotentialOperator{T,B},
                                        LT, #<:Union{RO,NTuple{<:Any,RO}},
-                                       OV<:RadialOrbital{ΦT,B}}
+                                       OV<:RadialOrbital{ΦT,B},
+                                       Proj}
     ĥ::LT
     direct_potentials::Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}
     exchange_potentials::Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}
+    projector::Proj
 end
 
 Base.axes(hamiltonian::OrbitalSplitHamiltonian, args...) = axes(hamiltonian.ĥ, args...)
@@ -80,11 +83,11 @@ function Base.getindex(H::OrbitalSplitHamiltonian, term::Symbol)
     if term == :all
         H
     elseif term == :onebody
-        OrbitalSplitHamiltonian(H.ĥ, emptyvec(H.direct_potentials), emptyvec(H.exchange_potentials))
+        OrbitalSplitHamiltonian(H.ĥ, emptyvec(H.direct_potentials), emptyvec(H.exchange_potentials), H.projector)
     elseif term == :direct
-        OrbitalSplitHamiltonian(zero(H.ĥ), H.direct_potentials, emptyvec(H.exchange_potentials))
+        OrbitalSplitHamiltonian(zero(H.ĥ), H.direct_potentials, emptyvec(H.exchange_potentials), H.projector)
     elseif term == :exchange
-        OrbitalSplitHamiltonian(zero(H.ĥ), emptyvec(H.direct_potentials), H.exchange_potentials)
+        OrbitalSplitHamiltonian(zero(H.ĥ), emptyvec(H.direct_potentials), H.exchange_potentials, H.projector)
     else
         throw(ArgumentError("Unknown Hamiltonian term $term"))
     end
@@ -122,6 +125,8 @@ function Base.copyto!(dest::RadialOrbital{ΦT,B}, matvec::OrbitalSplitHamiltonia
         # # materialize!(MulAdd(c, p.V̂, p.ov, one(T), dest)) # Act on p.ov
         materialize!(MulAdd(c, p.V̂.mul.factors[2], p.ov.mul.factors[2], one(T), dest.mul.factors[2])) # Act on p.ov
     end
+
+    projectout!(dest, A.projector)
 
     dest
 end
