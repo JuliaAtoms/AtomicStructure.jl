@@ -3,8 +3,6 @@ module Atoms
 using AtomicLevels
 import AtomicLevels: AbstractOrbital, HalfInteger
 using AngularMomentumAlgebra
-import AngularMomentumAlgebra: isdiagonal, isdirect, isexchange
-using Symbolics
 
 using ContinuumArrays
 import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint

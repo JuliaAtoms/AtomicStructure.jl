@@ -55,15 +55,18 @@ end
         @testset "Hydrogen" begin
             nucleus = pc"H"
             R = RadialDifferences(N, ρ)
-            atom = Atom(R, csfs(c"1s"), nucleus)
+            # atom = Atom(R, csfs(c"1s"), nucleus)
+            atom = Atom(R, [spin_configurations(c"1s")[1]], nucleus)
 
-            # Set up energy expression manually.
-            eng = DiagonalIntegral(o"1s")
-            equations = map(Atoms.hf_equations(first(atom.configurations), eng)) do (orb,equation)
-                Atoms.HFEquation(atom, equation, orb)
-            end
+            # # Set up energy expression manually.
+            # eng = DiagonalIntegral(o"1s")
+            # equations = map(Atoms.hf_equations(first(atom.configurations), eng)) do (orb,equation)
+            #     Atoms.HFEquation(atom, equation, orb)
+            # end
 
-            fock = Fock(atom, equations)
+            # fock = Fock(atom, equations)
+
+            fock = Fock(atom)
 
             @test length(fock.equations) == 1
             @test isapprox(SCF.energy(fock.equations[1]), -0.5, atol=2e-5)

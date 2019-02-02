@@ -18,7 +18,6 @@ LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 SCF = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"
 SolverTraces = "619b3e1a-df4a-11e8-3b0b-a997e0925a8d"
 SparseArrays = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
-Symbolics = "6ab9bfca-32f0-5769-8e9c-ef83b29e602a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 UnicodeFun = "1cfade01-22cf-5700-b092-accc4b62d6e1"
 

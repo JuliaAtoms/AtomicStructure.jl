@@ -17,7 +17,7 @@ end
 SCF.update!(eq::HFEquation; kwargs...) = update!(eq.hamiltonian; kwargs...)
 SCF.KrylovWrapper(eq::HFEquation) = KrylovWrapper(eq.hamiltonian)
 
-include("symbolic_hfequations.jl")
+const EnergyExpression = Tuple{Vector{<:OneBodyHamiltonian},Tuple{Vector{<:DirectExchangePotentials},Vector{NTuple{2,Vector{Pair{Int,Float64}}}}}}
 
 function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
                     orbital::O,
@@ -25,12 +25,10 @@ function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
                                        B<:AbstractQuasiMatrix,
                                        O<:AbstractOrbital,
                                        A<:Atom{T,ΦT,B,O},
-                                       E<:Tuple{Vector{<:OneBodyHamiltonian},Tuple{Vector{<:DirectExchangePotentials},Vector{NTuple{2,Vector{Pair{Int,Float64}}}}}}}
+                                       E<:EnergyExpression}
     R = radial_basis(atom)
 
     ĥ = one_body_hamiltonian(atom, orbital)
-
-    korb = Ket(orbital)
 
     OV = typeof(view(atom, 1))
     PO = typeof(R*Diagonal(Vector{T}(undef, size(R,2)))*R')
@@ -44,7 +42,7 @@ function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
         throw(ArgumentError("Non-diagonal repulsion potentials not yet supported"))
 
     for (tb,mpt) ∈ zip(two_body,multipole_terms)
-        tb.o.v == orbital ||
+        tb.o == orbital ||
             throw(ArgumentError("Repulsion potential $(tb) not pertaining to $(orbital)"))
 
         other = tb.a
@@ -94,8 +92,8 @@ find_symmetries(orbitals::Vector{O}) where {O<:AbstractOrbital} =
                   for orb in orbitals]...)
 
 # * Setup Hartree–Fock equations
-
-function hf_equations(csf::NonRelativisticCSF, eng::Number; verbosity=0)
+#=
+function hf_equations(csf::NonRelativisticCSF, eng::EnergyExpression; verbosity=0)
     pconfig = peel(csf.config)
     orbitals = pconfig.orbitals
 
@@ -133,6 +131,7 @@ function hf_equations(csf::NonRelativisticCSF; verbosity=0)
     eng = energy_expression(csf; verbosity=verbosity-3)[2][1]
     hf_equations(csf, eng; verbosity=verbosity)
 end
+=#
 
 function hf_equations(config::Configuration{O}; verbosity=0,
                       selector::Function = peel) where {O<:SpinOrbital}
