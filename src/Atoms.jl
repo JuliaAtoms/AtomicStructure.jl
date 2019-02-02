@@ -22,10 +22,10 @@ using AtomicPotentials
 using Formatting
 using UnicodeFun
 
-function unique_orbitals(configurations::Vector{C}) where {C<:Configuration}
+function unique_orbitals(configurations::Vector{C}) where {O,C<:Configuration{O}}
     map(configurations) do config
         config.orbitals
-    end |> o -> vcat(o...) |> unique |> sort
+    end |> o -> Vector{O}(vcat(o...)) |> unique |> sort
 end
 
 getn(orb::Orbital) = orb.n
