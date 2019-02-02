@@ -81,6 +81,7 @@ function Atom(init::Symbol, ::Type{ΦT}, R::B, configurations::Vector{TC},
     else
         throw(ArgumentError("Unknown orbital initialization mode $(init)"))
     end
+    atom
 end
 
 const DiracAtom{T,B,TC<:RelativisticCSF,C<:RelativisticChannel,CM,P} = Atom{T,TwoComponent{T},B,TC,C,CM,P}
@@ -144,11 +145,12 @@ is the number electrons. By default, it uses the first `configuration`
 of the `atom` to weight the individual orbital norms.
 """
 function LinearAlgebra.norm(atom::Atom{T}, p::Real=2; configuration::Int=1) where T
-    n = zero(T)
+    RT = real(T)
+    n = zero(RT)
     for (orb,occ,state) in get_config(atom.configurations[configuration])
         n += occ*norm(view(atom, orb), p)^p
     end
-    n^(one(T)/p) # Unsure why you'd ever want anything but the 2-norm, but hey
+    n^(one(RT)/p) # Unsure why you'd ever want anything but the 2-norm, but hey
 end
 
 LinearAlgebra.normalize!(fock::Fock{A}, v::V) where {A<:Atom,V<:AbstractVector} =
