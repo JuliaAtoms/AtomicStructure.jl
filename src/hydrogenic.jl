@@ -84,22 +84,22 @@ function hydrogenic!(atom::Atom{T,T,B,O,TC,C,CM,P}; verbosity=0, kwargs...) wher
                 end
             end
         end
-        if verbosity > 3
-            print_block(io) do io
-                nconfigs = min(10, length(atom.configurations))
-                ml = maximum(length.(string.(atom.configurations)))
-                configfmt = "{1:<$(ml+3)s}"
-                linefmt = FormatExpr("$(configfmt) {2:7.5f} {3:12.5e}")
-                N = num_electrons(atom)
-                printfmtln(io, "$(configfmt) {2:7s}  {3:11s} ", "Cfg", "√N", "$(N)-N²")
-                for (i,config) in enumerate(atom.configurations)
-                    i > nconfigs && break
-                    n = norm(atom, configuration=i)
-                    printfmtln(io, linefmt, config, n, N-n^2)
-                end
-                length(atom.configurations) > nconfigs && println(io, "⋮")
-            end
-        end
+        # if verbosity > 3
+        #     print_block(io) do io
+        #         nconfigs = min(10, length(atom.configurations))
+        #         ml = maximum(length.(string.(atom.configurations)))
+        #         configfmt = "{1:<$(ml+3)s}"
+        #         linefmt = FormatExpr("$(configfmt) {2:7.5f} {3:12.5e}")
+        #         N = num_electrons(atom)
+        #         printfmtln(io, "$(configfmt) {2:7s}  {3:11s} ", "Cfg", "√N", "$(N)-N²")
+        #         for (i,config) in enumerate(atom.configurations)
+        #             i > nconfigs && break
+        #             n = norm(atom, configuration=i)
+        #             printfmtln(io, linefmt, config, n, N-n^2)
+        #         end
+        #         length(atom.configurations) > nconfigs && println(io, "⋮")
+        #     end
+        # end
     end
 
     atom
