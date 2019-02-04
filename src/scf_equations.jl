@@ -30,8 +30,6 @@ function orbital_hamiltonian(atom::A, (one_body,(two_body,multipole_terms))::E,
                                                      Proj}
     R = radial_basis(atom)
 
-    ĥ = one_body_hamiltonian(atom, orbital)
-
     OV = typeof(view(atom, 1))
     O = promote_type(O₁, O₂)
     PO = typeof(R*Diagonal(Vector{T}(undef, size(R,2)))*R')
@@ -40,6 +38,12 @@ function orbital_hamiltonian(atom::A, (one_body,(two_body,multipole_terms))::E,
 
     count(.!iszero.(one_body)) ≤ 1 ||
         throw(ArgumentError("There can only be one one-body Hamiltonian per orbital"))
+
+    ĥ = if isempty(one_body)
+        zero(AtomicOneBodyHamiltonian(atom, orbital))
+    else
+        AtomicOneBodyHamiltonian(atom, one_body[1].orb)
+    end
 
     for (tb,mpt) ∈ zip(two_body,multipole_terms)
         a = tb.a
@@ -57,7 +61,7 @@ function orbital_hamiltonian(atom::A, (one_body,(two_body,multipole_terms))::E,
         end
     end
 
-    OrbitalSplitHamiltonian(ĥ, direct_potentials, exchange_potentials,
+    OrbitalSplitHamiltonian(R, ĥ, direct_potentials, exchange_potentials,
                             projector)
 end
 

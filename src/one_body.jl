@@ -1,3 +1,5 @@
+# * Generation of one-body Hamiltonian
+
 function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,T,B,O₁,TC,C,CM}, orb::O₂) where {T,B,O₁,TC,C,CM,O₂}
     R = radial_basis(atom)
 
@@ -12,6 +14,48 @@ function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,T,B,O₁,TC,C,CM}, orb
     R*Tm*R', R*V*R'
 end
 one_body_hamiltonian(atom, orb) = +(one_body_hamiltonian(Tuple, atom, orb)...)
+
+# * OneBodyHamiltonian types
+
+abstract type AbstractOneBodyHamiltonian end
+Base.iszero(::AbstractOneBodyHamiltonian) = false
+
+# ** ZeroOneBodyHamiltonian
+
+struct ZeroOneBodyHamiltonian{M,N} <: AbstractOneBodyHamiltonian
+    a::Tuple{M,N}
+end
+
+Base.axes(ĥ::ZeroOneBodyHamiltonian) = ĥ.a
+Base.axes(ĥ::ZeroOneBodyHamiltonian,i) = ĥ.a[i]
+
+Base.iszero(::ZeroOneBodyHamiltonian) = true
+
+Base.show(io::IO, ĥ::ZeroOneBodyHamiltonian) =
+    write(io, "0")
+
+# ** AtomicOneBodyHamiltonian
+struct AtomicOneBodyHamiltonian{LT,O} <: AbstractOneBodyHamiltonian
+    op::LT
+    orbital::O
+end
+
+AtomicOneBodyHamiltonian(atom::Atom, orb::AbstractOrbital) =
+    AtomicOneBodyHamiltonian(one_body_hamiltonian(atom, orb), orb)
+
+Base.axes(ĥ::AtomicOneBodyHamiltonian, args...) =
+    axes(ĥ.op, args...)
+
+Base.zero(ĥ::AtomicOneBodyHamiltonian) =
+    ZeroOneBodyHamiltonian(axes(ĥ))
+
+LazyArrays.:(⋆)(ĥ::AtomicOneBodyHamiltonian, ϕ::AbstractVector) =
+    ĥ.op.mul.factors[2] ⋆ ϕ
+
+Base.show(io::IO, ĥ::AtomicOneBodyHamiltonian) =
+    write(io, "ĥ($(ĥ.orbital))")
+
+# * Diagonalization of one-body Hamiltonian
 
 struct ShiftInvert{M}
     A⁻¹::M

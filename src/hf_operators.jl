@@ -59,22 +59,25 @@ mutable struct OrbitalSplitHamiltonian{T,ΦT, #<:RadialCoeff{T},
                                        B<:AbstractQuasiMatrix,
                                        O<:AbstractOrbital,
                                        PO<:HFPotentialOperator{T,B},
-                                       LT, #<:Union{RO,NTuple{<:Any,RO}},
+                                       H<:AbstractOneBodyHamiltonian,
                                        OV<:RadialOrbital{ΦT,B},
                                        Proj}
-    ĥ::LT
+    R::B
+    ĥ::H
     direct_potentials::Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}
     exchange_potentials::Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}
     projector::Proj
 end
 
 Base.axes(hamiltonian::OrbitalSplitHamiltonian, args...) = axes(hamiltonian.ĥ, args...)
+Base.iszero(hamiltonian::OrbitalSplitHamiltonian) =
+    iszero(hamiltonian.ĥ) && isempty(hamiltonian.direct_potentials) && isempty(hamiltonian.exchange_potentials)
 
 SCF.update!(hamiltonian::OrbitalSplitHamiltonian; kwargs...) =
     foreach(pc -> update!(pc[1]; kwargs...), hamiltonian.direct_potentials)
 
 function Base.show(io::IO, hamiltonian::OrbitalSplitHamiltonian{T}) where T
-    write(io, "ĥ")
+    show(io, hamiltonian.ĥ)
     for (p,c) in hamiltonian.direct_potentials
         s = sign(c)
         write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
@@ -91,11 +94,11 @@ function Base.getindex(H::OrbitalSplitHamiltonian, term::Symbol)
     if term == :all
         H
     elseif term == :onebody
-        OrbitalSplitHamiltonian(H.ĥ, emptyvec(H.direct_potentials), emptyvec(H.exchange_potentials), H.projector)
+        OrbitalSplitHamiltonian(H.R, H.ĥ, emptyvec(H.direct_potentials), emptyvec(H.exchange_potentials), H.projector)
     elseif term == :direct
-        OrbitalSplitHamiltonian(zero(H.ĥ), H.direct_potentials, emptyvec(H.exchange_potentials), H.projector)
+        OrbitalSplitHamiltonian(H.R, zero(H.ĥ), H.direct_potentials, emptyvec(H.exchange_potentials), H.projector)
     elseif term == :exchange
-        OrbitalSplitHamiltonian(zero(H.ĥ), emptyvec(H.direct_potentials), H.exchange_potentials, H.projector)
+        OrbitalSplitHamiltonian(H.R, zero(H.ĥ), emptyvec(H.direct_potentials), H.exchange_potentials, H.projector)
     else
         throw(ArgumentError("Unknown Hamiltonian term $term"))
     end
@@ -119,8 +122,11 @@ function Base.copyto!(dest::RadialOrbital{ΦT,B}, matvec::OrbitalSplitHamiltonia
     A,R,b = matvec.factors
 
     # One-body operator
-    ĥ = A.ĥ.mul.factors[2]
-    copyto!(v, ĥ⋆b)
+    if iszero(A.ĥ)
+        v .= zero(ΦT)
+    else
+        copyto!(v, A.ĥ⋆b)
+    end
 
     for (p,c) in A.direct_potentials
         # # This is how we want to write it, to be basis-agnostic
@@ -131,7 +137,7 @@ function Base.copyto!(dest::RadialOrbital{ΦT,B}, matvec::OrbitalSplitHamiltonia
         p.poisson(R*b) # Form exchange potential from conj(p.a)*b
         # # This is how we want to write it, to be basis-agnostic
         # # materialize!(MulAdd(c, p.V̂, p.b, one(T), dest)) # Act on p.b
-        materialize!(MulAdd(c, p.V̂.mul.factors[2], p.b.mul.factors[2], one(T), dest.mul.factors[2])) # Act on p.b
+        materialize!(MulAdd(c, p.V̂.mul.factors[2], p.bv.mul.factors[2], one(T), dest.mul.factors[2])) # Act on p.bv
     end
 
     projectout!(dest, A.projector)
@@ -155,7 +161,7 @@ end
 # *** Krylov wrapper
 
 function SCF.KrylovWrapper(hamiltonian::OrbitalSplitHamiltonian{T,ΦT,B,O,PO,LT,OV}) where {T,ΦT,B,O,PO,LT,OV}
-    R = hamiltonian.ĥ.mul.factors[1]
+    R = hamiltonian.R
     KrylovWrapper{ΦT,B,OrbitalSplitHamiltonian{T,ΦT,B,O,PO,LT,OV}}(R, hamiltonian)
 end
 
