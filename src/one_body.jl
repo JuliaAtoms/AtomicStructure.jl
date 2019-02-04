@@ -1,4 +1,4 @@
-function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,T,B,O,TC,C,CM}, orb::O) where {T,B,O,TC,C,CM}
+function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,T,B,O₁,TC,C,CM}, orb::O₂) where {T,B,O₁,TC,C,CM,O₂}
     R = radial_basis(atom)
 
     D = Derivative(axes(R,1))

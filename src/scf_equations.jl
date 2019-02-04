@@ -19,50 +19,61 @@ SCF.KrylovWrapper(eq::HFEquation) = KrylovWrapper(eq.hamiltonian)
 
 const EnergyExpression = Tuple{Vector{<:OneBodyHamiltonian},Tuple{Vector{<:DirectExchangePotentials},Vector{NTuple{2,Vector{Pair{Int,Float64}}}}}}
 
-function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
-                    orbital::O,
-                    symmetry_orbitals::Vector{O}) where {T,ΦT, #<:RadialCoeff{T},
-                                       B<:AbstractQuasiMatrix,
-                                       O<:AbstractOrbital,
-                                       A<:Atom{T,ΦT,B,O},
-                                       E<:EnergyExpression}
+function orbital_hamiltonian(atom::A, (one_body,(two_body,multipole_terms))::E,
+                             orbital::O₁,
+                             projector::Proj) where {T,ΦT, #<:RadialCoeff{T},
+                                                     B<:AbstractQuasiMatrix,
+                                                     O₁<:AbstractOrbital,
+                                                     O₂<:AbstractOrbital,
+                                                     A<:Atom{T,ΦT,B,O₂},
+                                                     E<:EnergyExpression,
+                                                     Proj}
     R = radial_basis(atom)
 
     ĥ = one_body_hamiltonian(atom, orbital)
 
     OV = typeof(view(atom, 1))
+    O = promote_type(O₁, O₂)
     PO = typeof(R*Diagonal(Vector{T}(undef, size(R,2)))*R')
     direct_potentials = Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}()
     exchange_potentials = Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}()
 
-    count(.!iszero.(one_body)) == 1 ||
+    count(.!iszero.(one_body)) ≤ 1 ||
         throw(ArgumentError("There can only be one one-body Hamiltonian per orbital"))
 
-    all(AngularMomentumAlgebra.isdiagonal.(two_body)) ||
-        throw(ArgumentError("Non-diagonal repulsion potentials not yet supported"))
-
     for (tb,mpt) ∈ zip(two_body,multipole_terms)
-        tb.o == orbital ||
-            throw(ArgumentError("Repulsion potential $(tb) not pertaining to $(orbital)"))
-
-        other = tb.a
-        v = view(atom, other)
+        a = tb.a
+        b = tb.b
+        av = view(atom, a)
+        bv = view(atom, b)
 
         for (k,c) in mpt[1]
             push!(direct_potentials,
-                  HFPotential(:direct, k, other, v) => c)
+                  HFPotential(:direct, k, a, b, av, bv) => c)
         end
         for (k,c) in mpt[2]
             push!(exchange_potentials,
-                  HFPotential(:exchange, k, other, v) => c)
+                  HFPotential(:exchange, k, a, b, av, bv) => c)
         end
     end
 
+    OrbitalSplitHamiltonian(ĥ, direct_potentials, exchange_potentials,
+                            projector)
+end
+
+function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
+                    orbital::O,
+                    symmetry_orbitals::Vector{O}) where {T,ΦT, #<:RadialCoeff{T},
+                                                         B<:AbstractQuasiMatrix,
+                                                         O<:AbstractOrbital,
+                                                         A<:Atom{T,ΦT,B,O},
+                                                         E<:EnergyExpression}
+    OV = typeof(view(atom, 1))
     projector = Projector(OV[view(atom, other)
                              for other in symmetry_orbitals])
 
-    hamiltonian = OrbitalSplitHamiltonian(ĥ, direct_potentials, exchange_potentials,
-                                          projector)
+    hamiltonian = orbital_hamiltonian(atom, (one_body,(two_body,multipole_terms)),
+                                      orbital, projector)
 
     HFEquation(atom, (one_body,two_body), orbital, view(atom, orbital), hamiltonian)
 end

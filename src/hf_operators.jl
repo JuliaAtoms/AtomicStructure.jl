@@ -5,29 +5,37 @@ const HFPotentialOperator{T,B} = RadialOperator{T,B,Diagonal{T,Vector{T}}}
 
 mutable struct HFPotential{kind,O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B},RO<:HFPotentialOperator{T,B},P<:PoissonProblem}
     k::Int
-    orbital::O
-    ov::OV
+    a::O
+    b::O
+    av::OV
+    bv::OV
     V̂::RO
     poisson::P
 end
-HFPotential(kind::Symbol, k::Int, orbital::O, ov::OV, V̂::RO, poisson::P) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B},RO<:RadialOperator{T,B},P} =
-    HFPotential{kind,O,T,ΦT,B,OV,RO,P}(k, orbital, ov, V̂, poisson)
+HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV, V̂::RO, poisson::P) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B},RO<:RadialOperator{T,B},P} =
+    HFPotential{kind,O,T,ΦT,B,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
 
-function HFPotential(kind::Symbol, k::Int, orbital::O, ov::OV) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B}}
-    R = ov.mul.factors[1]
+function HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B}}
+    R = av.mul.factors[1]
     D = Diagonal(Vector{T}(undef, size(R,2)))
     D.diag .= zero(T)
     V̂ = R*D*R'
-    poisson = PoissonProblem(k, ov, ov, w′=R*D.diag)
-    update!(HFPotential(kind, k, orbital, ov, V̂, poisson))
+    poisson = PoissonProblem(k, av, bv, w′=R*D.diag)
+    update!(HFPotential(kind, k, a, b, av, bv, V̂, poisson))
 end
+
+Base.convert(::Type{HFPotential{kind,O₁,T,ΦT,B,OV,RO}},
+             hfpotential::HFPotential{kind,O₂,T,ΦT,B,OV,RO,P}) where {kind,O₁,O₂,T,ΦT,B,OV,RO,P} =
+                 HFPotential{kind,O₁,T,ΦT,B,OV,RO,P}(hfpotential.k,
+                                                     hfpotential.a, hfpotential.b, hfpotential.av, hfpotential.bv,
+                                                     hfpotential.V̂, hfpotential.poisson)
 
 # *** Direct potential
 
 const DirectPotential{O,T,ΦT,B,OV,RO} = HFPotential{:direct,O,T,ΦT,B,OV,RO}
 
 Base.show(io::IO, Y::DirectPotential) =
-    write(io, "r⁻¹×Y", to_superscript(Y.k), "($(Y.orbital), $(Y.orbital))")
+    write(io, "r⁻¹×Y", to_superscript(Y.k), "($(Y.a), $(Y.b))")
 
 function SCF.update!(p::DirectPotential{O,T,ΦT,B,OV,RO}; kwargs...) where {O,T,ΦT,B,OV,RO}
     p.poisson(;kwargs...)
@@ -39,7 +47,7 @@ end
 const ExchangePotential{O,T,B,OV,RO} = HFPotential{:exchange,O,T,B,OV,RO}
 
 Base.show(io::IO, Y::ExchangePotential) =
-    write(io, "|$(Y.orbital)⟩r⁻¹×Y", to_superscript(Y.k), "($(Y.orbital), ●)")
+    write(io, "|$(Y.b)⟩r⁻¹×Y", to_superscript(Y.k), "($(Y.a), ●)")
 
 # We can't update the exchange potentials, since they depend on the
 # orbital they act on.
@@ -120,10 +128,10 @@ function Base.copyto!(dest::RadialOrbital{ΦT,B}, matvec::OrbitalSplitHamiltonia
         materialize!(MulAdd(c, p.V̂.mul.factors[2], b, one(T), dest.mul.factors[2]))
     end
     for (p,c) in A.exchange_potentials
-        p.poisson(R*b) # Form exchange potential from conj(p.ov)*b
+        p.poisson(R*b) # Form exchange potential from conj(p.a)*b
         # # This is how we want to write it, to be basis-agnostic
-        # # materialize!(MulAdd(c, p.V̂, p.ov, one(T), dest)) # Act on p.ov
-        materialize!(MulAdd(c, p.V̂.mul.factors[2], p.ov.mul.factors[2], one(T), dest.mul.factors[2])) # Act on p.ov
+        # # materialize!(MulAdd(c, p.V̂, p.b, one(T), dest)) # Act on p.b
+        materialize!(MulAdd(c, p.V̂.mul.factors[2], p.b.mul.factors[2], one(T), dest.mul.factors[2])) # Act on p.b
     end
 
     projectout!(dest, A.projector)
