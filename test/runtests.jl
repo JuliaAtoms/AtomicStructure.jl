@@ -114,9 +114,8 @@ end
                 test_hydrogenic_slater_integrals!(data, tests, eq, :exchange, -Z*(exact_Gᵏs[(o"2s",o"1s",0)]), rtol=0.2)
             end
             println("Orbital energies pre-optimization:")
-            # The type signature of Highlighter has changed on master of PrettyTables
-            pass = Highlighter(f = (data,i,j)-> j == 8 && data[i,j], bold = true, color = :green)
-            fail = Highlighter(f = (data,i,j)-> j == 8 && !data[i,j], bold = true, color = :red)
+            pass = Highlighter((data,i,j) -> j == 8 && data[i,j], bold = true, foreground = :green)
+            fail = Highlighter((data,i,j) -> j == 8 && !data[i,j], bold = true, foreground = :red)
             pretty_table(vcat(data...), ["Orbital", "Term", "Expected", "Expected", "Actual", "Error", "Relative error", "Pass"],
                          highlighters=(pass,fail))
             for test in tests
