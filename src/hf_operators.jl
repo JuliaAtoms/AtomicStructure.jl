@@ -67,6 +67,7 @@ mutable struct OrbitalSplitHamiltonian{T,ΦT, #<:RadialCoeff{T},
     direct_potentials::Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}
     exchange_potentials::Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}
     projector::Proj
+    orbital::O
 end
 
 Base.axes(hamiltonian::OrbitalSplitHamiltonian, args...) = axes(hamiltonian.ĥ, args...)
@@ -77,7 +78,13 @@ SCF.update!(hamiltonian::OrbitalSplitHamiltonian; kwargs...) =
     foreach(pc -> update!(pc[1]; kwargs...), hamiltonian.direct_potentials)
 
 function Base.show(io::IO, hamiltonian::OrbitalSplitHamiltonian{T}) where T
-    show(io, hamiltonian.ĥ)
+    if iszero(hamiltonian)
+        write(io, "0")
+        return
+    end
+    multiple_terms = sum([!iszero(hamiltonian.ĥ), !isempty(hamiltonian.direct_potentials), !isempty(hamiltonian.exchange_potentials)]) > 1
+    multiple_terms && write(io, "[")
+    !iszero(hamiltonian.ĥ) && write(io, "ĥ")
     for (p,c) in hamiltonian.direct_potentials
         s = sign(c)
         write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
@@ -86,6 +93,10 @@ function Base.show(io::IO, hamiltonian::OrbitalSplitHamiltonian{T}) where T
         s = sign(c)
         write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
     end
+    multiple_terms && write(io, "]")
+    write(io, "|")
+    show(io, hamiltonian.orbital)
+    write(io, "⟩")
 end
 
 emptyvec(::V) where {V<:AbstractVector} = V()
@@ -94,11 +105,11 @@ function Base.getindex(H::OrbitalSplitHamiltonian, term::Symbol)
     if term == :all
         H
     elseif term == :onebody
-        OrbitalSplitHamiltonian(H.R, H.ĥ, emptyvec(H.direct_potentials), emptyvec(H.exchange_potentials), H.projector)
+        OrbitalSplitHamiltonian(H.R, H.ĥ, emptyvec(H.direct_potentials), emptyvec(H.exchange_potentials), H.projector, H.orbital)
     elseif term == :direct
-        OrbitalSplitHamiltonian(H.R, zero(H.ĥ), H.direct_potentials, emptyvec(H.exchange_potentials), H.projector)
+        OrbitalSplitHamiltonian(H.R, zero(H.ĥ), H.direct_potentials, emptyvec(H.exchange_potentials), H.projector, H.orbital)
     elseif term == :exchange
-        OrbitalSplitHamiltonian(H.R, zero(H.ĥ), emptyvec(H.direct_potentials), H.exchange_potentials, H.projector)
+        OrbitalSplitHamiltonian(H.R, zero(H.ĥ), emptyvec(H.direct_potentials), H.exchange_potentials, H.projector, H.orbital)
     else
         throw(ArgumentError("Unknown Hamiltonian term $term"))
     end

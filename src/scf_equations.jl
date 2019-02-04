@@ -45,6 +45,14 @@ function orbital_hamiltonian(atom::A, (one_body,(two_body,multipole_terms))::E,
         AtomicOneBodyHamiltonian(atom, one_body[1].orb)
     end
 
+    action_orbital = if !isempty(one_body)
+        one_body[1].orb
+    elseif !isempty(two_body)
+        two_body[1].o
+    else
+        orbital
+    end
+
     for (tb,mpt) ∈ zip(two_body,multipole_terms)
         a = tb.a
         b = tb.b
@@ -62,7 +70,7 @@ function orbital_hamiltonian(atom::A, (one_body,(two_body,multipole_terms))::E,
     end
 
     OrbitalSplitHamiltonian(R, ĥ, direct_potentials, exchange_potentials,
-                            projector)
+                            projector,action_orbital)
 end
 
 function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
@@ -85,7 +93,7 @@ end
 SCF.energy(hfeq::HFEquation{E,O,M}, term::Symbol=:all) where {E,O,M} = (hfeq.ϕ' * hfeq.hamiltonian[term] * hfeq.ϕ)[1]
 
 function Base.show(io::IO, hfeq::HFEquation)
-    write(io, "Hartree–Fock equation: 0 = [𝓗  - E($(hfeq.orbital))]|$(hfeq.orbital)⟩ = [$(hfeq.hamiltonian) - E($(hfeq.orbital))]|$(hfeq.orbital)⟩")
+    write(io, "Hartree–Fock equation: 0 = [𝓗  - E($(hfeq.orbital))]|$(hfeq.orbital)⟩ = $(hfeq.hamiltonian) - E($(hfeq.orbital))|$(hfeq.orbital)⟩")
     EHa = SCF.energy(hfeq)
     write(io, "\n    ⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(EHa) Ha = $(27.211EHa) eV")
     Eh = (hfeq.ϕ' * hfeq.hamiltonian[:onebody] * hfeq.ϕ)[1]
