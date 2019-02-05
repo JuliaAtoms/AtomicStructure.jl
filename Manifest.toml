@@ -11,8 +11,8 @@ uuid = "2169fc97-5a83-5252-b627-83903c6c433c"
 version = "0.2.1"
 
 [[AngularMomentumAlgebra]]
-deps = ["AtomicLevels", "Combinatorics", "EnergyExpressions", "LinearAlgebra", "SparseArrays", "Test", "Unicode", "WignerSymbols"]
-git-tree-sha1 = "f1fdd1825c5fd58f38d6b18fcedfd341d100419b"
+deps = ["AtomicLevels", "EnergyExpressions", "LinearAlgebra", "SparseArrays", "Test", "Unicode", "WignerSymbols"]
+git-tree-sha1 = "4ab9c7f231976dd73616d403408cfb9853042dca"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -138,8 +138,8 @@ uuid = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
 version = "0.0.1"
 
 [[EnergyExpressions]]
-deps = ["AtomicLevels", "LinearAlgebra", "SparseArrays", "Test"]
-git-tree-sha1 = "8c82aa381b8ab1d5b4893939e545abeeba6670d3"
+deps = ["AtomicLevels", "Combinatorics", "LinearAlgebra", "SparseArrays", "Test", "UnicodeFun"]
+git-tree-sha1 = "56f196b376e140c80c63c3c08f3679f76ee6dc5b"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/EnergyExpressions.jl"
 uuid = "f4b57a2e-27c7-11e9-0cb0-edd185b706f6"
