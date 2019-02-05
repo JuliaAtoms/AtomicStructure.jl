@@ -41,6 +41,7 @@ include("one_body.jl")
 include("utils.jl")
 include("hydrogenic.jl")
 include("projectors.jl")
+include("lazy_matmuls.jl")
 include("hf_operators.jl")
 include("scf_equations.jl")
 
