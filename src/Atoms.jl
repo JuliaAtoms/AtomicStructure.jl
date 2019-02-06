@@ -34,7 +34,6 @@ getn(orb::SpinOrbital) = orb.orb.n
 getℓ(orb::Orbital) = orb.ℓ
 getℓ(orb::SpinOrbital) = orb.orb.ℓ
 
-include("two_components.jl")
 include("radial_orbitals.jl")
 include("atom_types.jl")
 include("one_body.jl")

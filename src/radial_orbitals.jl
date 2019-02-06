@@ -5,12 +5,14 @@
 # coefficients, where each matrix column corresponds to a single
 # radial orbital.
 
-const RadialCoeff{T<:Number} = Union{T,TwoComponent{T}}
-const RadialOrbital{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,1,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractVector}}}
-const RadialOrbitals{T<:RadialCoeff,B<:AbstractQuasiMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractMatrix}}}
+const RadialOrbital{T,B<:AbstractQuasiMatrix} = MulQuasiArray{T,1,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractVector}}}
+const RadialOrbitals{T,B<:AbstractQuasiMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractMatrix}}}
 
-const RadialOperator{T<:RadialCoeff,B<:AbstractQuasiMatrix,M<:AbstractMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,M,<:QuasiAdjoint{<:Any,<:B}}}}
+const RadialOperator{T,B<:AbstractQuasiMatrix,M<:AbstractMatrix} =
+    MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,M,<:QuasiAdjoint{<:Any,<:B}}}}
+
 matrix(o::RadialOperator) = o.mul.factors[2]
+
 function Base.zero(o::RadialOperator)
     A,B,C = o.mul.factors
     A*Diagonal(zeros(eltype(B),size(B,1)))*C

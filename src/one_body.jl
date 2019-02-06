@@ -1,6 +1,6 @@
 # * Generation of one-body Hamiltonian
 
-function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,T,B,O₁,TC,C,CM}, orb::O₂) where {T,B,O₁,TC,C,CM,O₂}
+function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,B,O₁}, orb::O₂) where {T,B,O₁,O₂}
     R = radial_basis(atom)
 
     D = Derivative(axes(R,1))

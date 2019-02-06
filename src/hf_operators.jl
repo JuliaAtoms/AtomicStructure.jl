@@ -3,7 +3,7 @@
 
 const HFPotentialOperator{T,B} = RadialOperator{T,B,Diagonal{T,Vector{T}}}
 
-mutable struct HFPotential{kind,O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B},RO<:HFPotentialOperator{T,B},P<:PoissonProblem}
+mutable struct HFPotential{kind,O,T,B,OV<:RadialOrbital{T,B},RO<:HFPotentialOperator{T,B},P<:PoissonProblem}
     k::Int
     a::O
     b::O
@@ -12,10 +12,10 @@ mutable struct HFPotential{kind,O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,
     V̂::RO
     poisson::P
 end
-HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV, V̂::RO, poisson::P) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B},RO<:RadialOperator{T,B},P} =
-    HFPotential{kind,O,T,ΦT,B,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
+HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV, V̂::RO, poisson::P) where {O,T,B,OV<:RadialOrbital{T,B},RO<:RadialOperator{T,B},P} =
+    HFPotential{kind,O,T,B,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
 
-function HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV) where {O,T,ΦT<:RadialCoeff{T},B,OV<:RadialOrbital{ΦT,B}}
+function HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV) where {O,T,B,OV<:RadialOrbital{T,B}}
     R = av.mul.factors[1]
     D = Diagonal(Vector{T}(undef, size(R,2)))
     D.diag .= zero(T)
@@ -24,20 +24,20 @@ function HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV) where {O,
     update!(HFPotential(kind, k, a, b, av, bv, V̂, poisson))
 end
 
-Base.convert(::Type{HFPotential{kind,O₁,T,ΦT,B,OV,RO}},
-             hfpotential::HFPotential{kind,O₂,T,ΦT,B,OV,RO,P}) where {kind,O₁,O₂,T,ΦT,B,OV,RO,P} =
-                 HFPotential{kind,O₁,T,ΦT,B,OV,RO,P}(hfpotential.k,
-                                                     hfpotential.a, hfpotential.b, hfpotential.av, hfpotential.bv,
-                                                     hfpotential.V̂, hfpotential.poisson)
+Base.convert(::Type{HFPotential{kind,O₁,T,B,OV,RO}},
+             hfpotential::HFPotential{kind,O₂,T,B,OV,RO,P}) where {kind,O₁,O₂,T,B,OV,RO,P} =
+                 HFPotential{kind,O₁,T,B,OV,RO,P}(hfpotential.k,
+                                                  hfpotential.a, hfpotential.b, hfpotential.av, hfpotential.bv,
+                                                  hfpotential.V̂, hfpotential.poisson)
 
 # *** Direct potential
 
-const DirectPotential{O,T,ΦT,B,OV,RO} = HFPotential{:direct,O,T,ΦT,B,OV,RO}
+const DirectPotential{O,T,B,OV,RO} = HFPotential{:direct,O,T,B,OV,RO}
 
 Base.show(io::IO, Y::DirectPotential) =
     write(io, "r⁻¹×Y", to_superscript(Y.k), "($(Y.a), $(Y.b))")
 
-function SCF.update!(p::DirectPotential{O,T,ΦT,B,OV,RO}; kwargs...) where {O,T,ΦT,B,OV,RO}
+function SCF.update!(p::DirectPotential{O,T,B,OV,RO}; kwargs...) where {O,T,B,OV,RO}
     p.poisson(;kwargs...)
     p
 end
@@ -55,17 +55,16 @@ SCF.update!(p::ExchangePotential; kwargs...) = p
 
 # ** Split Hamiltonian
 
-mutable struct OrbitalSplitHamiltonian{T,ΦT, #<:RadialCoeff{T},
-                                       B<:AbstractQuasiMatrix,
+mutable struct OrbitalSplitHamiltonian{T, B<:AbstractQuasiMatrix,
                                        O<:AbstractOrbital,
                                        PO<:HFPotentialOperator{T,B},
                                        H<:AbstractOneBodyHamiltonian,
-                                       OV<:RadialOrbital{ΦT,B},
+                                       OV<:RadialOrbital{T,B},
                                        Proj}
     R::B
     ĥ::H
-    direct_potentials::Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}
-    exchange_potentials::Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}
+    direct_potentials::Vector{Pair{DirectPotential{O,T,B,OV,PO},T}}
+    exchange_potentials::Vector{Pair{ExchangePotential{O,T,B,OV,PO},T}}
     projector::Proj
     orbital::O
 end
@@ -82,7 +81,8 @@ function Base.show(io::IO, hamiltonian::OrbitalSplitHamiltonian{T}) where T
         write(io, "0")
         return
     end
-    multiple_terms = sum([!iszero(hamiltonian.ĥ), !isempty(hamiltonian.direct_potentials), !isempty(hamiltonian.exchange_potentials)]) > 1
+    multiple_terms = sum([!iszero(hamiltonian.ĥ), !isempty(hamiltonian.direct_potentials),
+                          !isempty(hamiltonian.exchange_potentials)]) > 1
     multiple_terms && write(io, "[")
     !iszero(hamiltonian.ĥ) && write(io, "ĥ")
     for (p,c) in hamiltonian.direct_potentials
@@ -115,26 +115,26 @@ function Base.getindex(H::OrbitalSplitHamiltonian, term::Symbol)
     end
 end
 
-# const OrbitalHamiltonian{T,ΦT,B,O} = Union{OrbitalSplitHamiltonian{T,ΦT,B,O},RadialOperator{T,B}}
+# const OrbitalHamiltonian{T,B,O} = Union{OrbitalSplitHamiltonian{T,B,O},RadialOperator{T,B}}
 
 # *** Materialization
 
-const OrbitalSplitHamiltonianMatrixElement{T,ΦT<:RadialCoeff{T},V<:AbstractVector,B<:AbstractQuasiMatrix} =
-    Mul{<:Tuple,<:Tuple{<:Adjoint{T,V},<:QuasiAdjoint{T,B},<:OrbitalSplitHamiltonian{T,ΦT,B},B,V}}
+const OrbitalSplitHamiltonianMatrixElement{T,V<:AbstractVector,B<:AbstractQuasiMatrix} =
+    Mul{<:Tuple,<:Tuple{<:Adjoint{T,V},<:QuasiAdjoint{T,B},<:OrbitalSplitHamiltonian{T,B},B,V}}
 
-const OrbitalSplitHamiltonianMatrixVectorProduct{T,ΦT<:RadialCoeff{T},V<:AbstractVector,B<:AbstractQuasiMatrix} =
-    Mul{<:Tuple,<:Tuple{<:OrbitalSplitHamiltonian{T,ΦT,B},B,V}}
+const OrbitalSplitHamiltonianMatrixVectorProduct{T,V<:AbstractVector,B<:AbstractQuasiMatrix} =
+    Mul{<:Tuple,<:Tuple{<:OrbitalSplitHamiltonian{T,B},B,V}}
 
-Base.eltype(::OrbitalSplitHamiltonianMatrixVectorProduct{T,ΦT,V,B}) where {T,ΦT,V,B} = ΦT
+Base.eltype(::OrbitalSplitHamiltonianMatrixVectorProduct{T,V,B}) where {T,V,B} = T
 
-function Base.copyto!(dest::RadialOrbital{ΦT,B}, matvec::OrbitalSplitHamiltonianMatrixVectorProduct{T,ΦT,V,B}) where {T,ΦT,V,B}
+function Base.copyto!(dest::RadialOrbital{T,B}, matvec::OrbitalSplitHamiltonianMatrixVectorProduct{T,V,B}) where {T,V,B}
     axes(dest) == axes(matvec) || throw(DimensionMismatch("axes must be the same"))
     R′,v = dest.mul.factors
     A,R,b = matvec.factors
 
     # One-body operator
     if iszero(A.ĥ)
-        v .= zero(ΦT)
+        v .= zero(T)
     else
         copyto!(v, A.ĥ⋆b)
     end
@@ -162,18 +162,19 @@ function Base.similar(matvec::OrbitalSplitHamiltonianMatrixVectorProduct, ::Type
     R*v
 end
 
-LazyArrays.materialize(matvec::OrbitalSplitHamiltonianMatrixVectorProduct{T,ΦT,V,B}) where {T,ΦT,V,B} = copyto!(similar(matvec, eltype(matvec)), matvec)
+LazyArrays.materialize(matvec::OrbitalSplitHamiltonianMatrixVectorProduct{T,V,B}) where {T,V,B} =
+    copyto!(similar(matvec, eltype(matvec)), matvec)
 
-function LazyArrays.materialize(matel::OrbitalSplitHamiltonianMatrixElement{T,ΦT,V,B}) where {T,ΦT,V,B}
+function LazyArrays.materialize(matel::OrbitalSplitHamiltonianMatrixElement{T,V,B}) where {T,V,B}
     a,R′,O,R,b = matel.factors
     a*R′*materialize(O⋆R⋆b)
 end
 
 # *** Krylov wrapper
 
-function SCF.KrylovWrapper(hamiltonian::OrbitalSplitHamiltonian{T,ΦT,B,O,PO,LT,OV}) where {T,ΦT,B,O,PO,LT,OV}
+function SCF.KrylovWrapper(hamiltonian::OrbitalSplitHamiltonian{T,B,O,PO,LT,OV}) where {T,B,O,PO,LT,OV}
     R = hamiltonian.R
-    KrylovWrapper{ΦT,B,OrbitalSplitHamiltonian{T,ΦT,B,O,PO,LT,OV}}(R, hamiltonian)
+    KrylovWrapper{T,B,OrbitalSplitHamiltonian{T,B,O,PO,LT,OV}}(R, hamiltonian)
 end
 
 LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,B,Hamiltonian}, x::V₂) where {V₁,V₂,T,B,Hamiltonian<:OrbitalSplitHamiltonian} =

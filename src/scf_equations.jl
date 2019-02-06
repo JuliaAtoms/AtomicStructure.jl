@@ -1,11 +1,10 @@
 # * Hartree–Fock equation
 
-mutable struct HFEquation{T, ΦT, #<:RadialCoeff{T},
-                          B<:AbstractQuasiMatrix,
+mutable struct HFEquation{T, B<:AbstractQuasiMatrix,
                           O<:AbstractOrbital,
-                          A<:Atom{T,ΦT,B,O},
+                          A<:Atom{T,B,O},
                           E,
-                          M# <:OrbitalHamiltonian{T,ΦT,B,O}
+                          M# <:OrbitalHamiltonian{T,B,O}
                           }
     atom::A
     equation::E
@@ -21,11 +20,11 @@ const EnergyExpression = Tuple{Vector{<:OneBodyHamiltonian},Tuple{Vector{<:Direc
 
 function orbital_hamiltonian(atom::A, (one_body,(two_body,multipole_terms))::E,
                              orbital::O₁,
-                             projector::Proj) where {T,ΦT, #<:RadialCoeff{T},
+                             projector::Proj) where {T,
                                                      B<:AbstractQuasiMatrix,
                                                      O₁<:AbstractOrbital,
                                                      O₂<:AbstractOrbital,
-                                                     A<:Atom{T,ΦT,B,O₂},
+                                                     A<:Atom{T,B,O₂},
                                                      E<:EnergyExpression,
                                                      Proj}
     R = radial_basis(atom)
@@ -33,8 +32,8 @@ function orbital_hamiltonian(atom::A, (one_body,(two_body,multipole_terms))::E,
     OV = typeof(view(atom, 1))
     O = promote_type(O₁, O₂)
     PO = typeof(R*Diagonal(Vector{T}(undef, size(R,2)))*R')
-    direct_potentials = Vector{Pair{DirectPotential{O,T,ΦT,B,OV,PO},T}}()
-    exchange_potentials = Vector{Pair{ExchangePotential{O,T,ΦT,B,OV,PO},T}}()
+    direct_potentials = Vector{Pair{DirectPotential{O,T,B,OV,PO},T}}()
+    exchange_potentials = Vector{Pair{ExchangePotential{O,T,B,OV,PO},T}}()
 
     count(.!iszero.(one_body)) ≤ 1 ||
         throw(ArgumentError("There can only be one one-body Hamiltonian per orbital"))
@@ -75,10 +74,10 @@ end
 
 function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
                     orbital::O,
-                    symmetry_orbitals::Vector{O}) where {T,ΦT, #<:RadialCoeff{T},
+                    symmetry_orbitals::Vector{O}) where {T,
                                                          B<:AbstractQuasiMatrix,
                                                          O<:AbstractOrbital,
-                                                         A<:Atom{T,ΦT,B,O},
+                                                         A<:Atom{T,B,O},
                                                          E<:EnergyExpression}
     OV = typeof(view(atom, 1))
     projector = Projector(OV[view(atom, other)

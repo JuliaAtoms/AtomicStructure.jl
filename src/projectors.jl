@@ -1,4 +1,4 @@
-struct Projector{ΦT,B<:AbstractQuasiMatrix,RO<:RadialOrbital{ΦT,B}}
+struct Projector{T,B<:AbstractQuasiMatrix,RO<:RadialOrbital{T,B}}
     ϕs::Vector{RO}
 end
 
