@@ -13,3 +13,31 @@ function LazyArrays.default_blasmul!(α, A::Diagonal, B::AbstractVector, β, C::
 
     C
 end
+
+function LazyArrays.default_blasmul!(α, A::SymTridiagonal, B::AbstractVector, β, C::AbstractVector)
+    mA, nA = size(A)
+    m = length(B)
+    mA == nA == m || throw(DimensionMismatch("Dimensions must match"))
+    length(C) == m || throw(DimensionMismatch("Dimensions must match"))
+
+    lmul!(β, C)
+    (nA == 0 || m == 0) && return C
+
+    d = A.dv
+    e = A.ev
+
+    @inbounds begin
+        x₊ = B[1]
+        x₀ = zero(x₊)
+        # If m == 1 then e[1] is out of bounds
+        e₀ = m > 1 ? zero(e[1]) : zero(eltype(e))
+        for i = 1:m - 1
+            x₋, x₀, x₊ = x₀, x₊, B[i + 1]
+            e₋, e₀ = e₀, e[i]
+            C[i] += α * (e₋*x₋ + d[i]*x₀ + e₀*x₊)
+        end
+        C[m] += α * (e₀*x₀ + d[m]*x₊)
+    end
+
+    C
+end

@@ -16,7 +16,7 @@ const ManyElectronWavefunction{O<:AbstractOrbital} = Union{CSF{O},Configuration{
 # point charge or a nucleus of finite extent) or the core orbitals
 # (i.e. a pseudo-potential).
 
-mutable struct Atom{T,B<:AbstractQuasiMatrix,O<:AbstractOrbital,TC<:ManyElectronWavefunction,C,P<:AbstractPotential}
+mutable struct Atom{T,B<:AbstractQuasiMatrix,O<:AbstractOrbital,TC<:ManyElectronWavefunction,C,P<:AbstractPotential} <: AbstractQuantumSystem
     radial_orbitals::RadialOrbitals{T,B}
     orbitals::Vector{O}
     configurations::Vector{TC}
@@ -113,6 +113,12 @@ Base.view(atom::Atom, j::I) where {I<:Integer} =
 Base.view(atom::Atom{T,B,O}, orb::O) where {T,B,O} =
     view(atom, orbital_index(atom, orb))
 
+SCF.coefficients(atom::A) where {A<:Atom} =
+    view(atom.mix_coeffs, :)
+
+SCF.orbitals(atom::A) where {A<:Atom} =
+    view(atom.radial_orbitals.mul.factors[2], :, :)
+
 """
     norm(atom[, p=2; configuration=1])
 
@@ -129,8 +135,8 @@ function LinearAlgebra.norm(atom::Atom{T}, p::Real=2; configuration::Int=1) wher
     n^(one(RT)/p) # Unsure why you'd ever want anything but the 2-norm, but hey
 end
 
-LinearAlgebra.normalize!(fock::Fock{A}, v::V) where {A<:Atom,V<:AbstractVector} =
-    normalize!(radial_basis(fock.quantum_system)*v)
+LinearAlgebra.normalize!(atom::A, v::V) where {A<:Atom,V<:AbstractVector} =
+    normalize!(radial_basis(atom)*v)
 
 function SCF.norm_rot!(ro::RO) where {RO<:RadialOrbital}
     normalize!(ro)

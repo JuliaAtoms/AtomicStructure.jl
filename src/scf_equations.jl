@@ -1,105 +1,86 @@
-# * Hartree–Fock equation
+# * Hartree–Fock equations
+# ** Hartree-Fock orbital equation
 
 mutable struct HFEquation{T, B<:AbstractQuasiMatrix,
                           O<:AbstractOrbital,
                           A<:Atom{T,B,O},
-                          E,
+                          Equation,
                           M# <:OrbitalHamiltonian{T,B,O}
                           }
     atom::A
-    equation::E
+    equation::Equation
     orbital::O
     ϕ::RadialOrbital{T,B}
     hamiltonian::M
 end
 
-SCF.update!(eq::HFEquation; kwargs...) = update!(eq.hamiltonian; kwargs...)
-SCF.KrylovWrapper(eq::HFEquation) = KrylovWrapper(eq.hamiltonian)
+SCF.hamiltonian(hfeq::HFEquation) = hfeq.hamiltonian
 
-const EnergyExpression = Tuple{Vector{<:OneBodyHamiltonian},Tuple{Vector{<:DirectExchangePotentials},Vector{NTuple{2,Vector{Pair{Int,Float64}}}}}}
-
-function orbital_hamiltonian(atom::A, (one_body,(two_body,multipole_terms))::E,
-                             orbital::O₁,
-                             projector::Proj) where {T,
-                                                     B<:AbstractQuasiMatrix,
-                                                     O₁<:AbstractOrbital,
-                                                     O₂<:AbstractOrbital,
-                                                     A<:Atom{T,B,O₂},
-                                                     E<:EnergyExpression,
-                                                     Proj}
-    R = radial_basis(atom)
-
-    OV = typeof(view(atom, 1))
-    O = promote_type(O₁, O₂)
-    PO = typeof(R*Diagonal(Vector{T}(undef, size(R,2)))*R')
-    direct_potentials = Vector{Pair{DirectPotential{O,T,B,OV,PO},T}}()
-    exchange_potentials = Vector{Pair{ExchangePotential{O,T,B,OV,PO},T}}()
-
-    count(.!iszero.(one_body)) ≤ 1 ||
-        throw(ArgumentError("There can only be one one-body Hamiltonian per orbital"))
-
-    ĥ = if isempty(one_body)
-        zero(AtomicOneBodyHamiltonian(atom, orbital))
-    else
-        AtomicOneBodyHamiltonian(atom, one_body[1].orb)
-    end
-
-    action_orbital = if !isempty(one_body)
-        one_body[1].orb
-    elseif !isempty(two_body)
-        two_body[1].o
-    else
-        orbital
-    end
-
-    for (tb,mpt) ∈ zip(two_body,multipole_terms)
-        a = tb.a
-        b = tb.b
-        av = view(atom, a)
-        bv = view(atom, b)
-
-        for (k,c) in mpt[1]
-            push!(direct_potentials,
-                  HFPotential(:direct, k, a, b, av, bv) => c)
-        end
-        for (k,c) in mpt[2]
-            push!(exchange_potentials,
-                  HFPotential(:exchange, k, a, b, av, bv) => c)
-        end
-    end
-
-    OrbitalSplitHamiltonian(R, ĥ, direct_potentials, exchange_potentials,
-                            projector,action_orbital)
-end
-
-function HFEquation(atom::A, (one_body,(two_body,multipole_terms))::E,
-                    orbital::O,
+function HFEquation(atom::A, equation::Equation, orbital::O,
+                    terms::Vector{<:OrbitalHamiltonianTerm{O,T,B}},
                     symmetry_orbitals::Vector{O}) where {T,
                                                          B<:AbstractQuasiMatrix,
                                                          O<:AbstractOrbital,
                                                          A<:Atom{T,B,O},
-                                                         E<:EnergyExpression}
-    OV = typeof(view(atom, 1))
+                                                         Equation}
+    OV = typeof(view(atom,orbital))
     projector = Projector(OV[view(atom, other)
                              for other in symmetry_orbitals])
 
-    hamiltonian = orbital_hamiltonian(atom, (one_body,(two_body,multipole_terms)),
-                                      orbital, projector)
+    hamiltonian = OrbitalHamiltonian(radial_basis(atom), terms,
+                                     atom.mix_coeffs, projector, orbital)
 
-    HFEquation(atom, (one_body,two_body), orbital, view(atom, orbital), hamiltonian)
+    HFEquation(atom, equation, orbital, view(atom, orbital), hamiltonian)
 end
 
-SCF.energy(hfeq::HFEquation{E,O,M}, term::Symbol=:all) where {E,O,M} = (hfeq.ϕ' * hfeq.hamiltonian[term] * hfeq.ϕ)[1]
+SCF.energy(hfeq::HFEquation, term=:all) =
+    (hfeq.ϕ' * hfeq.hamiltonian[term] * hfeq.ϕ)[1]
+
+SCF.energy_matrix!(H::HM, hfeq::HFEquation) where {HM<:AbstractMatrix} =
+    SCF.energy_matrix!(H, hfeq.hamiltonian, hfeq.ϕ)
 
 function Base.show(io::IO, hfeq::HFEquation)
-    write(io, "Hartree–Fock equation: 0 = [𝓗  - E($(hfeq.orbital))]|$(hfeq.orbital)⟩ = $(hfeq.hamiltonian) - E($(hfeq.orbital))|$(hfeq.orbital)⟩")
     EHa = SCF.energy(hfeq)
-    write(io, "\n    ⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(EHa) Ha = $(27.211EHa) eV")
-    Eh = (hfeq.ϕ' * hfeq.hamiltonian[:onebody] * hfeq.ϕ)[1]
-    Ed = (hfeq.ϕ' * hfeq.hamiltonian[:direct] * hfeq.ϕ)[1]
-    Ex = (hfeq.ϕ' * hfeq.hamiltonian[:exchange] * hfeq.ϕ)[1]
-    write(io, " (⟨h⟩ = $(Eh) Ha, ⟨J⟩ = $(Ed) Ha, ⟨K⟩ = $(Ex) Ha)")
+    write(io, "⟨$(hfeq.orbital)| 𝓗 |$(hfeq.orbital)⟩ = $(EHa) Ha = $(27.211EHa) eV")
 end
+
+function Base.show(io::IO, ::MIME"text/plain", hfeq::HFEquation)
+    write(io, "Hartree–Fock equation: E|$(hfeq.orbital)⟩ = ")
+    show(io, hfeq.equation)
+    write(io, "\n")
+    show(io, hfeq)
+    write(io, "\n")
+end
+
+# ** Hartree–Fock system of equations
+
+"""
+    HFEquations(atom, equations, integrals)
+
+Structure representing the Hartree–Fock `equations` for `atom`, along
+with all `integrals` that are shared between the `equations`.
+"""
+mutable struct HFEquations{T, B<:AbstractQuasiMatrix,
+                           O<:AbstractOrbital,
+                           A<:Atom{T,B,O},
+                           Equations<:AbstractVector{<:HFEquation}}
+    atom::A
+    equations::Equations
+    integrals::Vector{OrbitalIntegral}
+end
+
+# Iteration interface
+Base.length(hfeqs::HFEquations) = length(hfeqs.equations)
+Base.iterate(iter::HFEquations, args...) = iterate(iter.equations, args...)
+
+"""
+    update!(equations::HFEquations)
+
+Recompute all integrals using the current values for the radial orbitals.
+"""
+SCF.update!(equations::HFEquations; kwargs...) =
+    foreach(integral -> SCF.update!(integral; kwargs...),
+            equations.integrals)
 
 # * Orbital symmetries
 """
@@ -114,93 +95,112 @@ find_symmetries(orbitals::Vector{O}) where {O<:AbstractOrbital} =
                   for orb in orbitals]...)
 
 # * Setup Hartree–Fock equations
-#=
-function hf_equations(csf::NonRelativisticCSF, eng::EnergyExpression; verbosity=0)
-    pconfig = peel(csf.config)
-    orbitals = pconfig.orbitals
-
-    λs = lagrange_multipliers(orbitals)
-    eng += λs
-
-    if verbosity > 2
-        println("Orbitals: $(orbitals)")
-        println("Lagrange multipliers: $(λs)")
-    end
-    verbosity > 1 && println("E = $eng\n")
-
-    map(pconfig) do (orb,occ,state)
-        equation = diff(eng, orb, occ)
-        verbosity > 2 && println("\n∂[$(orb)] E = $(equation)")
-        orb => equation
-    end
-end
-
 """
-    hf_equations(csf[; verbosity=0])
+    diff(atom[, H]; overlaps=[], selector=peel, verbosity=0)
 
-Derive the Hartree–Fock equations for the non-relativistic
-configuration state function `csf`. All constituent orbitals are
-assumed spectroscopic, i.e. they are all assigned Lagrange multipliers
-to ensure their orthonormality. Additionally, orbitals of the same `ℓ`
-but different `n` are assigned off-diagonal Lagrange multipliers.
+Differentiate the energy expression of the Hamiltonian `H` associated
+with the `atom`'s configurations(s) with respect to the atomic
+orbitals to derive the Hartree–Fock equations for the orbitals.
+
+By default, the Hamiltonian
+`H=FieldFreeOneBodyHamiltonian()+CoulombInteraction()`.
+
+Non-orthogonality between orbitals can be specified by providing
+`OrbitalOverlap`s between these pairs. Only the `peel` electrons of
+each configuration are considered for generating the energy
+expression, this can be changed by choosing another value for
+`selector`.
 """
-function hf_equations(csf::NonRelativisticCSF; verbosity=0)
-    verbosity > 0 &&
-        println("Deriving HF equations for $(csf)")
+function Base.diff(atom::Atom{T,B,O},
+                   H=FieldFreeOneBodyHamiltonian()+CoulombInteraction();
+                   overlaps::Vector{OrbitalOverlap}=OrbitalOverlap[],
+                   selector=peel, verbosity=0) where {T,B,O}
+    configurations = selector.(atom.configurations)
+    orbitals = unique_orbitals(configurations)
 
-    # energy_expression has to be provided by an angular momentum
-    # library.
-    eng = energy_expression(csf; verbosity=verbosity-3)[2][1]
-    hf_equations(csf, eng; verbosity=verbosity)
-end
-=#
-
-function hf_equations(config::Configuration{O}; verbosity=0,
-                      selector::Function = peel) where {O<:SpinOrbital}
-    verbosity > 0 &&
-        println("Deriving HF equations for $(config)")
-    h = one_body_hamiltonian_matrix(O, [config], selector=selector)[1]
-    HC = two_body_hamiltonian_matrix(O, [config], selector=selector)[1]
-
-    orbitals = selector(config).orbitals
+    energy_expression = Matrix(H, configurations, overlaps)
     symmetries = find_symmetries(orbitals)
+    eqs = diff(energy_expression, conj.(orbitals))
 
-    map(orbitals) do orb
-        corb = Conjugate(orb)
+    if verbosity > 0
+        println("Energy expression:")
+        display(energy_expression)
+        println()
 
-        ∂h = filter(d -> !iszero(d), diff.(h.integrals, Ref(corb)))
-        ∂HC = diff.(HC.integrals, Ref(corb))
-        nz = .!map(iszero, ∂HC)
+        println("Hartree–Fock equations:")
+        display(eqs)
+        println()
 
-        multipole_terms = multipole_expand.(HC.integrals[nz])
+        println("Symmetries:")
+        display(symmetries)
+        println()
+    end
+
+    integrals = Vector{OrbitalIntegral# {<:Any,O,T,B,RadialOrbital{T,B}}
+                       }()
+    for integral in eqs.integrals
+        if integral isa OrbitalOverlap
+            a,b = integral.a,integral.b
+            push!(integrals, OrbitalOverlapIntegral(a, b, view(atom, a), view(atom, b)))
+        elseif integral isa CoulombPotentialMultipole
+            a,b = integral.a[1],integral.b[1]
+            k = integral.o.k
+            # All CoulombPotentialMultipoles that occur as common
+            # integrals in an equation are direct potentials acting on
+            # either the orbital corresponding to the orbital, or on a
+            # source orbital coupled through configuration interaction.
+            push!(integrals, HFPotential(:direct, k, a, b, view(atom, a), view(atom, b)))
+        else
+            throw(ArgumentError("$(integral) of type $(typeof(integral)) not yet supported"))
+        end
+    end
+
+    function pushterms!(terms::Vector{<:OrbitalHamiltonianTerm{O,T,B,OV}},
+                        operator::QO,
+                        equation_terms::Vector) where {O,T,B,OV,QO}
+        for eq_term in equation_terms
+            push!(terms,
+                  OrbitalHamiltonianTerm{O,T,B,OV,QO}(
+                      eq_term.i, eq_term.j, T(eq_term.coeff),
+                      operator,
+                      [integrals[i] for i in eq_term.integrals]))
+        end
+    end
+
+    hfeqs = map(eqs.equations) do equation
+        orbital = equation.orbital
+        ĥ₀ = AtomicOneBodyHamiltonian(atom, orbital)
+        terms = Vector{OrbitalHamiltonianTerm{O,T,B,RadialOrbital{T,B}}}()
+
+        pushterms!(terms, ĥ₀, equation.one_body)
+        for dt in equation.direct_terms
+            pushterms!(terms, integrals[dt[1]], dt[2])
+        end
+        for xt in equation.exchange_terms
+            xop = xt[1] # CoulombPotentialMultipole
+            a,b = xop.a[1],xop.b[1]
+            xoperator = HFPotential(:exchange, xop.o.k, a, a,
+                                    view(atom, a), view(atom, a))
+            pushterms!(terms, xoperator, [xt[2]])
+        end
+        for st in equation.source_terms
+            sop = integrals[st[1]]
+            for (coeff,source_orbital) in st[2]
+                pushterms!(terms, SourceTerm(sop, source_orbital, view(atom, source_orbital)), [coeff])
+            end
+        end
 
         # Find all other orbitals of the same symmetry as the current
         # one. These will be used to create a projector, that projects
         # out their components.
-        symmetry_orbitals = filter(o -> o != orb, symmetries[symmetry(orb)])
+        #
+        # TODO: Think of what the non-orthogonalities due to
+        # `overlaps` imply for the Lagrange multipliers/projectors.
+        symmetry_orbitals = filter(!isequal(orbital), symmetries[symmetry(orbital)])
+        verbosity > 1 && println("Symmetry: ", symmetry_orbitals)
 
-        orb,(∂h, (∂HC[nz], multipole_terms)),symmetry_orbitals
+        HFEquation(atom, equation, orbital, terms, symmetry_orbitals)
     end
+
+    HFEquations(atom, hfeqs, integrals)
 end
-
-"""
-    diff(atom)
-
-Differentiate the energy expression associated with the `atom`'s
-CSF(s) with respect to the atomic orbitals to derive the Hartree–Fock
-equations for the orbitals.
-"""
-function Base.diff(atom::Atom; verbosity=0)
-    length(atom.configurations) > 1 &&
-        throw(ArgumentError("Cannot derive Hartree–Fock equations for a multi-configurational atom"))
-
-    map(hf_equations(atom.configurations[1]; verbosity=verbosity)) do (orb,equation,symmetry_orbitals)
-        verbosity > 3 && display(equation)
-        hfeq = HFEquation(atom, equation, orb, symmetry_orbitals)
-        verbosity > 2 && println(hfeq)
-        hfeq
-    end
-end
-
-Base.view(fock::Fock{A,E}, args...) where {A<:Atom,E} =
-    view(fock.quantum_system.radial_orbitals.mul.factors[2], args...)

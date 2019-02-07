@@ -69,7 +69,7 @@ end
             fock = Fock(atom)
 
             @test length(fock.equations) == 1
-            @test isapprox(SCF.energy(fock.equations[1]), -0.5, atol=2e-5)
+            @test isapprox(SCF.energy(first(fock.equations)), -0.5, atol=2e-5)
         end
 
         @testset "Helium" begin
@@ -101,13 +101,13 @@ end
 
             # The energy expressions for the 1s₀α/β and 2s₂α/β
             # spin-orbitals, respectively, should be identical.
-            for eq in fock.equations[1:2]
+            for eq in fock.equations.equations[1:2]
                 test_hydrogenic_slater_integrals!(data, tests, eq, :onebody, -8, rtol=0.07)
                 # A 1s orbital is screened by another 1s orbital and 2 2s orbitals
                 test_hydrogenic_slater_integrals!(data, tests, eq, :direct, Z*(exact_F⁰s[(o"1s",o"1s",0)] + 2exact_F⁰s[(o"2s",o"1s",0)]), rtol=0.2)
                 test_hydrogenic_slater_integrals!(data, tests, eq, :exchange, -Z*(exact_Gᵏs[(o"2s",o"1s",0)]), rtol=0.2)
             end
-            for eq in fock.equations[3:4]
+            for eq in fock.equations.equations[3:4]
                 test_hydrogenic_slater_integrals!(data, tests, eq, :onebody, -2, rtol=0.01)
                 # A 2s orbital is screened by 2 1s orbitals and another 2s orbital
                 test_hydrogenic_slater_integrals!(data, tests, eq, :direct, Z*(2exact_F⁰s[(o"2s",o"1s",0)] + exact_F⁰s[(o"2s",o"2s",0)]), rtol=0.2)
@@ -125,8 +125,8 @@ end
             display(fock)
             println()
 
-            @test isapprox(27.211SCF.energy(fock.equations[3]), -9.3227, rtol=0.04)
-            @test isapprox(27.211SCF.energy(fock.equations[4]), -9.3227, rtol=0.04)
+            @test isapprox(27.211SCF.energy(fock.equations.equations[3]), -9.3227, rtol=0.04)
+            @test isapprox(27.211SCF.energy(fock.equations.equations[4]), -9.3227, rtol=0.04)
         end
     end
 end

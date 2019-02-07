@@ -41,7 +41,8 @@ include("utils.jl")
 include("hydrogenic.jl")
 include("projectors.jl")
 include("lazy_matmuls.jl")
-include("hf_operators.jl")
+include("orbital_integrals.jl")
+include("orbital_hamiltonian.jl")
 include("scf_equations.jl")
 
 end # module

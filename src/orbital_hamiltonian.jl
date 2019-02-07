@@ -1,0 +1,153 @@
+# * Split Hamiltonian
+
+struct OrbitalHamiltonianTerm{O,T,B,OV,QO}
+    i::Int
+    j::Int
+    coeff::T
+    A::QO
+    integrals::Vector{OrbitalIntegral{<:Any,O,T,B,OV}}
+end
+"""
+    coefficient(term::OrbitalHamiltonianTerm)
+
+Return the multiplicative coefficient pertaining to `term`,
+_excluding_ the `conj(c_i)*c_j` mixing coefficients, due to the
+configuration-interaction.
+"""
+coefficient(term::OrbitalHamiltonianTerm) =
+    term.coeff*prod(integral_value.(term.integrals))
+
+mutable struct OrbitalHamiltonian{O,T,B,OV,Proj}
+    R::B
+    terms::Vector{OrbitalHamiltonianTerm{O,T,B,OV}}
+    mix_coeffs::Vector{T}
+    projector::Proj
+    orbital::O
+end
+
+Base.axes(hamiltonian::OrbitalHamiltonian) =
+    (axes(hamiltonian.R,1),axes(hamiltonian.R,1))
+
+Base.axes(hamiltonian::OrbitalHamiltonian, i) =
+    axes(hamiltonian)[i]
+
+"""
+    energy_matrix!(H, hamiltonian, ϕ)
+
+Compute the contribution of `hamiltonian` to the Hamiltonian matrix
+`H` by repeatedly acting on the associated radial orbital `ϕ` with the
+different multi-configurational [`OrbitalHamiltonianTerm`](@ref)s of
+`hamiltonian`.
+"""
+function SCF.energy_matrix!(H::HM, hamiltonian::OrbitalHamiltonian{O,T,B},
+                            ϕ::RadialOrbital{T,B}) where {HM<:AbstractMatrix,O,T,B}
+    tmp = similar(ϕ)
+    for term in hamiltonian.terms
+        materialize!(MulAdd(coefficient(term), term.A, ϕ, zero(T), tmp))
+        H[term.i,term.j] += (ϕ'tmp)[1]
+    end
+    H
+end
+
+# function Base.show(io::IO, hamiltonian::OrbitalHamiltonian{T}) where T
+#     if iszero(hamiltonian)
+#         write(io, "0")
+#         return
+#     end
+#     multiple_terms = sum([!iszero(hamiltonian.ĥ), !isempty(hamiltonian.direct_potentials),
+#                           !isempty(hamiltonian.exchange_potentials)]) > 1
+#     multiple_terms && write(io, "[")
+#     !iszero(hamiltonian.ĥ) && write(io, "ĥ")
+#     for (p,c) in hamiltonian.direct_potentials
+#         s = sign(c)
+#         write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
+#     end
+#     for (p,c) in hamiltonian.exchange_potentials
+#         s = sign(c)
+#         write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
+#     end
+#     multiple_terms && write(io, "]")
+#     write(io, "|")
+#     show(io, hamiltonian.orbital)
+#     write(io, "⟩")
+# end
+
+function Base.getindex(H::OrbitalHamiltonian, term::Symbol)
+    term == :all && return H
+    operator_type = if term == :onebody
+        AtomicOneBodyHamiltonian
+    elseif term == :direct
+        DirectPotential
+    elseif term == :exchange
+        ExchangePotential
+    else
+        throw(ArgumentError("Unknown Hamiltonian term $term"))
+    end
+
+    OrbitalHamiltonian(H.R, filter(t -> t.A isa operator_type, H.terms),
+                       H.mix_coeffs, H.projector, H.orbital)
+end
+
+# ** Materialization
+
+const OrbitalHamiltonianMatrixElement{O,T,B<:AbstractQuasiMatrix,V<:AbstractVector} =
+    Mul{<:Tuple,<:Tuple{<:Adjoint{T,V},<:QuasiAdjoint{T,B},<:OrbitalHamiltonian{O,T,B},B,V}}
+
+const OrbitalHamiltonianMatrixVectorProduct{O,T,B<:AbstractQuasiMatrix,V<:AbstractVector} =
+    Mul{<:Tuple,<:Tuple{<:OrbitalHamiltonian{O,T,B},B,V}}
+
+Base.eltype(::OrbitalHamiltonianMatrixVectorProduct{O,T}) where {O,T} = T
+
+function Base.copyto!(dest::RadialOrbital{T,B},
+                      matvec::OrbitalHamiltonianMatrixVectorProduct{O,T,B,V}) where {O,T,B,V}
+    axes(dest) == axes(matvec) || throw(DimensionMismatch("axes must be the same"))
+    R′,v = dest.mul.factors
+    hamiltonian,R,b = matvec.factors
+
+    c = hamiltonian.mix_coeffs
+
+    v .= zero(T)
+
+    # Compute the additive action of each of the terms in the
+    # Hamiltonian, weighting them by their coefficients which are
+    # constructed from
+    # 1) the configuration-interaction mixing coefficients,
+    # 2) coefficients due to the energy expression, and
+    # 3) values of various orbitals integrals resulting from
+    #    non-orthogonal orbitals.
+    for term in hamiltonian.terms
+        coeff = conj(c[term.i])*c[term.j]*coefficient(term)
+        materialize!(MulAdd(coeff, term.A, R*b, one(T), dest))
+    end
+
+    # Project out all components parallel to other orbitals of the
+    # same symmetry.
+    projectout!(dest, hamiltonian.projector)
+
+    dest
+end
+
+function Base.similar(matvec::OrbitalHamiltonianMatrixVectorProduct, ::Type{T}) where T
+    A,R,b = matvec.factors
+    v = similar(b, T)
+    R*v
+end
+
+LazyArrays.materialize(matvec::OrbitalHamiltonianMatrixVectorProduct{O,T,B,V}) where {O,T,B,V} =
+    copyto!(similar(matvec, eltype(matvec)), matvec)
+
+function LazyArrays.materialize(matel::OrbitalHamiltonianMatrixElement{O,T,B,V}) where {O,T,B,V}
+    a,R′,op,R,b = matel.factors
+    a*R′*materialize(op⋆R⋆b)
+end
+
+# ** Krylov wrapper
+
+SCF.KrylovWrapper(hamiltonian::OrbitalHamiltonian{O,T,B,OV,Proj}) where {O,T,B,OV,Proj} =
+    KrylovWrapper{T,OrbitalHamiltonian{O,T,B,OV,Proj}}(hamiltonian)
+
+Base.size(hamiltonian::OrbitalHamiltonian, ::SCF.KrylovWrapper) =
+    (size(hamiltonian.R,2),size(hamiltonian.R,2))
+
+LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,Hamiltonian}, x::V₂) where {V₁,V₂,T,B,Hamiltonian<:OrbitalHamiltonian} =
+    copyto!(A.hamiltonian.R*y, A.hamiltonian⋆(A.hamiltonian.R*x))
