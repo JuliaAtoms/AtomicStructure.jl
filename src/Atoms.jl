@@ -28,11 +28,11 @@ function unique_orbitals(configurations::Vector{C}) where {O,C<:Configuration{O}
     end |> o -> Vector{O}(vcat(o...)) |> unique |> sort
 end
 
-getn(orb::Orbital) = orb.n
-getn(orb::SpinOrbital) = orb.orb.n
+getspatialorb(orb::Orbital) = orb
+getspatialorb(orb::SpinOrbital) = orb.orb
 
-getℓ(orb::Orbital) = orb.ℓ
-getℓ(orb::SpinOrbital) = orb.orb.ℓ
+getn(orb::AbstractOrbital) = getspatialorb(orb).n
+getℓ(orb::AbstractOrbital) = getspatialorb(orb).ℓ
 
 include("radial_orbitals.jl")
 include("atom_types.jl")

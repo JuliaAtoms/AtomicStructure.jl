@@ -27,6 +27,19 @@ end
 get_config(config::Configuration) = config
 get_config(csf::CSF) = csf.config
 
+"""
+    outsidecoremodel(configuration::Configuration, potential::P)
+
+Return the part of the electronic `configuration` that is not part of
+the the configuration modelled by the `potential`. For a point charge,
+this is the same as the `configuration` itself, but for
+pseudopotential, typically only the outer shells remain.
+"""
+outsidecoremodel(configuration::Configuration, potential::P) where P =
+    filter((orb,occ,state) -> getspatialorb(orb) ∉ core(ground_state(potential)), configuration)
+outsidecoremodel(configuration::Configuration, ::PointCharge) where P =
+    configuration
+
 Atom(radial_orbitals::RadialOrbitals{T,B}, orbitals::Vector{O},
      configurations::Vector{<:TC}, potential::P, ::Type{C}) where {T<:Number,B,O,TC<:ManyElectronWavefunction,C,P} =
          Atom{T,B,O,TC,C,P}(radial_orbitals, orbitals,
@@ -40,7 +53,16 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
     all(isequal(num_electrons(first(configurations))),
         map(config -> num_electrons(config), configurations)) ||
             throw(ArgumentError("All configurations need to have the same amount of electrons"))
-    orbs = unique_orbitals(get_config.(configurations))
+
+    pot_cfg = core(ground_state(potential))
+    for cfg in configurations
+        cfg_closed_orbitals = getspatialorb.(core(get_config(cfg)).orbitals)
+        pot_cfg.orbitals ⊆ cfg_closed_orbitals ||
+            throw(ArgumentError("Configuration modelled by nuclear potential ($(pot_cfg)) must belong to the closed set of all configurations"))
+    end
+
+    orbs = unique_orbitals(outsidecoremodel.(get_config.(configurations), Ref(potential)))
+
     Φ = Matrix{T}(undef, size(R,2), length(orbs))
     RΦ = MulQuasiArray{T,2}(Mul(R,Φ))
     Atom(RΦ, orbs, configurations, potential, C)
@@ -65,7 +87,7 @@ Atom(init::Init, R::B, configurations::Vector{TC}, potential::P, ::Type{C};
 
 DiracAtom(init::Init, R::B, configurations::Vector{TC}, potential::P, ::Type{C};
           kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC<:RelativisticCSF,C,P<:AbstractPotential} =
-    Atom(init, R, configurations, potential, C; kwargs...)
+    Atom(init, T, R, configurations, potential, C; kwargs...)
 
 Atom(R::B, configurations::Vector{<:TC}, potential::P, ::Type{C}=eltype(R);
      kwargs...) where {B<:AbstractQuasiMatrix,TC<:ManyElectronWavefunction,C,P<:AbstractPotential} =
@@ -129,7 +151,8 @@ of the `atom` to weight the individual orbital norms.
 function LinearAlgebra.norm(atom::Atom{T}, p::Real=2; configuration::Int=1) where T
     RT = real(T)
     n = zero(RT)
-    for (orb,occ,state) in get_config(atom.configurations[configuration])
+    for (orb,occ,state) in outsidecoremodel(get_config(atom.configurations[configuration]),
+                                            atom.potential)
         n += occ*norm(view(atom, orb), p)^p
     end
     n^(one(RT)/p) # Unsure why you'd ever want anything but the 2-norm, but hey

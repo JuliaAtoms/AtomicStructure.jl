@@ -96,7 +96,7 @@ find_symmetries(orbitals::Vector{O}) where {O<:AbstractOrbital} =
 
 # * Setup Hartree–Fock equations
 """
-    diff(atom[, H]; overlaps=[], selector=peel, verbosity=0)
+    diff(atom[, H]; overlaps=[], selector=outsidecoremodel, verbosity=0)
 
 Differentiate the energy expression of the Hamiltonian `H` associated
 with the `atom`'s configurations(s) with respect to the atomic
@@ -106,15 +106,16 @@ By default, the Hamiltonian
 `H=FieldFreeOneBodyHamiltonian()+CoulombInteraction()`.
 
 Non-orthogonality between orbitals can be specified by providing
-`OrbitalOverlap`s between these pairs. Only the `peel` electrons of
-each configuration are considered for generating the energy
-expression, this can be changed by choosing another value for
-`selector`.
+`OrbitalOverlap`s between these pairs. Only those electrons not
+modelled by `atom.potential` of each configuration are considered for
+generating the energy expression, this can be changed by choosing
+another value for `selector`.
 """
 function Base.diff(atom::Atom{T,B,O},
                    H=FieldFreeOneBodyHamiltonian()+CoulombInteraction();
                    overlaps::Vector{OrbitalOverlap}=OrbitalOverlap[],
-                   selector=peel, verbosity=0) where {T,B,O}
+                   selector=cfg -> outsidecoremodel(cfg, atom.potential),
+                   verbosity=0) where {T,B,O}
     configurations = selector.(atom.configurations)
     orbitals = unique_orbitals(configurations)
 
