@@ -14,7 +14,7 @@ version = "0.2.1"
 
 [[AngularMomentumAlgebra]]
 deps = ["AtomicLevels", "EnergyExpressions", "LinearAlgebra", "SparseArrays", "Test", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "6eaa39f2e585d8316e55c4d2847747679747ac03"
+git-tree-sha1 = "35d0e01d0d9741d811564c8d6fb8fed52adc8852"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -36,7 +36,7 @@ version = "0.1.0"
 
 [[AtomicPotentials]]
 deps = ["AtomicLevels"]
-git-tree-sha1 = "e149a6ec18cc502d8ef187f3159de3df2dafe3f3"
+git-tree-sha1 = "e5fd6308136b14cf8ce0f6c89f1b5ccbe0b66966"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/AtomicPotentials.jl.git"
 uuid = "eac66916-230f-11e9-03e5-b9a8fe2fc74a"
@@ -141,9 +141,9 @@ version = "0.6.0"
 
 [[Documenter]]
 deps = ["Base64", "DocStringExtensions", "InteractiveUtils", "LibGit2", "Logging", "Markdown", "Pkg", "REPL", "Random", "Test", "Unicode"]
-git-tree-sha1 = "0b834915b5521c626386c8b48d8fc61577bc642f"
+git-tree-sha1 = "59b71e0d3e9fa5966ffc4a25ff0ca8e0efa5e16b"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.21.2"
+version = "0.21.3"
 
 [[DomainSets]]
 deps = ["IntervalSets", "LinearAlgebra", "StaticArrays", "Statistics", "Test"]
@@ -335,7 +335,7 @@ version = "0.5.2"
 
 [[SCF]]
 deps = ["ArnoldiMethod", "Documenter", "Formatting", "LinearAlgebra", "SolverTraces", "SparseArrays", "Test", "UnicodeFun"]
-git-tree-sha1 = "8ea59b72c781e9f6f13ea789bc79e69f2368d3bd"
+git-tree-sha1 = "9934fa42a465751fd0afae85d73f014769509eae"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"
