@@ -53,6 +53,9 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
     all(isequal(num_electrons(first(configurations))),
         map(config -> num_electrons(config), configurations)) ||
             throw(ArgumentError("All configurations need to have the same amount of electrons"))
+    all(isequal(core(get_config(first(configurations)))),
+        map(config -> core(get_config(config)), configurations)) ||
+            throw(ArgumentError("All configurations need to share the same core orbitals"))
 
     pot_cfg = core(ground_state(potential))
     for cfg in configurations
@@ -91,7 +94,33 @@ DiracAtom(init::Init, R::B, configurations::Vector{TC}, potential::P, ::Type{C};
 
 Atom(R::B, configurations::Vector{<:TC}, potential::P, ::Type{C}=eltype(R);
      kwargs...) where {B<:AbstractQuasiMatrix,TC<:ManyElectronWavefunction,C,P<:AbstractPotential} =
-    Atom(:hydrogenic, R, configurations, potential, C; kwargs...)
+         Atom(:hydrogenic, R, configurations, potential, C; kwargs...)
+
+"""
+    Atom(other_atom::Atom, configurations)
+
+Create a new atom using the same basis and nuclear potential as
+`other_atom`, but with a different set of `configurations`. The
+orbitals of `other_atom` are copied over as starting guess.
+"""
+function Atom(other_atom::Atom{T,B,O,TC,C,P},
+              configurations::Vector{<:TC}; kwargs...) where {T,B,O,TC,C,P}
+    core(first(configurations)) == core(first(other_atom.configurations)) ||
+        throw(ArgumentError("Core orbitals must be the same"))
+    R = radial_basis(other_atom)
+    # It is slightly wasteful to first initialize all orbitals
+    # hydrogenically, and the overwrite with orbitals from
+    # other_atom. Ideally, missing orbitals would be estimated by
+    # diagonalizing e.g. their energy expressions without the exchange
+    # terms.
+    atom = Atom(R, configurations, other_atom.potential, C; kwargs...)
+    for o in other_atom.orbitals
+        o ∈ atom.orbitals || continue
+        copyto!(view(atom, o).mul.factors[2],
+                view(other_atom, o).mul.factors[2])
+    end
+    atom
+end
 
 AtomicLevels.num_electrons(atom::Atom) =
     num_electrons(first(atom.configurations))
