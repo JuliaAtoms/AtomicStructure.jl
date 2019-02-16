@@ -6,6 +6,8 @@
 [[https://ci.appveyor.com/project/juliaatoms/atoms-jl][https://img.shields.io/appveyor/ci/juliaatoms/atoms-jl.svg?logo=appveyor]]
 [[https://codecov.io/gh/JuliaAtoms/Atoms.jl][https://codecov.io/gh/JuliaAtoms/Atoms.jl/branch/master/graph/badge.svg]]
 
+[[https://juliaatoms.github.io/Atoms.jl/dev/index.html][https://img.shields.io/badge/docs-dev-blue.svg]]
+
 #+PROPERTY: header-args:julia :session *julia-README*
 
 This library provides structures for representing atoms as linear
