@@ -96,7 +96,7 @@ version = "1.2.0"
 [[ContinuumArrays]]
 deps = ["BandedMatrices", "DomainSets", "FillArrays", "InfiniteArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "Test"]
 git-tree-sha1 = "616fe6d93ac6118f2b53d4e39ab372492ff45d58"
-repo-rev = "master"
+repo-rev = "3cc0434d5b0f9df1c285d1641737e53f455da9f5"
 repo-url = "https://github.com/JuliaApproximation/ContinuumArrays.jl.git"
 uuid = "abb603bd-c6a4-5c0b-b5d0-50a836a7e82c"
 version = "0.0.0"
