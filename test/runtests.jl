@@ -14,7 +14,7 @@ include("exact_slater.jl")
 function test_hydrogenic_slater_integrals!(data, tests,
                                            eq, term::Symbol, expected;
                                            print_res=false, kwargs...)
-    eng = SCF.energy(eq, term)
+    eng = energy(eq, term)
     expectedf = convert(Float64, expected)
     δ = eng-expectedf
     test = :(isapprox($eng, $expected; $kwargs...))
@@ -69,7 +69,7 @@ end
             fock = Fock(atom)
 
             @test length(fock.equations) == 1
-            @test isapprox(SCF.energy(first(fock.equations)), -0.5, atol=2e-5)
+            @test isapprox(energy(first(fock.equations)), -0.5, atol=2e-5)
         end
 
         @testset "Helium" begin
@@ -82,7 +82,7 @@ end
             display(fock)
             println()
 
-            @test all(isapprox.(SCF.energy.(fock.equations), -24.587387/27.211, rtol=0.1))
+            @test all(isapprox.(energy.(fock.equations), -24.587387/27.211, rtol=0.1))
         end
 
         @testset "Beryllium" begin
@@ -125,8 +125,8 @@ end
             display(fock)
             println()
 
-            @test isapprox(27.211SCF.energy(fock.equations.equations[3]), -9.3227, rtol=0.04)
-            @test isapprox(27.211SCF.energy(fock.equations.equations[4]), -9.3227, rtol=0.04)
+            @test isapprox(27.211energy(fock.equations.equations[3]), -9.3227, rtol=0.04)
+            @test isapprox(27.211energy(fock.equations.equations[4]), -9.3227, rtol=0.04)
         end
     end
 end

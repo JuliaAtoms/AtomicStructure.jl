@@ -3,6 +3,8 @@ module Atoms
 using AtomicLevels
 import AtomicLevels: AbstractOrbital, HalfInteger
 using AngularMomentumAlgebra
+using EnergyExpressions
+import EnergyExpressions: NBodyMatrixElement, orbital_equation, MCEquationSystem, QuantumOperator
 
 using ContinuumArrays
 import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint
@@ -43,6 +45,9 @@ include("projectors.jl")
 include("lazy_matmuls.jl")
 include("orbital_integrals.jl")
 include("orbital_hamiltonian.jl")
-include("scf_equations.jl")
+include("orbital_equation.jl")
+include("common_integrals.jl")
+include("observables.jl")
+include("equations.jl")
 
 end # module
