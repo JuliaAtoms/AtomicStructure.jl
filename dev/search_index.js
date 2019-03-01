@@ -241,6 +241,22 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
+    "location": "one_body/#Atoms.KineticEnergyHamiltonian",
+    "page": "One-body Hamiltonians",
+    "title": "Atoms.KineticEnergyHamiltonian",
+    "category": "type",
+    "text": "KineticEnergyHamiltonian\n\nThe kinetic energy part of the one-body Hamiltonian, excluding the centrifugal potential. It is diagonal in spin, i.e. it does not couple orbitals of opposite spin.\n\n\n\n\n\n"
+},
+
+{
+    "location": "one_body/#Atoms.PotentialEnergyHamiltonian",
+    "page": "One-body Hamiltonians",
+    "title": "Atoms.PotentialEnergyHamiltonian",
+    "category": "type",
+    "text": "PotentialEnergyHamiltonian\n\nThe potential energy part of the one-body Hamiltonian, including the centrifugal potential. It is diagonal in spin, i.e. it does not couple orbitals of opposite spin.\n\n\n\n\n\n"
+},
+
+{
     "location": "one_body/#Atoms.AtomicOneBodyHamiltonian",
     "page": "One-body Hamiltonians",
     "title": "Atoms.AtomicOneBodyHamiltonian",
@@ -269,7 +285,7 @@ var documenterSearchIndex = {"docs": [
     "page": "One-body Hamiltonians",
     "title": "One-body Hamiltonians",
     "category": "section",
-    "text": "CurrentModule = Atoms\nDocTestSetup = quote\n    using Atoms\nendThe one-body Hamiltonian for electron i in an atom is given bybeginequation\nhamiltonian_i defd\n-fracnabla_i^22 +\nV(vecr_i)\nendequationIn spherical coordinates (and using reduced wavefunctions), the Laplacian transforms tobeginequation\noperatorT_r_i = -fracpartial_r_i^22 + fracell(ell+1)2r_i^2\nendequationwhere the second term, called the centrifugal potential, although originating from the Laplacian, is usually treated together with the nuclear potential V(r_i).one_body_hamiltonian\nAtomicOneBodyHamiltonian\nLazyArrays.:(⋆)\nLazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest}) where {T,Source,Dest}"
+    "text": "CurrentModule = Atoms\nDocTestSetup = quote\n    using Atoms\nendThe one-body Hamiltonian for electron i in an atom is given bybeginequation\nhamiltonian_i defd\n-fracnabla_i^22 +\nV(vecr_i)\nendequationIn spherical coordinates (and using reduced wavefunctions), the Laplacian transforms tobeginequation\noperatorT_r_i = -fracpartial_r_i^22 + fracell(ell+1)2r_i^2\nendequationwhere the second term, called the centrifugal potential, although originating from the Laplacian, is usually treated together with the nuclear potential V(r_i).one_body_hamiltonian\nKineticEnergyHamiltonian\nPotentialEnergyHamiltonian\nAtomicOneBodyHamiltonian\nLazyArrays.:(⋆)\nLazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest}) where {T,Source,Dest}"
 },
 
 {
