@@ -27,6 +27,36 @@ Return the one-body energy operator for the orbital `orb` of `atom`.
 """
 one_body_hamiltonian(atom, orb) = +(one_body_hamiltonian(Tuple, atom, orb)...)
 
+# * One-body Hamiltonian operators
+
+# ** T̂
+"""
+    KineticEnergyHamiltonian
+
+The kinetic energy part of the one-body Hamiltonian, excluding the
+centrifugal potential. It is diagonal in spin, i.e. it does not couple
+orbitals of opposite spin.
+"""
+struct KineticEnergyHamiltonian <: OneBodyOperator end
+
+Base.show(io::IO, ::KineticEnergyHamiltonian) = write(io, "T̂")
+Base.show(io::IO, me::OrbitalMatrixElement{1,A,KineticEnergyHamiltonian,B}) where{A,B} =
+    write(io, "(", join(string.(me.a), " "), "|", join(string.(me.b), " "), ")")
+
+# ** V̂
+"""
+    PotentialEnergyHamiltonian
+
+The potential energy part of the one-body Hamiltonian, including the
+centrifugal potential. It is diagonal in spin, i.e. it does not couple
+orbitals of opposite spin.
+"""
+struct PotentialEnergyHamiltonian <: OneBodyOperator end
+
+Base.show(io::IO, ::PotentialEnergyHamiltonian) = write(io, "V̂")
+Base.show(io::IO, me::OrbitalMatrixElement{1,A,PotentialEnergyHamiltonian,B}) where{A,B} =
+    write(io, "(", join(string.(me.a), " "), "|", join(string.(me.b), " "), ")")
+
 # * AtomicOneBodyHamiltonian types
 
 abstract type AbstractAtomicOneBodyHamiltonian end

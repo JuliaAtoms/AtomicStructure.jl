@@ -4,7 +4,8 @@ using AtomicLevels
 import AtomicLevels: AbstractOrbital, HalfInteger
 using AngularMomentumAlgebra
 using EnergyExpressions
-import EnergyExpressions: NBodyMatrixElement, orbital_equation, MCEquationSystem, QuantumOperator
+import EnergyExpressions: NBodyMatrixElement, OrbitalMatrixElement,
+    orbital_equation, MCEquationSystem, QuantumOperator
 
 using ContinuumArrays
 import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint

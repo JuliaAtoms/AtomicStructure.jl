@@ -30,14 +30,16 @@ SCF.update!(equations::AtomicEquations; kwargs...) =
             equations.integrals)
 
 """
-    energy_matrix!(H, hfeqs::AtomicEquations)
+    energy_matrix!(H, hfeqs::AtomicEquations[, which=:energy])
 
 Compute the energy matrix by computing the energy observable and
-storing it in `H`. Requires that `hfeqs` has the `:energy`
-[`Observable`](@ref) registered (default).
+storing it in `H`. Requires that `hfeqs` has the `:energy` and
+`:kinetic_energy` [`Observable`](@ref)s registered (this is the
+default).
 """
-function SCF.energy_matrix!(H::HM, hfeqs::AtomicEquations) where {HM<:AbstractMatrix}
-    observable = hfeqs.observables[:energy]
+function SCF.energy_matrix!(H::HM, hfeqs::AtomicEquations,
+                            which::Symbol=:total) where {HM<:AbstractMatrix}
+    observable = hfeqs.observables[which == :kinetic ? :kinetic_energy : :energy]
     observe!(H, observable)
     H
 end
@@ -54,7 +56,35 @@ find_symmetries(orbitals::Vector{O}) where {O<:AbstractOrbital} =
     merge!(vcat, [Dict(symmetry(orb) => [orb])
                   for orb in orbitals]...)
 
-# * Setup Hartree–Fock equations
+# * Setup orbital equations
+
+function get_operator(::FieldFreeOneBodyHamiltonian, atom::Atom,
+                      orbital::O, source_orbital::O) where O
+    orbital == source_orbital ||
+        throw(ArgumentError("FieldFreeOneBodyHamiltonian not pertaining to $(orbital)"))
+    AtomicOneBodyHamiltonian(atom, orbital)
+end
+
+for (i,HT) in enumerate([:KineticEnergyHamiltonian, :PotentialEnergyHamiltonian])
+    @eval begin
+        get_operator(::$HT, atom::Atom, orbital::O, ::O) where O =
+            AtomicOneBodyHamiltonian(one_body_hamiltonian(Tuple, atom, orbital)[$i],
+                                     orbital)
+    end
+end
+
+function get_operator(op::CoulombPotentialMultipole, atom::Atom,
+                      orbital::O, ::O) where O
+    a,b = op.a[1],op.b[1]
+    HFPotential(:exchange, op.o.k, a, a, view(atom, a), view(atom, a))
+end
+
+get_operator(::IdentityOperator, atom::Atom,
+             ::O, source_orbital::O) where O =
+                 SourceTerm(top, source_orbital, view(atom, source_orbital))
+
+get_operator(op::QO, atom::Atom, ::O, ::O) where {QO,O} =
+    throw(ArgumentError("Unsupported operator $op"))
 
 """
     generate_atomic_orbital_equations(atom::Atom, eqs::MCEquationSystem,
@@ -72,30 +102,19 @@ function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSys
         orbital = equation.orbital
         terms = Vector{OrbitalHamiltonianTerm{O,T,B,RadialOrbital{T,B}}}()
 
-        ĥ₀ = AtomicOneBodyHamiltonian(atom, orbital)
-        pushterms!(terms, ĥ₀, equation.one_body, integrals, integral_map, eqs.integrals)
+        for (integral,equation_terms) in equation.terms
+            if integral > 0
+                operator = get_integral(integrals, integral_map, eqs.integrals[integral])
+                pushterms!(terms, operator, equation_terms,
+                           integrals, integral_map, eqs.integrals)
+            else
+                for t in equation_terms
+                    top = t.operator
+                    operator = get_operator(t.operator, atom, orbital, t.source_orbital)
 
-        for dt in equation.direct_terms
-            pushterms!(terms,
-                       get_integral(integrals, integral_map, eqs.integrals[dt[1]]),
-                       dt[2],
-                       integrals, integral_map, eqs.integrals)
-        end
-
-        for xt in equation.exchange_terms
-            xop = xt[1] # CoulombPotentialMultipole
-            a,b = xop.a[1],xop.b[1]
-            xoperator = HFPotential(:exchange, xop.o.k, a, a,
-                                    view(atom, a), view(atom, a))
-            pushterms!(terms, xoperator, [xt[2]], integrals, integral_map, eqs.integrals)
-        end
-
-        for st in equation.source_terms
-            sop = integrals[st[1]]
-            for (coeff,source_orbital) in st[2]
-                pushterms!(terms,
-                           SourceTerm(sop, source_orbital, view(atom, source_orbital)),
-                           [coeff], integrals, integral_map, eqs.integrals)
+                    pushterms!(terms, operator, [t],
+                               integrals, integral_map, eqs.integrals)
+                end
             end
         end
 
@@ -132,7 +151,10 @@ function Base.diff(atom::Atom{T,B,O},
                    H::QuantumOperator=FieldFreeOneBodyHamiltonian()+CoulombInteraction();
                    overlaps::Vector{OrbitalOverlap}=OrbitalOverlap[],
                    selector=cfg -> outsidecoremodel(cfg, atom.potential),
-                   observables::Dict{Symbol,<:QuantumOperator} = Dict(:energy => H),
+                   observables::Dict{Symbol,<:QuantumOperator} = Dict(
+                       :energy => H,
+                       :kinetic_energy => KineticEnergyHamiltonian(),
+                   ),
                    verbosity=0) where {T,B,O}
     configurations = selector.(atom.configurations)
     orbitals = unique_orbitals(configurations)
