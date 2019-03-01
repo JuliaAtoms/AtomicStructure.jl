@@ -43,6 +43,7 @@ jobs:
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/AtomicLevels.jl.git"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/EnergyExpressions.jl.git"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl.git"'
+        - julia --project=docs/ -e 'using Pkg; pkg"add LazyArrays@0.5.2"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaApproximation/ContinuumArrays.jl.git#3cc0434"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/FiniteDifferencesQuasi.jl.git"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/FEDVRQuasi.jl.git"'

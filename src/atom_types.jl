@@ -1,21 +1,26 @@
-# A many-electron wave function configuration can either be given as a
-# CSF (summed over spins) or a configuration of spin-orbitals (where
-# all quantum numbers are specified).
+"""
+    ManyElectronWavefunction
+
+A many-electron wave function configuration can either be given as a
+CSF (summed over spins) or a configuration of spin-orbitals (where all
+quantum numbers are specified).
+"""
 const ManyElectronWavefunction{O<:AbstractOrbital} = Union{CSF{O},Configuration{<:SpinOrbital}}
 
-# An atom constitutes a set of single-electron radial orbitals,
-# ManyElectronWavefunction:s which are comprised of anti-symmetrized
-# combinations of such orbitals, and channels which are linear
-# combinations of ManyElectronWavefunction:s. The expansion
-# coefficients of said channels are stored in a matrix, where each row
-# corresponds to a channel and each column to
-# ManyElectronWavefunction. In case the channels are
-# ManyElectronWavefunction:s, this matrix is the identity matrix.
-#
-# The potential can be used to model either the nucleus by itself (a
-# point charge or a nucleus of finite extent) or the core orbitals
-# (i.e. a pseudo-potential).
+"""
+    Atom(radial_orbitals, orbitals, configurations, mix_coeffs, potential)
 
+An atom constitutes a set of single-electron `orbitals` with
+associated `radial_orbitals`, `configurations` which are
+[`ManyElectronWavefunction`](@ref):s, comprising of anti-symmetrized
+combinations of such orbitals. The expansion coefficients `mix_coeffs`
+determine the linear combination of the `configurations` for
+multi-configurational atoms.
+
+The `potential` can be used to model either the nucleus by itself (a
+point charge or a nucleus of finite extent) or the core orbitals
+(i.e. a pseudo-potential).
+"""
 mutable struct Atom{T,B<:AbstractQuasiMatrix,O<:AbstractOrbital,TC<:ManyElectronWavefunction,C,P<:AbstractPotential} <: AbstractQuantumSystem
     radial_orbitals::RadialOrbitals{T,B}
     orbitals::Vector{O}
@@ -40,12 +45,28 @@ outsidecoremodel(configuration::Configuration, potential::P) where P =
 outsidecoremodel(configuration::Configuration, ::PointCharge) where P =
     configuration
 
+"""
+    Atom(radial_orbitals, orbitals, configurations, potential, ::Type{C})
+
+Create an [`Atom`](@ref) from the lists of `radial_orbitals`
+associated with `orbitals` and electronic `configurations`, with a
+nucleus modelled by `potential`. `C` determines the `eltype` of the
+mixing coefficients, which are initialized to `[1,0,0,...]`.
+"""
 Atom(radial_orbitals::RadialOrbitals{T,B}, orbitals::Vector{O},
      configurations::Vector{<:TC}, potential::P, ::Type{C}) where {T<:Number,B,O,TC<:ManyElectronWavefunction,C,P} =
          Atom{T,B,O,TC,C,P}(radial_orbitals, orbitals,
                             configurations, vcat(one(T), zeros(C, length(configurations)-1)),
                             potential)
 
+"""
+    Atom(undef, ::Type{T}, R::AbstractQuasiMatrix, configurations, potential, ::Type{C})
+
+Create an [`Atom`](@ref) on the space spanned by `R`, from the list of
+electronic `configurations`, with a nucleus modelled by `potential`,
+and leave the orbitals uninitialized. `T` determines the `eltype` of
+the radial orbitals and `C` the mixing coefficients.
+"""
 function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, potential::P,
               ::Type{C}) where {T<:Number,B<:AbstractQuasiMatrix{T},TC,C,P}
     isempty(configurations) &&
@@ -71,6 +92,14 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
     Atom(RΦ, orbs, configurations, potential, C)
 end
 
+"""
+    Atom(init, ::Type{T}, R::AbstractQuasiMatrix, configurations, potential, ::Type{C})
+
+Create an [`Atom`](@ref) on the space spanned by `R`, from the list of
+electronic `configurations`, with a nucleus modelled by `potential`,
+and initialize the orbitals according to `init`. `T` determines the
+`eltype` of the radial orbitals and `C` the mixing coefficients.
+"""
 function Atom(init::Symbol, ::Type{T}, R::B, configurations::Vector{TC},
               potential::P, ::Type{C}; kwargs...) where {T<:Number,B<:AbstractQuasiMatrix{T},TC,C,P}
     atom = Atom(undef, T, R, configurations, potential, C)
@@ -82,8 +111,22 @@ function Atom(init::Symbol, ::Type{T}, R::B, configurations::Vector{TC},
     atom
 end
 
+"""
+    DiracAtom
+
+A `DiracAtom` is a specialization of [`Atom`](@ref) for the
+relativistic case.
+"""
 const DiracAtom{T,B,TC<:RelativisticCSF,C,P} = Atom{T,B,TC,C,P}
 
+"""
+    Atom(init, R::AbstractQuasiMatrix, configurations, potential, ::Type{C})
+
+Create an [`Atom`](@ref) on the space spanned by `R`, from the list of
+electronic `configurations`, with a nucleus modelled by `potential`,
+and initialize the orbitals according to `init`. `C` determines the
+`eltype` of the mixing coefficients.
+"""
 Atom(init::Init, R::B, configurations::Vector{TC}, potential::P, ::Type{C};
      kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC,C,P<:AbstractPotential} =
          Atom(init, T, R, configurations, potential, C; kwargs...)
@@ -92,6 +135,13 @@ DiracAtom(init::Init, R::B, configurations::Vector{TC}, potential::P, ::Type{C};
           kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC<:RelativisticCSF,C,P<:AbstractPotential} =
     Atom(init, T, R, configurations, potential, C; kwargs...)
 
+"""
+    Atom(R::AbstractQuasiMatrix, configurations, potential[, ::Type{C}=eltype(R)])
+
+Create an [`Atom`](@ref) on the space spanned by `R`, from the list of
+electronic `configurations`, with a nucleus modelled by `potential`,
+and initialize the orbitals to their hydrogenic values.
+"""
 Atom(R::B, configurations::Vector{<:TC}, potential::P, ::Type{C}=eltype(R);
      kwargs...) where {B<:AbstractQuasiMatrix,TC<:ManyElectronWavefunction,C,P<:AbstractPotential} =
          Atom(:hydrogenic, R, configurations, potential, C; kwargs...)
@@ -122,6 +172,11 @@ function Atom(other_atom::Atom{T,B,O,TC,C,P},
     atom
 end
 
+"""
+    num_electrons(atom)
+
+Return number of electrons in `atom`.
+"""
 AtomicLevels.num_electrons(atom::Atom) =
     num_electrons(first(atom.configurations))
 
@@ -152,21 +207,54 @@ function orbital_index(atom::Atom{T,B,O}, orb::O) where {T,B,O}
     i
 end
 
+"""
+    getindex(atom, j)
+
+Returns a copy of the `j`:th radial orbital.
+"""
 Base.getindex(atom::Atom, j::I) where {I<:Integer} =
     radial_basis(atom)*atom.radial_orbitals.mul.factors[2][:,j]
 
+"""
+    getindex(atom, orb)
+
+Returns a copy of the radial orbital corresponding to `orb`.
+"""
 Base.getindex(atom::Atom{T,B,O}, orb::O) where {T,B,O} =
     atom[orbital_index(atom, orb)]
 
+"""
+    view(atom, j)
+
+Returns a `view` of the `j`:th radial orbital.
+"""
 Base.view(atom::Atom, j::I) where {I<:Integer} =
     radial_basis(atom)*view(atom.radial_orbitals.mul.factors[2], :, j)
 
+"""
+    view(atom, orb)
+
+Returns a `view` of the radial orbital corresponding to `orb`.
+"""
 Base.view(atom::Atom{T,B,O}, orb::O) where {T,B,O} =
     view(atom, orbital_index(atom, orb))
 
+"""
+    SCF.coefficients(atom)
+
+Returns a `view` of the mixing coefficients.
+"""
 SCF.coefficients(atom::A) where {A<:Atom} =
     view(atom.mix_coeffs, :)
 
+"""
+    SCF.orbitals(atom)
+
+Returns a `view` of the radial orbital coefficients (NB, it does _not_
+return the `MulQuasiMatrix`, but the actual underlying expansion
+coefficients, since `SCF` operates on them in the self-consistent
+iteration).
+"""
 SCF.orbitals(atom::A) where {A<:Atom} =
     view(atom.radial_orbitals.mul.factors[2], :, :)
 

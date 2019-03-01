@@ -1,5 +1,11 @@
 # * Generation of one-body Hamiltonian
 
+"""
+    one_body_hamiltonian(::Type{Tuple}, atom, orb)
+
+Return the kinetic and one-body potential energy operators (as a
+tuple) for the orbital `orb` of `atom`.
+"""
 function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,B,O₁}, orb::O₂) where {T,B,O₁,O₂}
     R = radial_basis(atom)
 
@@ -13,6 +19,12 @@ function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,B,O₁}, orb::O₂) wh
 
     R*Tm*R', R*V*R'
 end
+
+"""
+    one_body_hamiltonian(::Type{Tuple}, atom, orb)
+
+Return the one-body energy operator for the orbital `orb` of `atom`.
+"""
 one_body_hamiltonian(atom, orb) = +(one_body_hamiltonian(Tuple, atom, orb)...)
 
 # * AtomicOneBodyHamiltonian types
@@ -35,11 +47,23 @@ Base.show(io::IO, ĥ::ZeroAtomicOneBodyHamiltonian) =
     write(io, "0")
 
 # ** AtomicOneBodyHamiltonian
+"""
+    AtomicOneBodyHamiltonian(op, orbital)
+
+Structure holding a one-body energy operator `op` acting on its
+associated `orbital`.
+"""
 struct AtomicOneBodyHamiltonian{LT,O} <: AbstractAtomicOneBodyHamiltonian
     op::LT
     orbital::O
 end
 
+"""
+    AtomicOneBodyHamiltonian(atom, orb)
+
+Create the one-body Hamiltonian corresponding to the orbital `orb` of
+`atom`.
+"""
 AtomicOneBodyHamiltonian(atom::Atom, orb::AbstractOrbital) =
     AtomicOneBodyHamiltonian(one_body_hamiltonian(atom, orb), orb)
 
@@ -49,9 +73,23 @@ Base.axes(ĥ::AtomicOneBodyHamiltonian, args...) =
 Base.zero(ĥ::AtomicOneBodyHamiltonian) =
     ZeroAtomicOneBodyHamiltonian(axes(ĥ))
 
+"""
+    ĥ ⋆ ϕ
+
+Return the lazy multiplicative action of the
+[`AtomicOneBodyHamiltonian`](@ref) `ĥ` on the radial orbital
+coefficient vector `ϕ`.
+"""
 LazyArrays.:(⋆)(ĥ::AtomicOneBodyHamiltonian, ϕ::AbstractVector) =
     ĥ.op.mul.factors[2] ⋆ ϕ
 
+"""
+    materialize!(::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest})
+
+Materialize the lazy multiplication–addition of the type `y ← α*H*x +
+β*y` where `H` is a [`AtomicOneBodyHamiltonian`](@ref) and `x` and `y`
+are [`RadialOrbital`](@ref)s.
+"""
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest}) where {T,Source,Dest} =
     materialize!(MulAdd(ma.α, ma.A.op.mul.factors[2], ma.B.mul.factors[2],
                         ma.β, ma.C.mul.factors[2]))
@@ -61,6 +99,14 @@ Base.show(io::IO, ĥ::AtomicOneBodyHamiltonian) =
 
 # * Diagonalization of one-body Hamiltonian
 
+"""
+    ShiftInvert(A⁻¹)
+
+Help structure used in diagonalization of `A` via the shift-and-invert
+Krylov technique, where the action of `A⁻¹` instead of `A` is computed
+in the Krylov iterations. This is useful for converging interior
+eigenvalues.
+"""
 struct ShiftInvert{M}
     A⁻¹::M
 end
@@ -71,6 +117,24 @@ Base.eltype(S::ShiftInvert) = eltype(S.A⁻¹)
 LinearAlgebra.mul!(y, S::ShiftInvert, x) =
     ldiv!(y, S.A⁻¹, x)
 
+"""
+    diagonalize_one_body(H, nev; method=:arnoldi_shift_invert, tol=1e-10, σ=-1)
+
+Diagonalize the one-body Hamiltonian `H` and find the `nev` lowest
+eigenpairs, using the specified diagonalization `method`; valid
+choices are
+
+- `:arnoldi` which performs the standard Krylov iteration looking for
+  the eigenvalues with smallest real values,
+
+- `:arnoldi_shift_invert` which performs the Krylov iteration but with
+  the shifted and inverted matrix `(H - I*σ)⁻¹` looking for the
+  eigenvalues with _largest_ real values,
+
+- `:eigen` which uses Julia's built-in eigensolver.
+
+`tol` sets the Krylov tolerance.
+"""
 function diagonalize_one_body(H::RadialOperator, nev::Int;
                               method::Symbol=:arnoldi_shift_invert, tol=1e-10, σ=-1,
                               verbosity=0, io=stdout)

@@ -3,11 +3,11 @@ import AtomicLevels: spectroscopic_label
 """
     hydrogenic!(atom[; kwargs...])
 
-Initialize the radial orbitals of `atom` to their hydrogenic
-values. This is done via simple diagonalization of the one-body
-Hamiltonian for each angular symmetry. The `kwargs` are passed on to
-`diagonalize_one_body` and can be used to influence how the
-diagonalization is performed.
+Initialize the radial orbitals of `atom` to their unscreened
+hydrogenic values. This is done via simple diagonalization of the
+one-body Hamiltonian for each angular symmetry. The `kwargs` are
+passed on to [`diagonalize_one_body`](@ref) and can be used to
+influence how the diagonalization is performed.
 """
 function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) where {T,B,O,TC,C,P}
     # This is only for non-relativistic atoms

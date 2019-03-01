@@ -1,11 +1,19 @@
-# A radial orbital is represented using basis coupled with a vector of
-# expansion coefficients with respect to that basis; the basis
-# implemented as an `AbstractQuasimatrix`. A collection of radial
-# orbitals is instead represented using a matrix of such expansion
-# coefficients, where each matrix column corresponds to a single
-# radial orbital.
+"""
+    RadialOrbital
 
+A radial orbital is represented using basis coupled with a vector of
+expansion coefficients with respect to that basis; the basis
+implemented as an `AbstractQuasimatrix`.
+"""
 const RadialOrbital{T,B<:AbstractQuasiMatrix} = MulQuasiArray{T,1,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractVector}}}
+
+"""
+    RadialOrbitals
+
+A collection of radial orbitals is instead represented using a
+matrix of such expansion coefficients, where each matrix column
+corresponds to a single radial orbital.
+"""
 const RadialOrbitals{T,B<:AbstractQuasiMatrix} = MulQuasiArray{T,2,<:Mul{<:Tuple,<:Tuple{<:B,<:AbstractMatrix}}}
 
 const RadialOperator{T,B<:AbstractQuasiMatrix,M<:AbstractMatrix} =

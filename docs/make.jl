@@ -10,6 +10,12 @@ makedocs(
         "Home" => "index.md",
         "Theory" => [
             "Density matrices" => "density_matrices.md"
+        ],
+        "Implementation" => [
+            "Radial orbitals" => "radial_orbitals.md",
+            "Atom types" => "atom_types.md",
+            "One-body Hamiltonians" => "one_body.md",
+            "Hydrogenic initialization" => "hydrogenic.md"
         ]
     ],
     assets = ["assets/latex.js"]
