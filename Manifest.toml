@@ -256,6 +256,14 @@ uuid = "56ddb016-857b-54e1-b83d-db4d58db5568"
 deps = ["Base64"]
 uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
+[[MatrixFactorizations]]
+deps = ["AlgebraicMultigrid", "IterativeSolvers", "LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "11483b35cc610ebc2575c6dfc1bf00751cab86dc"
+repo-rev = "master"
+repo-url = "https://github.com/jagot/MatrixFactorizations.jl.git"
+uuid = "f1b39ad4-3e99-11e9-193e-b3ae8ec46476"
+version = "0.1.0"
+
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 

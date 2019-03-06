@@ -38,7 +38,6 @@ LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamilt
 ## Diagonalization of one-body Hamiltonians
 
 ```@docs
-ShiftInvert
 diagonalize_one_body
 ```
 

@@ -47,6 +47,7 @@ jobs:
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaApproximation/ContinuumArrays.jl.git#3cc0434"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/FiniteDifferencesQuasi.jl.git"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/FEDVRQuasi.jl.git"'
+        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/MatrixFactorizations.jl.git"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/CoulombIntegrals.jl.git"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/SolverTraces.jl.git"'
         - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/SCF.jl.git"'

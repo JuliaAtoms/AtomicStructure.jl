@@ -130,24 +130,6 @@ Base.show(io::IO, ĥ::AtomicOneBodyHamiltonian) =
 # * Diagonalization of one-body Hamiltonian
 
 """
-    ShiftInvert(A⁻¹)
-
-Help structure used in diagonalization of `A` via the shift-and-invert
-Krylov technique, where the action of `A⁻¹` instead of `A` is computed
-in the Krylov iterations. This is useful for converging interior
-eigenvalues.
-"""
-struct ShiftInvert{M}
-    A⁻¹::M
-end
-
-Base.size(S::ShiftInvert, args...) = size(S.A⁻¹, args...)
-Base.eltype(S::ShiftInvert) = eltype(S.A⁻¹)
-
-LinearAlgebra.mul!(y, S::ShiftInvert, x) =
-    ldiv!(y, S.A⁻¹, x)
-
-"""
     diagonalize_one_body(H, nev; method=:arnoldi_shift_invert, tol=1e-10, σ=-1)
 
 Diagonalize the one-body Hamiltonian `H` and find the `nev` lowest
@@ -171,20 +153,13 @@ function diagonalize_one_body(H::RadialOperator, nev::Int;
     Hm = matrix(H)
     verbosity > 2 && println(io, "Diagonalizing via $(method)")
     if method == :arnoldi || method == :arnoldi_shift_invert
-        A,target = if method == :arnoldi
-            Hm,SR()
-        else
-            ShiftInvert(factorize(Hm - σ*I)),LR()
-        end
+        A,target = method == :arnoldi ? (Hm,SR()) : (ShiftInvert(Hm, σ),LR())
+
         schur,history = partialschur(A, nev=nev, tol=tol, which=target)
         verbosity > 3 && println(io, history)
-        λ = if method == :arnoldi
-            diag(schur.R)
-        else
-            θ = diag(schur.R)
-            verbosity > 2 && println(io, "Schur values: $θ")
-            σ .+ inv.(θ)
-        end
+
+        θ = diag(schur.R)
+        λ = method == :arnoldi ? θ : σ .+ inv.(θ)
         length(λ) < nev &&
             error("Could not converge the requested orbitals: $(history)")
         λ,schur.Q
