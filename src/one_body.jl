@@ -38,10 +38,10 @@ centrifugal potential. It is diagonal in spin, i.e. it does not couple
 orbitals of opposite spin.
 """
 struct KineticEnergyHamiltonian <: OneBodyOperator end
+Base.iszero(me::OrbitalMatrixElement{1,A,KineticEnergyHamiltonian,B}) where {A<:SpinOrbital,B<:SpinOrbital} =
+    me.a[1].spin != me.b[1].spin
 
 Base.show(io::IO, ::KineticEnergyHamiltonian) = write(io, "T̂")
-Base.show(io::IO, me::OrbitalMatrixElement{1,A,KineticEnergyHamiltonian,B}) where{A,B} =
-    write(io, "(", join(string.(me.a), " "), "|", join(string.(me.b), " "), ")")
 
 # ** V̂
 """
@@ -52,10 +52,10 @@ centrifugal potential. It is diagonal in spin, i.e. it does not couple
 orbitals of opposite spin.
 """
 struct PotentialEnergyHamiltonian <: OneBodyOperator end
+Base.iszero(me::OrbitalMatrixElement{1,A,PotentialEnergyHamiltonian,B}) where {A<:SpinOrbital,B<:SpinOrbital} =
+    me.a[1].spin != me.b[1].spin
 
 Base.show(io::IO, ::PotentialEnergyHamiltonian) = write(io, "V̂")
-Base.show(io::IO, me::OrbitalMatrixElement{1,A,PotentialEnergyHamiltonian,B}) where{A,B} =
-    write(io, "(", join(string.(me.a), " "), "|", join(string.(me.b), " "), ")")
 
 # * AtomicOneBodyHamiltonian types
 
