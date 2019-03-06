@@ -273,11 +273,11 @@ var documenterSearchIndex = {"docs": [
 },
 
 {
-    "location": "one_body/#Base.Broadcast.materialize!-Union{Tuple{MulAdd{#s2,#s1,#s3,T,#s4,Source,Dest} where #s4<:AtomicOneBodyHamiltonian where #s3 where #s1 where #s2}, Tuple{Dest}, Tuple{Source}, Tuple{T}} where Dest where Source where T",
+    "location": "one_body/#Base.Broadcast.materialize!-Union{Tuple{MulAdd{#s4,#s3,#s2,T,#s1,Source,Dest} where #s1<:AtomicOneBodyHamiltonian where #s2 where #s3 where #s4}, Tuple{Dest}, Tuple{Source}, Tuple{T}} where Dest where Source where T",
     "page": "One-body Hamiltonians",
     "title": "Base.Broadcast.materialize!",
     "category": "method",
-    "text": "materialize!(::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*H*x + β*y where H is a AtomicOneBodyHamiltonian and x and y are RadialOrbitals.\n\n\n\n\n\n"
+    "text": "materialize!(::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*H*x + β*y where H is a AtomicOneBodyHamiltonian and x and y are RadialOrbitals.\n\n\n\n\n\nmaterialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*V̂*x + β*y where V̂ is a DirectPotential (with a precomputed direct potential computed via SCF.update!) and x and y are RadialOrbitals.\n\n\n\n\n\nmaterialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*V̂*x + β*y where V̂ is a ExchangePotential (by solving the Poisson problem with x as one of the constituent source orbitals in the mutual density) and x and y are RadialOrbitals.\n\n\n\n\n\n"
 },
 
 {
@@ -286,14 +286,6 @@ var documenterSearchIndex = {"docs": [
     "title": "One-body Hamiltonians",
     "category": "section",
     "text": "CurrentModule = Atoms\nDocTestSetup = quote\n    using Atoms\nendThe one-body Hamiltonian for electron i in an atom is given bybeginequation\nhamiltonian_i defd\n-fracnabla_i^22 +\nV(vecr_i)\nendequationIn spherical coordinates (and using reduced wavefunctions), the Laplacian transforms tobeginequation\noperatorT_r_i = -fracpartial_r_i^22 + fracell(ell+1)2r_i^2\nendequationwhere the second term, called the centrifugal potential, although originating from the Laplacian, is usually treated together with the nuclear potential V(r_i).one_body_hamiltonian\nKineticEnergyHamiltonian\nPotentialEnergyHamiltonian\nAtomicOneBodyHamiltonian\nLazyArrays.:(⋆)\nLazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest}) where {T,Source,Dest}"
-},
-
-{
-    "location": "one_body/#Atoms.ShiftInvert",
-    "page": "One-body Hamiltonians",
-    "title": "Atoms.ShiftInvert",
-    "category": "type",
-    "text": "ShiftInvert(A⁻¹)\n\nHelp structure used in diagonalization of A via the shift-and-invert Krylov technique, where the action of A⁻¹ instead of A is computed in the Krylov iterations. This is useful for converging interior eigenvalues.\n\n\n\n\n\n"
 },
 
 {
@@ -309,7 +301,7 @@ var documenterSearchIndex = {"docs": [
     "page": "One-body Hamiltonians",
     "title": "Diagonalization of one-body Hamiltonians",
     "category": "section",
-    "text": "ShiftInvert\ndiagonalize_one_bodyCurrentModule = nothing\nDocTestSetup = nothing"
+    "text": "diagonalize_one_bodyCurrentModule = nothing\nDocTestSetup = nothing"
 },
 
 {
@@ -334,6 +326,366 @@ var documenterSearchIndex = {"docs": [
     "title": "Hydrogenic initialization",
     "category": "section",
     "text": "CurrentModule = Atoms\nDocTestSetup = quote\n    using Atoms\nendhydrogenic!CurrentModule = nothing\nDocTestSetup = nothing"
+},
+
+{
+    "location": "orbital_equations/#",
+    "page": "Orbital equations",
+    "title": "Orbital equations",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "orbital_equations/#Orbital-equations-1",
+    "page": "Orbital equations",
+    "title": "Orbital equations",
+    "category": "section",
+    "text": "CurrentModule = Atoms\nDocTestSetup = quote\n    using Atoms\nend"
+},
+
+{
+    "location": "orbital_equations/#Atoms.OrbitalHamiltonianTerm",
+    "page": "Orbital equations",
+    "title": "Atoms.OrbitalHamiltonianTerm",
+    "category": "type",
+    "text": "OrbitalHamiltonianTerm(i, j, coeff, A, integrals)\n\nRepresents a term in the orbital Hamiltonian arising from a variation of the energy expressions between configurations i and j in the multi-configurational expansion. coeff is the numeric coefficient, A is the operator acting on the orbital, and integrals is a vector of OrbitalIntegrals arising from the presence of non-orthogonal orbitals and whose values should be multiplied to form the overall coefficient.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.coefficient",
+    "page": "Orbital equations",
+    "title": "Atoms.coefficient",
+    "category": "function",
+    "text": "coefficient(term::OrbitalHamiltonianTerm)\n\nReturn the multiplicative coefficient pertaining to term, excluding the conj(c_i)*c_j mixing coefficients, due to the configuration-interaction.\n\n\n\n\n\ncoefficient(term::OrbitalHamiltonianTerm, c::Vector)\n\nReturn the multiplicative coefficient pertaining to term, including the conj(c_i)*c_j mixing coefficients, due to the configuration-interaction.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.OrbitalHamiltonian",
+    "page": "Orbital equations",
+    "title": "Atoms.OrbitalHamiltonian",
+    "category": "type",
+    "text": "OrbitalHamiltonian(R, terms, mix_coeffs, projector, orbital)\n\nThe Hamiltonian for orbital is constructed from a radial basis R, a set of OrbitalHamiltonianTerm terms that describe the various interactions between orbitals, mix_coeffs which are the mixing coefficents for the multi-configurational expansion. The projector ensures orthogonality between orbital pairs which have Lagrange multipliers associated with them, by projecting out components of other orbitals every time the OrbitalHamiltonian action on orbital is computed.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.Projector",
+    "page": "Orbital equations",
+    "title": "Atoms.Projector",
+    "category": "type",
+    "text": "Projector(ϕs)\n\nRepresents the projector out of the subspace spanned by the radial orbitals ϕs\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.projectout!",
+    "page": "Orbital equations",
+    "title": "Atoms.projectout!",
+    "category": "function",
+    "text": "projectout!(y, projector)\n\nProject out all components of y parallel to the radial orbitals projector.ϕs.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#SCF.energy_matrix!-Union{Tuple{B}, Tuple{T}, Tuple{O}, Tuple{HM}, Tuple{HM,OrbitalHamiltonian{O,T,B,OV,Proj} where Proj where OV,MulQuasiArray{T,1,#s12} where #s12<:(Mul{#s13,#s14} where #s14<:(Tuple{#s15,#s16} where #s16<:(AbstractArray{T,1} where T) where #s15<:B) where #s13<:Tuple)}} where B where T where O where HM<:(AbstractArray{T,2} where T)",
+    "page": "Orbital equations",
+    "title": "SCF.energy_matrix!",
+    "category": "method",
+    "text": "energy_matrix!(H, hamiltonian, ϕ)\n\nCompute the contribution of hamiltonian to the Hamiltonian matrix H by repeatedly acting on the associated radial orbital ϕ with the different multi-configurational OrbitalHamiltonianTerms of hamiltonian.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Base.filter-Tuple{Function,Atoms.OrbitalHamiltonian}",
+    "page": "Orbital equations",
+    "title": "Base.filter",
+    "category": "method",
+    "text": "filter(fun::Function, H::OrbitalHamiltonian)\n\nFilter the OrbitalHamiltonianTerms of H according to the predicate fun.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Base.copyto!-Union{Tuple{M}, Tuple{T}, Tuple{M,OrbitalHamiltonian}} where M<:AbstractArray{T,2} where T",
+    "page": "Orbital equations",
+    "title": "Base.copyto!",
+    "category": "method",
+    "text": "copyto!(dest::AbstractMatix, hamiltonian::OrbitalHamiltonian)\n\nMaterialize the orbital hamiltonian into matrix form and store it in dest, using the current values of all other orbitals. This is only possible if the orbital hamiltonian does not contain any ExchangePotentials or SourceTerms, since the former is non-local (and thus not representable as a matrix) and the latter is not a linear operator (but an affine one).\n\nTypical usage is to compute an easily factorizable matrix that can be used for preconditioning the solution of the full equation.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Base.:+-Union{Tuple{Proj}, Tuple{OV}, Tuple{B}, Tuple{T}, Tuple{O}, Tuple{OrbitalHamiltonian{O,T,B,OV,Proj},UniformScaling}} where Proj where OV where B where T where O",
+    "page": "Orbital equations",
+    "title": "Base.:+",
+    "category": "method",
+    "text": "h::OrbitalHamiltonian + λ::UniformScaling\n\nShift the OrbitalHamiltonian h by λ.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Base.:--Tuple{Atoms.OrbitalHamiltonian,LinearAlgebra.UniformScaling}",
+    "page": "Orbital equations",
+    "title": "Base.:-",
+    "category": "method",
+    "text": "h::OrbitalHamiltonian - λ::UniformScaling\n\nShift the OrbitalHamiltonian h by -λ.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#SCF.KrylovWrapper",
+    "page": "Orbital equations",
+    "title": "SCF.KrylovWrapper",
+    "category": "type",
+    "text": "SCF.KrylovWrapper(hamiltonian::OrbitalHamiltonian)\n\nConstruct a KrylovWrapper such that hamiltonian, that acts on function spaces, can be used in a Krylov solver, which works with linear algebra vector spaces.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#LinearAlgebra.mul!-Union{Tuple{Hamiltonian}, Tuple{B}, Tuple{T}, Tuple{V₂}, Tuple{V₁}, Tuple{V₁,KrylovWrapper{T,Hamiltonian},V₂}} where Hamiltonian<:Atoms.OrbitalHamiltonian where B where T where V₂ where V₁",
+    "page": "Orbital equations",
+    "title": "LinearAlgebra.mul!",
+    "category": "method",
+    "text": "mul!(y, A::KrylovWrapper{T,<:OrbitalHamiltonian}, x)\n\nMaterialize the action of the OrbitalHamiltonian on the linear algebra vector x and store the result in y, by wrapping them both with the QuasiMatrix necessary to transform x and y to the function space of the Hamiltonian.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#MatrixFactorizations.preconditioner",
+    "page": "Orbital equations",
+    "title": "MatrixFactorizations.preconditioner",
+    "category": "function",
+    "text": "MatrixFactorizations.preconditioner(hamiltonian::OrbitalHamiltonian)\n\nReturn a factorization of the matrix corresponding to hamiltonian, where all terms arising from exchange and configuration interaction have been removes, since they cannot be represented by a matrix.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Hamiltonian-1",
+    "page": "Orbital equations",
+    "title": "Hamiltonian",
+    "category": "section",
+    "text": "OrbitalHamiltonianTerm\ncoefficient\nOrbitalHamiltonian\nProjector\nprojectout!\nSCF.energy_matrix!(H::HM, hamiltonian::OrbitalHamiltonian{O,T,B}, ϕ::RadialOrbital{T,B}) where {HM<:AbstractMatrix,O,T,B}\nBase.filter(fun::Function, H::OrbitalHamiltonian)\nBase.copyto!(dest::M, hamiltonian::OrbitalHamiltonian) where {T,M<:AbstractMatrix{T}}\nBase.:(+)(h::OrbitalHamiltonian{O,T,B,OV,Proj}, λ::UniformScaling) where {O,T,B,OV,Proj}\nBase.:(-)(h::OrbitalHamiltonian, λ::UniformScaling)\nSCF.KrylovWrapper\nLinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,Hamiltonian}, x::V₂) where {V₁,V₂,T,B,Hamiltonian<:OrbitalHamiltonian}\nMatrixFactorizations.preconditioner"
+},
+
+{
+    "location": "orbital_equations/#Atoms.OrbitalIntegral",
+    "page": "Orbital equations",
+    "title": "Atoms.OrbitalIntegral",
+    "category": "type",
+    "text": "OrbitalIntegral{N}\n\nAbstract type for integrals of rank N of orbitals, whose values need to be recomputed every time the orbitals are updated. Rank 0 corresponds to a scalar value, rank 1 to a diagonal matrix, etc.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.OrbitalOverlapIntegral",
+    "page": "Orbital equations",
+    "title": "Atoms.OrbitalOverlapIntegral",
+    "category": "type",
+    "text": "OrbitalOverlapIntegral(a, b, av, bv, value)\n\nRepresents the orbital overlap integral ⟨a|b⟩, for orbitals a and b, along with views of their radial orbitals av and bv and the current value of the integral.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#SCF.update!-Tuple{Atoms.OrbitalOverlapIntegral}",
+    "page": "Orbital equations",
+    "title": "SCF.update!",
+    "category": "method",
+    "text": "SCF.update!(oo::OrbitalOverlapIntegral)\n\nUpdate the value of the integral oo.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.HFPotential",
+    "page": "Orbital equations",
+    "title": "Atoms.HFPotential",
+    "category": "type",
+    "text": "HFPotential(k, a, b, av, bv, V̂, poisson)\n\nRepresents the k:th multipole exansion of the Hartree–Fock potential formed by orbitals a and b (av and bv being views of their corresponding radial orbitals). V̂ is the resultant one-body potential formed, which can act on a third orbital and poisson computes the potential by solving Poisson\'s problem.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.DirectPotential",
+    "page": "Orbital equations",
+    "title": "Atoms.DirectPotential",
+    "category": "type",
+    "text": "DirectPotential\n\nSpecial case of HFPotential for the direct interaction, in which case the potential formed from two orbitals can be precomputed before acting on a third orbital.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#SCF.update!-Union{Tuple{HFPotential{:direct,O,T,B,OV,RO,P}}, Tuple{P}, Tuple{RO}, Tuple{OV}, Tuple{B}, Tuple{T}, Tuple{O}} where P where RO where OV where B where T where O",
+    "page": "Orbital equations",
+    "title": "SCF.update!",
+    "category": "method",
+    "text": "SCF.update!(p::DirectPotential)\n\nUpdate the direct potential p by solving the Poisson problem with the current values of the orbitals forming the mutual density.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Base.Broadcast.materialize!-Union{Tuple{MulAdd{#s2,#s1,#s3,T,#s4,Source,Dest} where #s4<:(HFPotential{:direct,O,T,B,OV,RO,P} where P where RO where OV where B where T where O) where #s3 where #s1 where #s2}, Tuple{Dest}, Tuple{Source}, Tuple{T}} where Dest where Source where T",
+    "page": "Orbital equations",
+    "title": "Base.Broadcast.materialize!",
+    "category": "method",
+    "text": "materialize!(::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*H*x + β*y where H is a AtomicOneBodyHamiltonian and x and y are RadialOrbitals.\n\n\n\n\n\nmaterialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*V̂*x + β*y where V̂ is a DirectPotential (with a precomputed direct potential computed via SCF.update!) and x and y are RadialOrbitals.\n\n\n\n\n\nmaterialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*V̂*x + β*y where V̂ is a ExchangePotential (by solving the Poisson problem with x as one of the constituent source orbitals in the mutual density) and x and y are RadialOrbitals.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.ExchangePotential",
+    "page": "Orbital equations",
+    "title": "Atoms.ExchangePotential",
+    "category": "type",
+    "text": "ExchangePotential\n\nSpecial case of HFPotential for the exchange interaction, in which case the potential is formed from the orbital acted upon, along with another orbital, and then applied to a third orbital. Thus this potential cannot be precomputed, but must be recomputed every time the operator is applied. This makes this potential expensive to handle and the number of times it is applied should be minimized, if possible.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Base.Broadcast.materialize!-Union{Tuple{MulAdd{#s4,#s3,#s2,T,#s1,Source,Dest} where #s1<:(HFPotential{:exchange,O,T,B,OV,RO,P} where P where RO where OV where B where T where O) where #s2 where #s3 where #s4}, Tuple{Dest}, Tuple{Source}, Tuple{T}} where Dest where Source where T",
+    "page": "Orbital equations",
+    "title": "Base.Broadcast.materialize!",
+    "category": "method",
+    "text": "materialize!(::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*H*x + β*y where H is a AtomicOneBodyHamiltonian and x and y are RadialOrbitals.\n\n\n\n\n\nmaterialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*V̂*x + β*y where V̂ is a DirectPotential (with a precomputed direct potential computed via SCF.update!) and x and y are RadialOrbitals.\n\n\n\n\n\nmaterialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest})\n\nMaterialize the lazy multiplication–addition of the type y ← α*V̂*x + β*y where V̂ is a ExchangePotential (by solving the Poisson problem with x as one of the constituent source orbitals in the mutual density) and x and y are RadialOrbitals.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.SourceTerm",
+    "page": "Orbital equations",
+    "title": "Atoms.SourceTerm",
+    "category": "type",
+    "text": "SourceTerm(operator, source_orbital, ov)\n\nThe point of SourceTerm is to implement inhomogeneous terms that contribute to the equation for an orbital, and whose input is some other source_orbital. This kind of term appears in multi-configurational problems.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Atoms.ShiftTerm",
+    "page": "Orbital equations",
+    "title": "Atoms.ShiftTerm",
+    "category": "type",
+    "text": "ShiftTerm(λ)\n\nThe point of ShiftTerm is to implement an overall energy shift of the Hamiltonian.\n\n\n\n\n\n"
+},
+
+{
+    "location": "orbital_equations/#Orbital-integrals-and-terms-1",
+    "page": "Orbital equations",
+    "title": "Orbital integrals and terms",
+    "category": "section",
+    "text": "OrbitalIntegral\nOrbitalOverlapIntegral\nSCF.update!(oo::OrbitalOverlapIntegral; kwargs...)\nHFPotential\nDirectPotential\nSCF.update!(p::DirectPotential{O,T,B,OV,RO,P}; kwargs...) where {O,T,B,OV,RO,P}\nLazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest}) where {T,Source,Dest}\nExchangePotential\nLazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest}) where {T,Source,Dest}\nSourceTerm\nShiftTerm"
+},
+
+{
+    "location": "orbital_equations/#Orbital-equations-2",
+    "page": "Orbital equations",
+    "title": "Orbital equations",
+    "category": "section",
+    "text": "AtomicOrbitalEquation\nenergy(hfeq::AtomicOrbitalEquation, term=:all)CurrentModule = nothing\nDocTestSetup = nothing"
+},
+
+{
+    "location": "equation_systems/#",
+    "page": "Equation systems",
+    "title": "Equation systems",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "equation_systems/#Atoms.AtomicEquations",
+    "page": "Equation systems",
+    "title": "Atoms.AtomicEquations",
+    "category": "type",
+    "text": "AtomicEquations(atom, equations, integrals)\n\nStructure representing the (e.g. Hartree–Fock) equations for atom, along with all integrals that are shared between the equations.\n\n\n\n\n\n"
+},
+
+{
+    "location": "equation_systems/#SCF.update!-Tuple{Atoms.AtomicEquations}",
+    "page": "Equation systems",
+    "title": "SCF.update!",
+    "category": "method",
+    "text": "update!(equations::AtomicEquations)\n\nRecompute all integrals using the current values for the radial orbitals.\n\n\n\n\n\n"
+},
+
+{
+    "location": "equation_systems/#SCF.energy_matrix!-Union{Tuple{HM}, Tuple{HM,AtomicEquations}, Tuple{HM,AtomicEquations,Symbol}} where HM<:(AbstractArray{T,2} where T)",
+    "page": "Equation systems",
+    "title": "SCF.energy_matrix!",
+    "category": "method",
+    "text": "energy_matrix!(H, hfeqs::AtomicEquations[, which=:energy])\n\nCompute the energy matrix by computing the energy observable and storing it in H. Requires that hfeqs has the :energy and :kinetic_energy Observables registered (this is the default).\n\n\n\n\n\n"
+},
+
+{
+    "location": "equation_systems/#Atoms.find_symmetries",
+    "page": "Equation systems",
+    "title": "Atoms.find_symmetries",
+    "category": "function",
+    "text": "find_symmetries(orbitals)\n\nGroup all orbitals according to their symmetries, e.g. ℓ for Orbitals. This is used to determine which off-diagonal Lagrange multipliers are necessary to maintain orthogonality.\n\n\n\n\n\n"
+},
+
+{
+    "location": "equation_systems/#Atoms.generate_atomic_orbital_equations",
+    "page": "Equation systems",
+    "title": "Atoms.generate_atomic_orbital_equations",
+    "category": "function",
+    "text": "generate_atomic_orbital_equations(atom::Atom, eqs::MCEquationSystem,\n                                  integrals, integral_map)\n\nFor each variationally derived orbital equation in eqs, generate the corresponding AtomicOrbitalEquation.\n\n\n\n\n\n"
+},
+
+{
+    "location": "equation_systems/#Base.diff",
+    "page": "Equation systems",
+    "title": "Base.diff",
+    "category": "function",
+    "text": "diff(atom[, H]; overlaps=[], selector=outsidecoremodel, verbosity=0)\n\nDifferentiate the energy expression of the Hamiltonian H associated with the atom\'s configurations(s) with respect to the atomic orbitals to derive the Hartree–Fock equations for the orbitals.\n\nBy default, the Hamiltonian H=FieldFreeOneBodyHamiltonian()+CoulombInteraction().\n\nNon-orthogonality between orbitals can be specified by providing OrbitalOverlaps between these pairs. Only those electrons not modelled by atom.potential of each configuration are considered for generating the energy expression, this can be changed by choosing another value for selector.\n\n\n\n\n\n"
+},
+
+{
+    "location": "equation_systems/#Equation-systems-1",
+    "page": "Equation systems",
+    "title": "Equation systems",
+    "category": "section",
+    "text": "CurrentModule = Atoms\nDocTestSetup = quote\n    using Atoms\nendAtomicEquations\nSCF.update!(equations::AtomicEquations; kwargs...)\nSCF.energy_matrix!(H::HM, hfeqs::AtomicEquations, which::Symbol=:total) where {HM<:AbstractMatrix}\nfind_symmetries\ngenerate_atomic_orbital_equations\nBase.diff"
+},
+
+{
+    "location": "equation_systems/#Atoms.push_common_integral!",
+    "page": "Equation systems",
+    "title": "Atoms.push_common_integral!",
+    "category": "function",
+    "text": "push_common_integral!(integrals, integral_map,\n                      integral, atom)\n\nPush the integral to integrals, constructing the correct OrbitalIntegral pertaining to the atom. Record the index of integral in integrals in the integral_map.\n\n\n\n\n\n"
+},
+
+{
+    "location": "equation_systems/#Atoms.pushterms!",
+    "page": "Equation systems",
+    "title": "Atoms.pushterms!",
+    "category": "function",
+    "text": "pushterms!(terms, operator, equation_terms,\n           integrals, integral_map, symbolic_integrals)\n\nFor each term in equation_terms, push a term, located at CI coordinates i,j, of the overall orbital Hamiltonian to terms, constructed from operator and a product of orbital integrals, multiplied by an overall factor given by expression and multipole expansions. integrals contain common OrbitalIntegrals and integral_map maps from symbolic_integrals to integrals.\n\n\n\n\n\n"
+},
+
+{
+    "location": "equation_systems/#Common-integrals-1",
+    "page": "Equation systems",
+    "title": "Common integrals",
+    "category": "section",
+    "text": "When deriving the equations of motion from an energy expression, the same integral may appear many times in the equations for different orbitals, multiplied by different factors, etc. To minimize the reevaluation of integrals, AtomicEquations keeps track of all the common integrals, and they are recomputed exactly once, when SCF.update! is called. The routines below are used when setting up the equation system.push_common_integral!\npushterms!CurrentModule = nothing\nDocTestSetup = nothing"
+},
+
+{
+    "location": "observables/#",
+    "page": "Observables",
+    "title": "Observables",
+    "category": "page",
+    "text": ""
+},
+
+{
+    "location": "observables/#Atoms.Observable",
+    "page": "Observables",
+    "title": "Atoms.Observable",
+    "category": "type",
+    "text": "Observable\n\nRepresents a physical quantity that can be observed, which is calculated as the matrix element of an operator between two configurations. All physical observables are real.\n\n\n\n\n\n"
+},
+
+{
+    "location": "observables/#Atoms.Observable-Union{Tuple{A}, Tuple{QuantumOperator,A,Array{#s4,1} where #s4<:OrbitalOverlap,Array{OrbitalIntegral,1},Dict{Any,Int64},Dict}} where A<:Atom",
+    "page": "Observables",
+    "title": "Atoms.Observable",
+    "category": "method",
+    "text": "Observable(operator, atom, overlaps, integrals)\n\nConstruct an observable corresponding the operator acting on atom. overlaps is a list of non-orthogonal, integrals a list of common integrals, and integral_map is a mapping from symbolic integrals to OrbitalIntegrals.\n\n\n\n\n\n"
+},
+
+{
+    "location": "observables/#Atoms.observe!",
+    "page": "Observables",
+    "title": "Atoms.observe!",
+    "category": "function",
+    "text": "observe!(A::M, o::Observable)\n\nCompute the observable o between all configurations and store the results as matrix elements of A.\n\n\n\n\n\n"
+},
+
+{
+    "location": "observables/#Observables-1",
+    "page": "Observables",
+    "title": "Observables",
+    "category": "section",
+    "text": "CurrentModule = Atoms\nDocTestSetup = quote\n    using Atoms\nendObservable\nObservable(operator::QuantumOperator, atom::A, overlaps::Vector{<:OrbitalOverlap}, integrals::Vector{OrbitalIntegral}, integral_map::Dict{Any,Int}, symmetries::Dict) where {A<:Atom}\nobserve!CurrentModule = nothing\nDocTestSetup = nothing"
 },
 
 ]}
