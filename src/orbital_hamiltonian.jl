@@ -94,6 +94,15 @@ end
 #     show(io, hamiltonian.orbital)
 #     write(io, "⟩")
 # end
+"""
+    filter(fun::Function, H::OrbitalHamiltonian)
+
+Filter the [`OrbitalHamiltonianTerm`](@ref)s of `H` according to the
+predicate `fun`.
+"""
+Base.filter(fun::Function, H::OrbitalHamiltonian) =
+    OrbitalHamiltonian(H.R, filter(fun, H.terms),
+                       H.mix_coeffs, H.projector, H.orbital)
 
 function Base.getindex(H::OrbitalHamiltonian, term::Symbol)
     term == :all && return H
@@ -111,8 +120,7 @@ function Base.getindex(H::OrbitalHamiltonian, term::Symbol)
         throw(ArgumentError("Unknown Hamiltonian term $term"))
     end
 
-    OrbitalHamiltonian(H.R, filter(t -> t.A isa operator_type, H.terms),
-                       H.mix_coeffs, H.projector, H.orbital)
+    filter(t -> t.A isa operator_type, H)
 end
 
 # ** Materialization

@@ -16,6 +16,7 @@ OrbitalHamiltonian
 Projector
 projectout!
 SCF.energy_matrix!(H::HM, hamiltonian::OrbitalHamiltonian{O,T,B}, ϕ::RadialOrbital{T,B}) where {HM<:AbstractMatrix,O,T,B}
+Base.filter(fun::Function, H::OrbitalHamiltonian)
 Base.:(+)(h::OrbitalHamiltonian{O,T,B,OV,Proj}, λ::UniformScaling) where {O,T,B,OV,Proj}
 Base.:(-)(h::OrbitalHamiltonian, λ::UniformScaling)
 SCF.KrylovWrapper
