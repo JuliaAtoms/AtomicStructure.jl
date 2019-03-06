@@ -83,9 +83,9 @@ version = "0.7.0"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "49269e311ffe11ac5b334681d212329002a9832a"
+git-tree-sha1 = "195a3ffcb8b0762684b6821de18f83a16455c6ea"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "1.5.1"
+version = "2.0.0"
 
 [[Conda]]
 deps = ["Compat", "JSON", "VersionParsing"]
@@ -102,8 +102,8 @@ uuid = "abb603bd-c6a4-5c0b-b5d0-50a836a7e82c"
 version = "0.0.0"
 
 [[CoulombIntegrals]]
-deps = ["AlgebraicMultigrid", "ContinuumArrays", "FEDVRQuasi", "FiniteDifferencesQuasi", "IterativeSolvers", "LazyArrays", "LinearAlgebra", "Polynomials", "SparseArrays", "SpecialFunctions", "Test"]
-git-tree-sha1 = "7875c79e4cd5238f3ae346a84970be2a1e619ca8"
+deps = ["ContinuumArrays", "FEDVRQuasi", "FiniteDifferencesQuasi", "LazyArrays", "LinearAlgebra", "MatrixFactorizations", "Polynomials", "SpecialFunctions", "Test"]
+git-tree-sha1 = "ed0700dbd83e2cf5e6d1238d9b6257268362e815"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/CoulombIntegrals.jl.git"
 uuid = "42e5845a-f9f1-11e8-0afe-795ea56ed153"
@@ -187,7 +187,7 @@ version = "0.4.0"
 
 [[FiniteDifferencesQuasi]]
 deps = ["ContinuumArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "Printf", "Test"]
-git-tree-sha1 = "5c0cf98d6d46d3c5f8759edaa2e59f8d1f7f8365"
+git-tree-sha1 = "1d66bb5f9c96be0ca1b02fec9bd1bca82a27477f"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/FiniteDifferencesQuasi.jl.git"
 uuid = "2e420920-f185-11e8-29af-4b87f0732ba2"
@@ -258,7 +258,7 @@ uuid = "d6f4376e-aef5-505a-96c1-9c027394607a"
 
 [[MatrixFactorizations]]
 deps = ["AlgebraicMultigrid", "IterativeSolvers", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "11483b35cc610ebc2575c6dfc1bf00751cab86dc"
+git-tree-sha1 = "e8894aea0cbedbf763e4992d6fa2cff0d9571d1a"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/MatrixFactorizations.jl.git"
 uuid = "f1b39ad4-3e99-11e9-193e-b3ae8ec46476"
@@ -342,8 +342,8 @@ uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "0.5.2"
 
 [[SCF]]
-deps = ["ArnoldiMethod", "Crayons", "Documenter", "Formatting", "LinearAlgebra", "SolverTraces", "SparseArrays", "Test", "UnicodeFun"]
-git-tree-sha1 = "e203116fbcd9c0aad20f80117d91d28cafba7ec4"
+deps = ["ArnoldiMethod", "Crayons", "Documenter", "Formatting", "IntervalSets", "LinearAlgebra", "MatrixFactorizations", "SolverTraces", "SparseArrays", "Test", "UnicodeFun"]
+git-tree-sha1 = "8946bbaebd794206586b423633aaa5a51b6d8299"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"
@@ -427,9 +427,9 @@ version = "0.4.0"
 
 [[Unitful]]
 deps = ["LinearAlgebra", "Random", "Test"]
-git-tree-sha1 = "ba654182cad07cd6c1f3ae969475e556db3283ea"
+git-tree-sha1 = "94736a38908c6b43d22e1abffc4f72ab19dabbc1"
 uuid = "1986cc42-f94f-5a68-af5c-568840ba703d"
-version = "0.14.0"
+version = "0.15.0"
 
 [[VersionParsing]]
 deps = ["Compat"]

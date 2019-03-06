@@ -195,5 +195,3 @@ function Base.diff(atom::Atom{T,B,O},
 
     AtomicEquations(atom, hfeqs, integrals, observables)
 end
-
-export energy

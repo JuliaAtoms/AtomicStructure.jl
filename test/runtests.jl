@@ -77,12 +77,24 @@ end
             R = RadialDifferences(N, ρ, charge(nucleus))
             atom = Atom(R, spin_configurations(c"1s2"), nucleus, verbosity=Inf)
 
-            fock = Fock(atom; verbosity=Inf)
-            scf!(fock, verbosity=Inf, num_printouts=typemax(Int))
-            display(fock)
-            println()
+            @testset "Arnoldi" begin
+                fock = Fock(atom; verbosity=Inf)
+                scf!(fock, verbosity=Inf, num_printouts=typemax(Int))
+                display(fock)
+                println()
 
-            @test all(isapprox.(energy.(fock.equations), -24.587387/27.211, rtol=0.1))
+                @test all(isapprox.(energy.(fock.equations), -24.587387/27.211, rtol=0.1))
+            end
+
+            @testset "Arnoldi shift-and-invert" begin
+                fock = Fock(atom; verbosity=Inf)
+                scf!(fock, verbosity=Inf, num_printouts=typemax(Int),
+                     method=:arnoldi_shift_invert)
+                display(fock)
+                println()
+
+                @test all(isapprox.(energy.(fock.equations), -24.587387/27.211, rtol=0.1))
+            end
         end
 
         @testset "Beryllium" begin

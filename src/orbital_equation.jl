@@ -41,14 +41,14 @@ function AtomicOrbitalEquation(atom::A, equation::Equation, orbital::O,
 end
 
 """
-    energy(hfeq::AtomicOrbitalEquation[, term=:all])
+    SCF.energy(hfeq::AtomicOrbitalEquation[, which=:total])
 
 Compute the orbital energy for the orbital governed by
-`hfeq`. Optionally select which contribution is computed (`:all`,
+`hfeq`. Optionally select which contribution is computed (`:total`,
 `:onebody`, `:direct`, or `:exchange`).
 """
-energy(hfeq::AtomicOrbitalEquation, term=:all) =
-    (hfeq.ϕ' * hfeq.hamiltonian[term] * hfeq.ϕ)[1]
+SCF.energy(hfeq::AtomicOrbitalEquation, which::Symbol=:total) =
+    (hfeq.ϕ' * hfeq.hamiltonian[which] * hfeq.ϕ)[1]
 
 function Base.show(io::IO, hfeq::AtomicOrbitalEquation)
     EHa = energy(hfeq)
@@ -62,3 +62,6 @@ function Base.show(io::IO, ::MIME"text/plain", hfeq::AtomicOrbitalEquation)
     show(io, hfeq)
     write(io, "\n")
 end
+
+import SCF: energy
+export energy
