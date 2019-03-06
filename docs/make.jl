@@ -15,7 +15,10 @@ makedocs(
             "Radial orbitals" => "radial_orbitals.md",
             "Atom types" => "atom_types.md",
             "One-body Hamiltonians" => "one_body.md",
-            "Hydrogenic initialization" => "hydrogenic.md"
+            "Hydrogenic initialization" => "hydrogenic.md",
+            "Orbital equations" => "orbital_equations.md",
+            "Equation systems" => "equation_systems.md",
+            "Observables" => "observables.md"
         ]
     ],
     assets = ["assets/latex.js"]

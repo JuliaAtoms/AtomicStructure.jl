@@ -5,8 +5,8 @@
 
 Governs the evolution of an atomic `orbital` belonging to an
 `atom`. `equation` is the symbolic expression, from which
-`hamiltonian` is constructed. `ϕ` is the QuasiVector representing the
-radial orbital.
+`hamiltonian` is constructed. `ϕ` is the `QuasiVector` representing
+the radial orbital.
 """
 mutable struct AtomicOrbitalEquation{T, B<:AbstractQuasiMatrix,
                                      O<:AbstractOrbital,

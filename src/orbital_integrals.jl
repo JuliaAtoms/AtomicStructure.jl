@@ -11,6 +11,13 @@ abstract type OrbitalIntegral{N,O<:AbstractOrbital,T,B<:AbstractQuasiMatrix,OV<:
 
 # ** Orbital overlap integral
 
+"""
+    OrbitalOverlapIntegral(a, b, av, bv, value)
+
+Represents the orbital overlap integral `⟨a|b⟩`, for orbitals `a` and
+`b`, along with `view`s of their radial orbitals `av` and `bv` and the
+current `value` of the integral.
+"""
 mutable struct OrbitalOverlapIntegral{O,T,B,OV} <: OrbitalIntegral{0,O,T,B,OV}
     a::O
     b::O
@@ -28,6 +35,11 @@ end
 Base.show(io::IO, oo::OrbitalOverlapIntegral) =
     write(io, "⟨$(oo.a)|$(oo.b)⟩")
 
+"""
+    SCF.update!(oo::OrbitalOverlapIntegral)
+
+Update the value of the integral `oo`.
+"""
 function SCF.update!(oo::OrbitalOverlapIntegral; kwargs...)
     oo.value = oo.av'oo.bv
 end
@@ -38,6 +50,15 @@ integral_value(oo::OrbitalOverlapIntegral) = oo.value
 
 const HFPotentialOperator{T,B} = RadialOperator{T,B,Diagonal{T,Vector{T}}}
 
+"""
+    HFPotential(k, a, b, av, bv, V̂, poisson)
+
+Represents the `k`:th multipole exansion of the Hartree–Fock potential
+formed by orbitals `a` and `b` (`av` and `bv` being `view`s of their
+corresponding radial orbitals). `V̂` is the resultant one-body
+potential formed, which can act on a third orbital and `poisson`
+computes the potential by solving Poisson's problem.
+"""
 mutable struct HFPotential{kind,O,T,B,OV,
                            RO<:HFPotentialOperator{T,B},P<:PoissonProblem} <: OrbitalIntegral{1,O,T,B,OV}
     k::Int
@@ -68,22 +89,53 @@ Base.convert(::Type{HFPotential{kind,O₁,T,B,OV,RO}},
 
 # *** Direct potential
 
+"""
+    DirectPotential
+
+Special case of [`HFPotential`](@ref) for the direct interaction, in
+which case the potential formed from two orbitals can be precomputed
+before acting on a third orbital.
+"""
 const DirectPotential{O,T,B,OV,RO,P} = HFPotential{:direct,O,T,B,OV,RO,P}
 
 Base.show(io::IO, Y::DirectPotential) =
     write(io, "r⁻¹×Y", to_superscript(Y.k), "($(Y.a), $(Y.b))")
 
+"""
+    SCF.update!(p::DirectPotential)
+
+Update the direct potential `p` by solving the Poisson problem with
+the current values of the orbitals forming the mutual density.
+"""
 function SCF.update!(p::DirectPotential{O,T,B,OV,RO,P}; kwargs...) where {O,T,B,OV,RO,P}
     p.poisson(;kwargs...)
     p
 end
 
+"""
+    materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest})
+
+Materialize the lazy multiplication–addition of the type `y ←
+α*V̂*x + β*y` where `V̂` is a [`DirectPotential`](@ref) (with a
+precomputed direct potential computed via `SCF.update!`) and `x` and
+`y` are [`RadialOrbital`](@ref)s.
+"""
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest}) where {T,Source,Dest} =
     materialize!(MulAdd(ma.α, ma.A.V̂.mul.factors[2], ma.B.mul.factors[2],
                         ma.β, ma.C.mul.factors[2]))
 
 # *** Exchange potential
 
+"""
+    ExchangePotential
+
+Special case of [`HFPotential`](@ref) for the exchange interaction, in
+which case the potential is formed from the orbital acted upon, along
+with another orbital, and then applied to a third orbital. Thus this
+potential *cannot* be precomputed, but must be recomputed every time
+the operator is applied. This makes this potential expensive to handle
+and the number of times it is applied should be minimized, if possible.
+"""
 const ExchangePotential{O,T,B,OV,RO,P} = HFPotential{:exchange,O,T,B,OV,RO,P}
 
 Base.show(io::IO, Y::ExchangePotential) =
@@ -93,6 +145,14 @@ Base.show(io::IO, Y::ExchangePotential) =
 # orbital they act on.
 SCF.update!(p::ExchangePotential; kwargs...) = p
 
+"""
+    materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest})
+
+Materialize the lazy multiplication–addition of the type `y ← α*V̂*x +
+β*y` where `V̂` is a [`ExchangePotential`](@ref) (by solving the
+Poisson problem with `x` as one of the constituent source orbitals in
+the mutual density) and `x` and `y` are [`RadialOrbital`](@ref)s.
+"""
 function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest}) where {T,Source,Dest}
     p = ma.A
     p.poisson(ma.B) # Form exchange potential from conj(p.a)*b

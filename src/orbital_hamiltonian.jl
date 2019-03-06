@@ -1,5 +1,16 @@
 # * Split Hamiltonian
 
+"""
+    OrbitalHamiltonianTerm(i, j, coeff, A, integrals)
+
+Represents a term in the orbital Hamiltonian arising from a variation
+of the energy expressions between configurations `i` and `j` in the
+multi-configurational expansion. `coeff` is the numeric coefficient,
+`A` is the operator acting on the orbital, and `integrals` is a vector
+of [`OrbitalIntegral`](@ref)s arising from the presence of
+non-orthogonal orbitals and whose values should be multiplied to form
+the overall coefficient.
+"""
 struct OrbitalHamiltonianTerm{O,T,B,OV,QO}
     i::Int
     j::Int
@@ -17,6 +28,18 @@ configuration-interaction.
 coefficient(term::OrbitalHamiltonianTerm) =
     term.coeff*prod(integral_value.(term.integrals))
 
+"""
+    OrbitalHamiltonian(R, terms, mix_coeffs, projector, orbital)
+
+The Hamiltonian for `orbital` is constructed from a radial basis `R`,
+a set of [`OrbitalHamiltonianTerm`](@ref) `terms` that describe the
+various interactions between orbitals, `mix_coeffs` which are the
+mixing coefficents for the multi-configurational expansion. The
+`projector` ensures orthogonality between orbital pairs which have
+Lagrange multipliers associated with them, by projecting out
+components of other orbitals every time the `OrbitalHamiltonian`
+action on `orbital` is computed.
+"""
 mutable struct OrbitalHamiltonian{O,T,B,OV,Proj}
     R::B
     terms::Vector{OrbitalHamiltonianTerm{O,T,B,OV}}
@@ -143,11 +166,26 @@ end
 
 # ** Krylov wrapper
 
+"""
+    SCF.KrylovWrapper(hamiltonian::OrbitalHamiltonian)
+
+Construct a `KrylovWrapper` such that `hamiltonian`, that acts on
+function spaces, can be used in a Krylov solver, which works with
+linear algebra vector spaces.
+"""
 SCF.KrylovWrapper(hamiltonian::OrbitalHamiltonian{O,T,B,OV,Proj}) where {O,T,B,OV,Proj} =
     KrylovWrapper{T,OrbitalHamiltonian{O,T,B,OV,Proj}}(hamiltonian)
 
 Base.size(hamiltonian::OrbitalHamiltonian, ::SCF.KrylovWrapper) =
     (size(hamiltonian.R,2),size(hamiltonian.R,2))
 
+"""
+    mul!(y, A::KrylovWrapper{T,<:OrbitalHamiltonian}, x)
+
+Materialize the action of the [`OrbitalHamiltonian`](@ref) on the
+linear algebra vector `x` and store the result in `y`, by wrapping
+them both with the `QuasiMatrix` necessary to transform `x` and `y` to
+the function space of the Hamiltonian.
+"""
 LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,Hamiltonian}, x::V₂) where {V₁,V₂,T,B,Hamiltonian<:OrbitalHamiltonian} =
     copyto!(A.hamiltonian.R*y, A.hamiltonian⋆(A.hamiltonian.R*x))
