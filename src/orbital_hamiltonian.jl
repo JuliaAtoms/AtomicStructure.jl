@@ -103,6 +103,10 @@ function Base.getindex(H::OrbitalHamiltonian, term::Symbol)
         DirectPotential
     elseif term == :exchange
         ExchangePotential
+    elseif term == :source
+        SourceTerm
+    elseif term == :shift
+        ShiftTerm
     else
         throw(ArgumentError("Unknown Hamiltonian term $term"))
     end
@@ -163,6 +167,28 @@ function LazyArrays.materialize(matel::OrbitalHamiltonianMatrixElement{O,T,B,V})
     a,R′,op,R,b = matel.factors
     a*R′*materialize(op⋆R⋆b)
 end
+
+# ** Arithmetic
+
+"""
+    h::OrbitalHamiltonian + λ::UniformScaling
+
+Shift the [`OrbitalHamiltonian`](@ref) `h` by `λ`.
+"""
+function Base.:(+)(h::OrbitalHamiltonian{O,T,B,OV,Proj}, λ::UniformScaling) where {O,T,B,OV,Proj}
+    # The zeros designate that the shift is not to be weigthed by the mixing coefficients
+    shift_term = OrbitalHamiltonianTerm(0, 0, one(T), ShiftTerm(λ),
+                                        Vector{OrbitalIntegral{<:Any,O,T,B,OV}}())
+    OrbitalHamiltonian{O,T,B,OV,Proj}(h.R, vcat(h.terms, shift_term),
+                                      h.mix_coeffs, h.projector, h.orbital)
+end
+
+"""
+    h::OrbitalHamiltonian - λ::UniformScaling
+
+Shift the [`OrbitalHamiltonian`](@ref) `h` by `-λ`.
+"""
+Base.:(-)(h::OrbitalHamiltonian, λ::UniformScaling) = h + (-λ)
 
 # ** Krylov wrapper
 

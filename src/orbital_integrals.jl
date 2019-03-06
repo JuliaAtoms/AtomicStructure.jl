@@ -179,3 +179,18 @@ end
 
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:SourceTerm, Source, Dest}) where {T,Source,Dest} =
     materialize!(MulAdd(ma.α, ma.A.operator, ma.A.ov, ma.β, ma.C))
+
+# * Shift terms
+
+"""
+    ShiftTerm(λ)
+
+The point of `ShiftTerm` is to implement an overall energy shift of
+the Hamiltonian.
+"""
+struct ShiftTerm{T}
+    shift::UniformScaling{T}
+end
+
+LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ShiftTerm, Source, Dest}) where {T,Source,Dest} =
+    BLAS.axpy!(ma.α*ma.A.shift.λ, ma.B.mul.factors[2], ma.C.mul.factors[2])
