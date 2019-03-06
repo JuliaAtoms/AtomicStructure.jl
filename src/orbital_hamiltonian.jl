@@ -72,28 +72,6 @@ function SCF.energy_matrix!(H::HM, hamiltonian::OrbitalHamiltonian{O,T,B},
     H
 end
 
-# function Base.show(io::IO, hamiltonian::OrbitalHamiltonian{T}) where T
-#     if iszero(hamiltonian)
-#         write(io, "0")
-#         return
-#     end
-#     multiple_terms = sum([!iszero(hamiltonian.ĥ), !isempty(hamiltonian.direct_potentials),
-#                           !isempty(hamiltonian.exchange_potentials)]) > 1
-#     multiple_terms && write(io, "[")
-#     !iszero(hamiltonian.ĥ) && write(io, "ĥ")
-#     for (p,c) in hamiltonian.direct_potentials
-#         s = sign(c)
-#         write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
-#     end
-#     for (p,c) in hamiltonian.exchange_potentials
-#         s = sign(c)
-#         write(io, " ", (s < 0 ? "-" : "+"), " $(abs(c))$(p)")
-#     end
-#     multiple_terms && write(io, "]")
-#     write(io, "|")
-#     show(io, hamiltonian.orbital)
-#     write(io, "⟩")
-# end
 """
     filter(fun::Function, H::OrbitalHamiltonian)
 
