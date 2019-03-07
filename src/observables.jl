@@ -11,23 +11,43 @@ mutable struct Observable{T,B,Equations<:AbstractVector{<:AtomicOrbitalEquation}
 end
 
 """
-    Observable(operator, atom, overlaps, integrals)
+    Observable(operator, atom, overlaps, integrals[; double_counted=false])
 
-Construct an observable corresponding the `operator` acting on
-`atom`. `overlaps` is a list of non-orthogonal, `integrals` a list of
-common integrals, and `integral_map` is a mapping from symbolic
+Construct an observable corresponding the `operator` acting on `atom`;
+if `double_counted`, only return those terms that would be
+double-counted, otherwise return the normal observable
+equations. `overlaps` is a list of non-orthogonal, `integrals` a list
+of common integrals, and `integral_map` is a mapping from symbolic
 integrals to [`OrbitalIntegral`](@ref)s.
 """
 function Observable(operator::QuantumOperator, atom::A,
                     overlaps::Vector{<:OrbitalOverlap},
                     integrals::Vector{OrbitalIntegral},
                     integral_map::Dict{Any,Int},
-                    symmetries::Dict) where {A<:Atom}
+                    symmetries::Dict;
+                    double_counted::Bool=false) where {T,A<:Atom{T}}
     M = Matrix(operator, atom.configurations, overlaps)
 
-    symbolic_integrals = []
-
     m,n = size(M)
+
+    if double_counted
+        numbodies(operator) > 2 &&
+            throw(ArgumentError("Cannot construct double-counted observables for N-body operators with N > 2."))
+        M *= one(T)/2
+        # We need to filter out those terms that are due to zero- and
+        # one-body interactions, since they would not be
+        # double-counted.
+        for i = 1:m
+            for j = 1:n
+                iszero(M[i,j]) && continue
+                M[i,j] = NBodyMatrixElement(filter(t -> any(f -> numbodies(f) > 1,
+                                                           t.factors),
+                                                   M[i,j].terms))
+            end
+        end
+    end
+
+    symbolic_integrals = []
 
     equation_system = map(atom.orbitals) do orbital
         corb = conj(orbital)
@@ -38,7 +58,7 @@ function Observable(operator::QuantumOperator, atom::A,
         # observables.
         for i = 1:m
             for j = 1:n
-                iszero(M[i,j]) && continue
+                (iszero(M[i,j]) || double_counted) && continue
                 M[i,j] = NBodyMatrixElement(filter(t -> !isdependent(t, corb),
                                                    M[i,j].terms))
             end

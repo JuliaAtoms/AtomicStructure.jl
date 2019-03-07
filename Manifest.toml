@@ -153,7 +153,7 @@ version = "0.0.1"
 
 [[EnergyExpressions]]
 deps = ["AtomicLevels", "Combinatorics", "LinearAlgebra", "SparseArrays", "Test", "UnicodeFun"]
-git-tree-sha1 = "0a55cb5e7ca1e8684fde73b72378ce4157549374"
+git-tree-sha1 = "4db821c3332d268cbf6970f2ed806012f6ff04a1"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/EnergyExpressions.jl"
 uuid = "f4b57a2e-27c7-11e9-0cb0-edd185b706f6"
@@ -343,7 +343,7 @@ version = "0.5.2"
 
 [[SCF]]
 deps = ["ArnoldiMethod", "Crayons", "Documenter", "Formatting", "IntervalSets", "LinearAlgebra", "MatrixFactorizations", "SolverTraces", "SparseArrays", "Test", "UnicodeFun"]
-git-tree-sha1 = "8946bbaebd794206586b423633aaa5a51b6d8299"
+git-tree-sha1 = "646184148b43e617811a141b12569685f8ef4e2b"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"

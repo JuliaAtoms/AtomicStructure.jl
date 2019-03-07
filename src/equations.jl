@@ -38,8 +38,8 @@ storing it in `H`. Requires that `hfeqs` has the `:energy` and
 default).
 """
 function SCF.energy_matrix!(H::HM, hfeqs::AtomicEquations,
-                            which::Symbol=:total) where {HM<:AbstractMatrix}
-    observable = hfeqs.observables[which == :kinetic ? :kinetic_energy : :energy]
+                            which::Symbol=:total_energy) where {HM<:AbstractMatrix}
+    observable = hfeqs.observables[which]
     observe!(H, observable)
     H
 end
@@ -151,9 +151,10 @@ function Base.diff(atom::Atom{T,B,O},
                    H::QuantumOperator=FieldFreeOneBodyHamiltonian()+CoulombInteraction();
                    overlaps::Vector{OrbitalOverlap}=OrbitalOverlap[],
                    selector=cfg -> outsidecoremodel(cfg, atom.potential),
-                   observables::Dict{Symbol,<:QuantumOperator} = Dict(
-                       :energy => H,
-                       :kinetic_energy => KineticEnergyHamiltonian(),
+                   observables::Dict{Symbol,Tuple{<:QuantumOperator,Bool}} = Dict(
+                       :total_energy => (H,false),
+                       :double_counted_energy => (H,true),
+                       :kinetic_energy => (KineticEnergyHamiltonian(),false),
                    ),
                    verbosity=0) where {T,B,O}
     configurations = selector.(atom.configurations)
@@ -175,6 +176,12 @@ function Base.diff(atom::Atom{T,B,O},
         println("Symmetries:")
         display(symmetries)
         println()
+
+        if verbosity > 1
+            println("Common integrals:")
+            display(eqs.integrals)
+            println()
+        end
     end
 
     integrals = Vector{OrbitalIntegral# {<:Any,O,T,B,RadialOrbital{T,B}}
@@ -187,10 +194,10 @@ function Base.diff(atom::Atom{T,B,O},
                                               integrals, integral_map,
                                               symmetries; verbosity=verbosity)
 
-    observables = map(collect(pairs(observables))) do (k,operator)
+    observables = map(collect(pairs(observables))) do (k,(operator,double_counted))
         k => Observable(operator, atom, overlaps,
                        integrals, integral_map,
-                       symmetries)
+                       symmetries, double_counted=double_counted)
     end |> Dict
 
     AtomicEquations(atom, hfeqs, integrals, observables)
