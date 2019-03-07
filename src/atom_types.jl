@@ -105,6 +105,8 @@ function Atom(init::Symbol, ::Type{T}, R::B, configurations::Vector{TC},
     atom = Atom(undef, T, R, configurations, potential, C)
     if init == :hydrogenic
         hydrogenic!(atom; kwargs...)
+    elseif init == :zero
+        atom.radial_orbitals.mul.factors[2] .= zero(T)
     else
         throw(ArgumentError("Unknown orbital initialization mode $(init)"))
     end
@@ -164,12 +166,31 @@ function Atom(other_atom::Atom{T,B,O,TC,C,P},
     # diagonalizing e.g. their energy expressions without the exchange
     # terms.
     atom = Atom(R, configurations, other_atom.potential, C; kwargs...)
-    for o in other_atom.orbitals
-        o ∈ atom.orbitals || continue
-        copyto!(view(atom, o).mul.factors[2],
-                view(other_atom, o).mul.factors[2])
-    end
+    copyto!(atom, other_atom)
     atom
+end
+
+"""
+    copyto!(dst::Atom, src::Atom)
+
+Copy the radial orbitals of `src` to the corresponding ones in
+`dst`. Orbitals of `src` missing from `dst` are skipped. It is assumed
+that the underlying bases are compatible, i.e. that the radial
+coordinate of `dst` encompasses that of `src` and grid spacing
+&c. agree.
+"""
+function Base.copyto!(dst::Atom, src::Atom)
+    Rsrc = radial_basis(src)
+    Rdst = radial_basis(dst)
+    axes(Rsrc,1) ⊆ axes(Rdst,1) &&
+        axes(Rsrc,2) ⊆ axes(Rdst,2) ||
+        throw(ArgumentError("$(Rsrc) not a subset of $(Rdst)"))
+
+    for o in src.orbitals
+        o ∈ dst.orbitals || continue
+        copyto!(view(dst, o).mul.factors[2],
+                view(src, o).mul.factors[2])
+    end
 end
 
 """
