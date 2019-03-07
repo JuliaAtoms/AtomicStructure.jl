@@ -669,7 +669,7 @@ var documenterSearchIndex = {"docs": [
     "page": "Observables",
     "title": "Atoms.Observable",
     "category": "method",
-    "text": "Observable(operator, atom, overlaps, integrals)\n\nConstruct an observable corresponding the operator acting on atom. overlaps is a list of non-orthogonal, integrals a list of common integrals, and integral_map is a mapping from symbolic integrals to OrbitalIntegrals.\n\n\n\n\n\n"
+    "text": "Observable(operator, atom, overlaps, integrals[; double_counted=false])\n\nConstruct an observable corresponding the operator acting on atom; if double_counted, only return those terms that would be double-counted, otherwise return the normal observable equations. overlaps is a list of non-orthogonal, integrals a list of common integrals, and integral_map is a mapping from symbolic integrals to OrbitalIntegrals.\n\n\n\n\n\n"
 },
 
 {
