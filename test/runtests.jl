@@ -7,21 +7,8 @@ using SCF
 # only possibility:
 using FiniteDifferencesQuasi
 using Test
-using PrettyTables
 
-include("exact_slater.jl")
-
-function test_hydrogenic_slater_integrals!(data, tests,
-                                           eq, term::Symbol, expected;
-                                           print_res=false, kwargs...)
-    eng = energy(eq, term)
-    expectedf = convert(Float64, expected)
-    δ = eng-expectedf
-    test = :(isapprox($eng, $expected; $kwargs...))
-    pass = @eval $test
-    push!(data, [eq.orbital Dict(:onebody => "⟨h⟩", :direct => "⟨J⟩", :exchange => "⟨K⟩")[term] expected expectedf eng δ δ/abs(1e-10+abs(expectedf)) pass])
-    push!(tests, test)
-end
+include("test_slater_integrals.jl")
 
 @testset "Structure setup" begin
     rₘₐₓ = 300
@@ -108,31 +95,23 @@ end
                         nucleus, verbosity=Inf)
 
             fock = Fock(atom)
-            data = []
-            tests = []
 
-            # The energy expressions for the 1s₀α/β and 2s₂α/β
-            # spin-orbitals, respectively, should be identical.
-            for eq in fock.equations.equations[1:2]
-                test_hydrogenic_slater_integrals!(data, tests, eq, :onebody, -8, rtol=0.07)
-                # A 1s orbital is screened by another 1s orbital and 2 2s orbitals
-                test_hydrogenic_slater_integrals!(data, tests, eq, :direct, Z*(exact_F⁰s[(o"1s",o"1s",0)] + 2exact_F⁰s[(o"2s",o"1s",0)]), rtol=0.2)
-                test_hydrogenic_slater_integrals!(data, tests, eq, :exchange, -Z*(exact_Gᵏs[(o"2s",o"1s",0)]), rtol=0.2)
+            test_hydrogenic_slater_integrals(fock) do i
+                # The energy expressions for the 1s₀α/β and 2s₂α/β
+                # spin-orbitals, respectively, should be identical.
+                if i ∈ 1:2
+                    [(:onebody, -8, 0.07),
+                     # A 1s orbital is screened by another 1s orbital and 2 2s orbitals
+                     (:direct, Z*(exact_F⁰s[(o"1s",o"1s",0)] + 2exact_F⁰s[(o"2s",o"1s",0)]), 0.2),
+                     (:exchange, -Z*(exact_Gᵏs[(o"2s",o"1s",0)]), 0.2)]
+                elseif i ∈ 3:4
+                    [(:onebody, -2, 0.01),
+                     # A 2s orbital is screened by 2 1s orbitals and another 2s orbital
+                     (:direct, Z*(2exact_F⁰s[(o"2s",o"1s",0)] + exact_F⁰s[(o"2s",o"2s",0)]), 0.2),
+                     (:exchange, -Z*(exact_Gᵏs[(o"2s",o"1s",0)]), 0.2)]
+                end
             end
-            for eq in fock.equations.equations[3:4]
-                test_hydrogenic_slater_integrals!(data, tests, eq, :onebody, -2, rtol=0.01)
-                # A 2s orbital is screened by 2 1s orbitals and another 2s orbital
-                test_hydrogenic_slater_integrals!(data, tests, eq, :direct, Z*(2exact_F⁰s[(o"2s",o"1s",0)] + exact_F⁰s[(o"2s",o"2s",0)]), rtol=0.2)
-                test_hydrogenic_slater_integrals!(data, tests, eq, :exchange, -Z*(exact_Gᵏs[(o"2s",o"1s",0)]), rtol=0.2)
-            end
-            println("Orbital energies pre-optimization:")
-            pass = Highlighter((data,i,j) -> j == 8 && data[i,j], bold = true, foreground = :green)
-            fail = Highlighter((data,i,j) -> j == 8 && !data[i,j], bold = true, foreground = :red)
-            pretty_table(vcat(data...), ["Orbital", "Term", "Expected", "Expected", "Actual", "Error", "Relative error", "Pass"],
-                         highlighters=(pass,fail))
-            for test in tests
-                @eval @test $test
-            end
+
             scf!(fock, ω=0.1, verbosity=2, num_printouts=typemax(Int))
             display(fock)
             println()

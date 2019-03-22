@@ -7,7 +7,7 @@ Abstract type for integrals of rank `N` of orbitals, whose values need
 to be recomputed every time the orbitals are updated. Rank 0
 corresponds to a scalar value, rank 1 to a diagonal matrix, etc.
 """
-abstract type OrbitalIntegral{N,O<:AbstractOrbital,T,B<:AbstractQuasiMatrix,OV<:RadialOrbital{T,B}} end
+abstract type OrbitalIntegral{N,O<:AbstractOrbital,T,B<:Basis,OV<:RadialOrbital{T,B}} end
 
 # ** Orbital overlap integral
 
@@ -26,7 +26,7 @@ mutable struct OrbitalOverlapIntegral{O,T,B,OV} <: OrbitalIntegral{0,O,T,B,OV}
     value::T
 end
 
-function OrbitalOverlapIntegral(a::O, b::O, av::OV, bv::OV) where {O,T,B,OV}
+function OrbitalOverlapIntegral(a::O, b::O, av::OV, bv::OV) where {O,T,B<:Basis,OV<:RadialOrbital{T,B}}
     oo = OrbitalOverlapIntegral(a, b, av, bv, zero(T))
     SCF.update!(oo)
     oo
@@ -48,7 +48,7 @@ integral_value(oo::OrbitalOverlapIntegral) = oo.value
 
 # ** Hartree–Fock potentials
 
-const HFPotentialOperator{T,B} = RadialOperator{T,B,Diagonal{T,Vector{T}}}
+const HFPotentialOperator{T,B<:Basis} = RadialOperator{T,B,Diagonal{T,Vector{T}}}
 
 """
     HFPotential(k, a, b, av, bv, V̂, poisson)
@@ -59,7 +59,7 @@ corresponding radial orbitals). `V̂` is the resultant one-body
 potential formed, which can act on a third orbital and `poisson`
 computes the potential by solving Poisson's problem.
 """
-mutable struct HFPotential{kind,O,T,B,OV,
+mutable struct HFPotential{kind,O,T,B<:Basis,OV,
                            RO<:HFPotentialOperator{T,B},P<:PoissonProblem} <: OrbitalIntegral{1,O,T,B,OV}
     k::Int
     a::O
@@ -69,10 +69,10 @@ mutable struct HFPotential{kind,O,T,B,OV,
     V̂::RO
     poisson::P
 end
-HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV, V̂::RO, poisson::P) where {O,T,B,OV<:RadialOrbital{T,B},RO<:RadialOperator{T,B},P} =
+HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV, V̂::RO, poisson::P) where {O,T,B<:Basis,OV<:RadialOrbital{T,B},RO<:RadialOperator{T,B},P} =
     HFPotential{kind,O,T,B,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
 
-function HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV) where {O,T,B,OV<:RadialOrbital{T,B}}
+function HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV) where {O,T,B<:Basis,OV<:RadialOrbital{T,B}}
     R = av.args[1]
     D = Diagonal(Vector{T}(undef, size(R,2)))
     D.diag .= zero(T)

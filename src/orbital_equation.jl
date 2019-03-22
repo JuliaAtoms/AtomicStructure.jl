@@ -8,7 +8,7 @@ Governs the evolution of an atomic `orbital` belonging to an
 `hamiltonian` is constructed. `ϕ` is the `QuasiVector` representing
 the radial orbital.
 """
-mutable struct AtomicOrbitalEquation{T, B<:AbstractQuasiMatrix,
+mutable struct AtomicOrbitalEquation{T, B<:Basis,
                                      O<:AbstractOrbital,
                                      A<:Atom{T,B,O},
                                      Equation,
@@ -26,7 +26,7 @@ SCF.hamiltonian(hfeq::AtomicOrbitalEquation) = hfeq.hamiltonian
 function AtomicOrbitalEquation(atom::A, equation::Equation, orbital::O,
                                terms::Vector{<:OrbitalHamiltonianTerm{O,T,B}},
                                symmetry_orbitals::Vector{O}) where {T,
-                                                                    B<:AbstractQuasiMatrix,
+                                                                    B<:Basis,
                                                                     O<:AbstractOrbital,
                                                                     A<:Atom{T,B,O},
                                                                     Equation}

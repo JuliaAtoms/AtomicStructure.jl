@@ -5,7 +5,7 @@ Represents a physical quantity that can be observed, which is
 calculated as the matrix element of an operator between two
 configurations. All physical observables are real.
 """
-mutable struct Observable{T,B,Equations<:AbstractVector{<:AtomicOrbitalEquation}}
+mutable struct Observable{T,B<:Basis,Equations<:AbstractVector{<:AtomicOrbitalEquation}}
     equations::Equations
     tmp::RadialOrbital{T,B}
 end

@@ -105,7 +105,7 @@ version = "0.0.0"
 
 [[CoulombIntegrals]]
 deps = ["BlockBandedMatrices", "ContinuumArrays", "FEDVRQuasi", "FiniteDifferencesQuasi", "IntervalSets", "LazyArrays", "LinearAlgebra", "MatrixFactorizations", "Polynomials", "SpecialFunctions", "Test"]
-git-tree-sha1 = "9f7dc199e033284507b6451deca0687e203aec9f"
+git-tree-sha1 = "e638aada25993ec27320e4816856ca3d727dd3c0"
 repo-rev = "applied"
 repo-url = "https://github.com/jagot/CoulombIntegrals.jl.git"
 uuid = "42e5845a-f9f1-11e8-0afe-795ea56ed153"
@@ -163,7 +163,7 @@ version = "0.1.0"
 
 [[FEDVRQuasi]]
 deps = ["BandedMatrices", "BlockBandedMatrices", "ContinuumArrays", "FastGaussQuadrature", "FillArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "Printf", "Test"]
-git-tree-sha1 = "351023e4efb40d043c1c3915372fb6483f877c54"
+git-tree-sha1 = "51d65de29b70523f34dde47c0a95972a3ed0150b"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/FEDVRQuasi.jl.git"
 uuid = "a2e24d02-e4f7-11e8-15c0-0b59d0e1f6f3"
@@ -189,7 +189,7 @@ version = "0.5.0"
 
 [[FiniteDifferencesQuasi]]
 deps = ["ContinuumArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "Printf", "Test"]
-git-tree-sha1 = "a7bb38f5cc9ec09a68e0b22d44aa207a67d589be"
+git-tree-sha1 = "b36d9577116f754c1a77dc253cadd1d66b1ddb5c"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/FiniteDifferencesQuasi.jl.git"
 uuid = "2e420920-f185-11e8-29af-4b87f0732ba2"

@@ -8,11 +8,14 @@ import EnergyExpressions: NBodyMatrixElement, OrbitalMatrixElement,
     orbital_equation, MCEquationSystem, QuantumOperator
 
 using ContinuumArrays
+import ContinuumArrays: Basis
 import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint
 using LazyArrays
 import LazyArrays: ⋆, materialize, materialize!, MulAdd
 using FillArrays
 using BandedMatrices
+
+using FiniteDifferencesQuasi
 
 using LinearAlgebra
 using SparseArrays
@@ -40,6 +43,7 @@ getspatialorb(orb::SpinOrbital) = orb.orb
 getn(orb::AbstractOrbital) = getspatialorb(orb).n
 getℓ(orb::AbstractOrbital) = getspatialorb(orb).ℓ
 
+include("restricted_bases.jl")
 include("radial_orbitals.jl")
 include("atom_types.jl")
 include("one_body.jl")

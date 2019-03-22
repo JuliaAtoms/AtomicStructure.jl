@@ -21,7 +21,7 @@ The `potential` can be used to model either the nucleus by itself (a
 point charge or a nucleus of finite extent) or the core orbitals
 (i.e. a pseudo-potential).
 """
-mutable struct Atom{T,B<:AbstractQuasiMatrix,O<:AbstractOrbital,TC<:ManyElectronWavefunction,C,P<:AbstractPotential} <: AbstractQuantumSystem
+mutable struct Atom{T,B<:Basis,O<:AbstractOrbital,TC<:ManyElectronWavefunction,C,P<:AbstractPotential} <: AbstractQuantumSystem
     radial_orbitals::RadialOrbitals{T,B}
     orbitals::Vector{O}
     configurations::Vector{TC}
@@ -54,7 +54,7 @@ nucleus modelled by `potential`. `C` determines the `eltype` of the
 mixing coefficients, which are initialized to `[1,0,0,...]`.
 """
 Atom(radial_orbitals::RadialOrbitals{T,B}, orbitals::Vector{O},
-     configurations::Vector{<:TC}, potential::P, ::Type{C}) where {T<:Number,B,O,TC<:ManyElectronWavefunction,C,P} =
+     configurations::Vector{<:TC}, potential::P, ::Type{C}) where {T<:Number,B<:Basis,O,TC<:ManyElectronWavefunction,C,P} =
          Atom{T,B,O,TC,C,P}(radial_orbitals, orbitals,
                             configurations, vcat(one(T), zeros(C, length(configurations)-1)),
                             potential)
