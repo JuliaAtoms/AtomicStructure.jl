@@ -85,7 +85,7 @@ function observe!(A::M, o::Observable{T}) where {M<:AbstractMatrix{<:Real},T}
     for eq in o.equations
         for term in eq.hamiltonian.terms
             materialize!(MulAdd(coefficient(term), term.A, eq.ϕ, zero(T), o.tmp))
-            A[term.i,term.j] += real((eq.ϕ'o.tmp)[1])
+            A[term.i,term.j] += real((materialize(applied(*, eq.ϕ', o.tmp))))
         end
     end
     A

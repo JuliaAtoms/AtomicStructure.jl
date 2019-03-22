@@ -17,11 +17,11 @@ Project out all components of `y` parallel to the radial orbitals
 `projector.ϕs`.
 """
 function projectout!(y::RO, projector::Proj) where {RO,Proj<:Projector}
-    yc = y.mul.factors[2]
+    yc = y.args[2]
     
     for ϕ in projector.ϕs
-        c = ϕ'y
-        yc .-= c*ϕ.mul.factors[2]
+        c = materialize(applied(*, ϕ', y))
+        yc .-= c*ϕ.args[2]
         # y -= c*ϕ
     end
     y

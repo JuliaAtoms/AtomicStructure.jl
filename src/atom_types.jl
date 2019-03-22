@@ -88,7 +88,7 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
     orbs = unique_orbitals(outsidecoremodel.(get_config.(configurations), Ref(potential)))
 
     Φ = Matrix{T}(undef, size(R,2), length(orbs))
-    RΦ = MulQuasiArray{T,2}(Mul(R,Φ))
+    RΦ = applied(*, R, Φ)
     Atom(RΦ, orbs, configurations, potential, C)
 end
 
@@ -106,7 +106,7 @@ function Atom(init::Symbol, ::Type{T}, R::B, configurations::Vector{TC},
     if init == :hydrogenic
         hydrogenic!(atom; kwargs...)
     elseif init == :zero
-        atom.radial_orbitals.mul.factors[2] .= zero(T)
+        atom.radial_orbitals.args[2] .= zero(T)
     else
         throw(ArgumentError("Unknown orbital initialization mode $(init)"))
     end
@@ -188,8 +188,7 @@ function Base.copyto!(dst::Atom, src::Atom)
 
     for o in src.orbitals
         o ∈ dst.orbitals || continue
-        copyto!(view(dst, o).mul.factors[2],
-                view(src, o).mul.factors[2])
+        copyto!(view(dst, o).args[2], view(src, o).args[2])
     end
 end
 
@@ -204,7 +203,7 @@ AtomicLevels.num_electrons(atom::Atom) =
 function Base.show(io::IO, atom::Atom{T,B,O,TC,C,P}) where {T,B,O,TC,C,P}
     Z = charge(atom.potential)
     N = num_electrons(atom)
-    write(io, "Atom{$(T),$(B)}($(atom.potential); $(N) e⁻ ⇒ Q = $(Z-N)) with ")
+    write(io, "Atom{$(T)}(R=$(radial_basis(atom)); $(atom.potential); $(N) e⁻ ⇒ Q = $(Z-N)) with ")
     write(io, "$(length(atom.configurations)) $(TC)")
     length(atom.configurations) > 1 && write(io, "s")
 end
@@ -220,7 +219,7 @@ function Base.show(io::IO, ::MIME"text/plain", atom::Atom{T,B,O,TC,C,P}) where {
     end
 end
 
-radial_basis(atom::Atom) = first(atom.radial_orbitals.mul.factors)
+radial_basis(atom::Atom) = first(atom.radial_orbitals.args)
 
 function orbital_index(atom::Atom{T,B,O}, orb::O) where {T,B,O}
     i = findfirst(isequal(orb),atom.orbitals)
@@ -234,7 +233,7 @@ end
 Returns a copy of the `j`:th radial orbital.
 """
 Base.getindex(atom::Atom, j::I) where {I<:Integer} =
-    radial_basis(atom)*atom.radial_orbitals.mul.factors[2][:,j]
+    applied(*, radial_basis(atom), atom.radial_orbitals.args[2][:,j])
 
 """
     getindex(atom, orb)
@@ -250,7 +249,7 @@ Base.getindex(atom::Atom{T,B,O}, orb::O) where {T,B,O} =
 Returns a `view` of the `j`:th radial orbital.
 """
 Base.view(atom::Atom, j::I) where {I<:Integer} =
-    radial_basis(atom)*view(atom.radial_orbitals.mul.factors[2], :, j)
+    applied(*, radial_basis(atom), view(atom.radial_orbitals.args[2], :, j))
 
 """
     view(atom, orb)
@@ -277,7 +276,7 @@ coefficients, since `SCF` operates on them in the self-consistent
 iteration).
 """
 SCF.orbitals(atom::A) where {A<:Atom} =
-    view(atom.radial_orbitals.mul.factors[2], :, :)
+    view(atom.radial_orbitals.args[2], :, :)
 
 """
     norm(atom[, p=2; configuration=1])
@@ -297,11 +296,11 @@ function LinearAlgebra.norm(atom::Atom{T}, p::Real=2; configuration::Int=1) wher
 end
 
 LinearAlgebra.normalize!(atom::A, v::V) where {A<:Atom,V<:AbstractVector} =
-    normalize!(radial_basis(atom)*v)
+    normalize!(applied(*, radial_basis(atom), v))
 
 function SCF.norm_rot!(ro::RO) where {RO<:RadialOrbital}
     normalize!(ro)
-    SCF.rotate_max_lobe!(ro.mul.factors[2])
+    SCF.rotate_max_lobe!(ro.args[2])
     ro
 end
 

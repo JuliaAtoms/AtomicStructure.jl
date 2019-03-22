@@ -17,7 +17,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) where {T,
     print_block() do io
         verbosity > 0 && println(io, "Hydrogenic initialization of the orbitals of $(atom)")
 
-        R,Φ = atom.radial_orbitals.mul.factors
+        R,Φ = atom.radial_orbitals.args
         Φ .= zero(T)
 
         # Orbitals are grouped by ℓ, since they have the same one-body

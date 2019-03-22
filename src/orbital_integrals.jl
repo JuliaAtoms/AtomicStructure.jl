@@ -73,11 +73,11 @@ HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV, V̂::RO, poisson::
     HFPotential{kind,O,T,B,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
 
 function HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV) where {O,T,B,OV<:RadialOrbital{T,B}}
-    R = av.mul.factors[1]
+    R = av.args[1]
     D = Diagonal(Vector{T}(undef, size(R,2)))
     D.diag .= zero(T)
-    V̂ = R*D*R'
-    poisson = PoissonProblem(k, av, bv, w′=R*D.diag)
+    V̂ = applied(*, R, D, R')
+    poisson = PoissonProblem(k, av, bv, w′=applied(*, R, D.diag))
     update!(HFPotential(kind, k, a, b, av, bv, V̂, poisson))
 end
 
@@ -121,8 +121,8 @@ precomputed direct potential computed via `SCF.update!`) and `x` and
 `y` are [`RadialOrbital`](@ref)s.
 """
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest}) where {T,Source,Dest} =
-    materialize!(MulAdd(ma.α, ma.A.V̂.mul.factors[2], ma.B.mul.factors[2],
-                        ma.β, ma.C.mul.factors[2]))
+    materialize!(MulAdd(ma.α, ma.A.V̂.args[2], ma.B.args[2],
+                        ma.β, ma.C.args[2]))
 
 # *** Exchange potential
 
@@ -157,8 +157,8 @@ function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePo
     p = ma.A
     p.poisson(ma.B) # Form exchange potential from conj(p.a)*b
     # Act with the exchange potential on p.bv
-    materialize!(MulAdd(ma.α, p.V̂.mul.factors[2], p.bv.mul.factors[2],
-                        ma.β, ma.C.mul.factors[2]))
+    materialize!(MulAdd(ma.α, p.V̂.args[2], p.bv.args[2],
+                        ma.β, ma.C.args[2]))
 end
 
 # * Source terms
@@ -193,4 +193,4 @@ struct ShiftTerm{T}
 end
 
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ShiftTerm, Source, Dest}) where {T,Source,Dest} =
-    BLAS.axpy!(ma.α*ma.A.shift.λ, ma.B.mul.factors[2], ma.C.mul.factors[2])
+    BLAS.axpy!(ma.α*ma.A.shift.λ, ma.B.args[2], ma.C.args[2])

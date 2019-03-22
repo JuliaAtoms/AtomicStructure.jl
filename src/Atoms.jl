@@ -11,6 +11,8 @@ using ContinuumArrays
 import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint
 using LazyArrays
 import LazyArrays: ⋆, materialize, materialize!, MulAdd
+using FillArrays
+using BandedMatrices
 
 using LinearAlgebra
 using SparseArrays

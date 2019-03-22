@@ -17,7 +17,7 @@ function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,B,O₁}, orb::O₂) wh
 
     V = Matrix(r -> ℓ*(ℓ+1)/(2r^2) + atom.potential(orb, r), R)
 
-    R*Tm*R', R*V*R'
+    applied(*, R, Tm, R'), applied(*, R, V, R')
 end
 
 """
@@ -111,7 +111,7 @@ Return the lazy multiplicative action of the
 coefficient vector `ϕ`.
 """
 LazyArrays.:(⋆)(ĥ::AtomicOneBodyHamiltonian, ϕ::AbstractVector) =
-    ĥ.op.mul.factors[2] ⋆ ϕ
+    ĥ.op.args[2] ⋆ ϕ
 
 """
     materialize!(::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest})
@@ -121,8 +121,8 @@ Materialize the lazy multiplication–addition of the type `y ← α*H*x +
 are [`RadialOrbital`](@ref)s.
 """
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest}) where {T,Source,Dest} =
-    materialize!(MulAdd(ma.α, ma.A.op.mul.factors[2], ma.B.mul.factors[2],
-                        ma.β, ma.C.mul.factors[2]))
+    materialize!(MulAdd(ma.α, ma.A.op.args[2], ma.B.args[2],
+                        ma.β, ma.C.args[2]))
 
 Base.show(io::IO, ĥ::AtomicOneBodyHamiltonian) =
     write(io, "ĥ($(ĥ.orbital))")

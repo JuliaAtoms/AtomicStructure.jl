@@ -122,19 +122,21 @@ end
 
 # ** Materialization
 
-const OrbitalHamiltonianMatrixElement{O,T,B<:AbstractQuasiMatrix,V<:AbstractVector} =
-    Mul{<:Tuple,<:Tuple{<:Adjoint{T,V},<:QuasiAdjoint{T,B},<:OrbitalHamiltonian{O,T,B},B,V}}
+const OrbitalHamiltonianMatrixElement{O,T,B<:AbstractQuasiMatrix} =
+    Mul{<:Any,<:Tuple{<:AdjointRadialOrbital{T,B},
+                      <:OrbitalHamiltonian{O,T,B},
+                      <:RadialOrbital{T,B}}}
 
-const OrbitalHamiltonianMatrixVectorProduct{O,T,B<:AbstractQuasiMatrix,V<:AbstractVector} =
-    Mul{<:Tuple,<:Tuple{<:OrbitalHamiltonian{O,T,B},B,V}}
+const OrbitalHamiltonianMatrixVectorProduct{O,T,B<:AbstractQuasiMatrix} =
+    Mul{<:Any,<:Tuple{<:OrbitalHamiltonian{O,T,B},<:RadialOrbital{T,B}}}
 
 Base.eltype(::OrbitalHamiltonianMatrixVectorProduct{O,T}) where {O,T} = T
 
 function Base.copyto!(dest::RadialOrbital{T,B},
-                      matvec::OrbitalHamiltonianMatrixVectorProduct{O,T,B,V}) where {O,T,B,V}
+                      matvec::OrbitalHamiltonianMatrixVectorProduct{O,T,B}) where {O,T,B}
     axes(dest) == axes(matvec) || throw(DimensionMismatch("axes must be the same"))
-    R′,v = dest.mul.factors
-    hamiltonian,R,b = matvec.factors
+    R′,v = dest.args
+    hamiltonian,b = matvec.args
 
     c = hamiltonian.mix_coeffs
 
@@ -149,7 +151,7 @@ function Base.copyto!(dest::RadialOrbital{T,B},
     #    non-orthogonal orbitals.
     for term in hamiltonian.terms
         coeff = coefficient(term, c)
-        materialize!(MulAdd(coeff, term.A, R*b, one(T), dest))
+        materialize!(MulAdd(coeff, term.A, b, one(T), dest))
     end
 
     # Project out all components parallel to other orbitals of the
@@ -159,18 +161,15 @@ function Base.copyto!(dest::RadialOrbital{T,B},
     dest
 end
 
-function Base.similar(matvec::OrbitalHamiltonianMatrixVectorProduct, ::Type{T}) where T
-    A,R,b = matvec.factors
-    v = similar(b, T)
-    R*v
-end
+Base.similar(matvec::OrbitalHamiltonianMatrixVectorProduct) =
+    similar(matvec.args[2])
 
-LazyArrays.materialize(matvec::OrbitalHamiltonianMatrixVectorProduct{O,T,B,V}) where {O,T,B,V} =
-    copyto!(similar(matvec, eltype(matvec)), matvec)
+LazyArrays.materialize(matvec::OrbitalHamiltonianMatrixVectorProduct{O,T,B}) where {O,T,B,V} =
+    copyto!(similar(matvec), matvec)
 
-function LazyArrays.materialize(matel::OrbitalHamiltonianMatrixElement{O,T,B,V}) where {O,T,B,V}
-    a,R′,op,R,b = matel.factors
-    a*R′*materialize(op⋆R⋆b)
+function LazyArrays.materialize(matel::OrbitalHamiltonianMatrixElement{O,T,B}) where {O,T,B}
+    a,op,b = matel.args
+    materialize(applied(*, a, materialize(op⋆b)))
 end
 
 # *** Materialization into a matrix
@@ -203,9 +202,9 @@ function Base.copyto!(dest::M, hamiltonian::OrbitalHamiltonian) where {T,M<:Abst
         coeff = coefficient(term, c)
 
         op = if term.A isa AtomicOneBodyHamiltonian
-            term.A.op.mul.factors[2]
+            term.A.op.args[2]
         elseif term.A isa DirectPotential
-            term.A.V̂.mul.factors[2]
+            term.A.V̂.args[2]
         elseif term.A isa ShiftTerm
             term.A.shift
         else
@@ -276,7 +275,8 @@ them both with the `QuasiMatrix` necessary to transform `x` and `y` to
 the function space of the Hamiltonian.
 """
 LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,Hamiltonian}, x::V₂) where {V₁,V₂,T,B,Hamiltonian<:OrbitalHamiltonian} =
-    copyto!(A.hamiltonian.R*y, A.hamiltonian⋆(A.hamiltonian.R*x))
+    copyto!(applied(*, A.hamiltonian.R, y),
+            A.hamiltonian⋆(applied(*, A.hamiltonian.R, x)))
 
 # ** Preconditioner
 

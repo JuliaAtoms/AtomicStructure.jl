@@ -48,7 +48,7 @@ Compute the orbital energy for the orbital governed by
 `:onebody`, `:direct`, or `:exchange`).
 """
 SCF.energy(hfeq::AtomicOrbitalEquation, which::Symbol=:total) =
-    (hfeq.ϕ' * hfeq.hamiltonian[which] * hfeq.ϕ)[1]
+    materialize(applied(*, hfeq.ϕ', hfeq.hamiltonian[which], hfeq.ϕ))
 
 function Base.show(io::IO, hfeq::AtomicOrbitalEquation)
     EHa = energy(hfeq)
