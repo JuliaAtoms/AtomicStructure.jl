@@ -281,13 +281,13 @@ LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,Hamiltonian}, x::V₂) where {V�
 # ** Preconditioner
 
 """
-    MatrixFactorizations.preconditioner(hamiltonian::OrbitalHamiltonian)
+    IterativeFactorizations.preconditioner(hamiltonian::OrbitalHamiltonian)
 
 Return a factorization of the matrix corresponding to `hamiltonian`,
 where all terms arising from exchange and configuration interaction
 have been removes, since they cannot be represented by a matrix.
 """
-function MatrixFactorizations.preconditioner(hamiltonian::OrbitalHamiltonian)
+function IterativeFactorizations.preconditioner(hamiltonian::OrbitalHamiltonian)
     # To form the preconditioner, we select all terms of the shifted
     # Hamiltonian, except the exchange potentials and source terms,
     # which are not factorizable.
