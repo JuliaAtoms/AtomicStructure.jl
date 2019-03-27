@@ -14,6 +14,7 @@ using LazyArrays
 import LazyArrays: ⋆, materialize, materialize!, MulAdd
 using FillArrays
 using BandedMatrices
+using BlockBandedMatrices
 
 using FiniteDifferencesQuasi
 using FEDVRQuasi
