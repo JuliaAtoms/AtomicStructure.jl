@@ -218,8 +218,8 @@ uuid = "8197267c-284f-5f27-9208-e0e47529a953"
 version = "0.3.1"
 
 [[IterativeFactorizations]]
-deps = ["AlgebraicMultigrid", "IterativeSolvers", "LinearAlgebra", "SparseArrays"]
-git-tree-sha1 = "cc5ca4da95c635ffcdb5bdb8ddf35bc8a257168c"
+deps = ["AlgebraicMultigrid", "BlockBandedMatrices", "IterativeSolvers", "LinearAlgebra", "SparseArrays"]
+git-tree-sha1 = "e79328660965319414d39bbe368aa5665bfd1bdd"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/IterativeFactorizations.jl"
 uuid = "f1b39ad4-3e99-11e9-193e-b3ae8ec46476"
@@ -350,8 +350,8 @@ uuid = "ae029012-a4dd-5104-9daa-d747884805df"
 version = "0.5.2"
 
 [[SCF]]
-deps = ["ArnoldiMethod", "Crayons", "Documenter", "Formatting", "IntervalSets", "IterativeFactorizations", "LinearAlgebra", "SolverTraces", "SparseArrays", "Test", "UnicodeFun"]
-git-tree-sha1 = "e25369a010017b6f8e5e7187c41c67fbfaeef577"
+deps = ["ArnoldiMethod", "Crayons", "Documenter", "Formatting", "IntervalSets", "IterativeFactorizations", "IterativeSolvers", "LinearAlgebra", "SolverTraces", "SparseArrays", "Test", "UnicodeFun"]
+git-tree-sha1 = "59e03cca3af24fc3ce554a2c0a50370e3c926085"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"

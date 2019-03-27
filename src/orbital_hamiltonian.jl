@@ -130,6 +130,9 @@ const OrbitalHamiltonianMatrixElement{O,T,B<:Basis} =
 const OrbitalHamiltonianMatrixVectorProduct{O,T,B<:Basis} =
     Mul{<:Any,<:Tuple{<:OrbitalHamiltonian{O,T,B},<:RadialOrbital{T,B}}}
 
+const OrbitalHamiltonianMatrixMatrixProduct{O,T,B<:Basis} =
+    Mul{<:Any,<:Tuple{<:OrbitalHamiltonian{O,T,B},<:RadialOrbitals{T,B}}}
+
 Base.eltype(::OrbitalHamiltonianMatrixVectorProduct{O,T}) where {O,T} = T
 
 function Base.copyto!(dest::RadialOrbital{T,B},
@@ -158,6 +161,21 @@ function Base.copyto!(dest::RadialOrbital{T,B},
     # same symmetry.
     projectout!(dest, hamiltonian.projector)
 
+    dest
+end
+
+function Base.copyto!(dest::RadialOrbitals{T,B},
+                      matvec::OrbitalHamiltonianMatrixMatrixProduct{O,T,B}) where {O,T,B<:Basis}
+    axes(dest) == axes(matvec) || throw(DimensionMismatch("axes must be the same"))
+    R′,dv = dest.args
+    hamiltonian,b = matvec.args
+    bv = b.args[2]
+
+    n = size(dv,2)
+    for j = 1:n
+        copyto!(applied(*, hamiltonian.R, view(dv, :, j)),
+                hamiltonian ⋆ applied(*, hamiltonian.R, view(bv, :, j)))
+    end
     dest
 end
 
