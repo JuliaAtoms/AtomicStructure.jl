@@ -226,6 +226,9 @@ function Base.similar(h::OrbitalHamiltonian{O,T,B}, ::Type{T}) where {O,T,B<:Abs
     SymTridiagonal(o,0*o[2:end])
 end
 
+Base.similar(h::OrbitalHamiltonian{O,T,B}, ::Type{T}) where {O,T,B<:BasisOrRestricted{<:FEDVR}} =
+    Matrix(undef, h.R)
+
 LazyArrays.materialize(h::OrbitalHamiltonian) =
     copyto!(similar(h, eltype(h)), h)
 

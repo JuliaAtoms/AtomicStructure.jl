@@ -16,6 +16,7 @@ using FillArrays
 using BandedMatrices
 
 using FiniteDifferencesQuasi
+using FEDVRQuasi
 
 using LinearAlgebra
 using SparseArrays
