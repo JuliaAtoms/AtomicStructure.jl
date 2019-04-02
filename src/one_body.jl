@@ -13,9 +13,11 @@ function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,B,O₁}, orb::O₂) wh
     Tm = R'D'D*R
     Tm /= -2
 
+    # Add in centrifugal part
     ℓ = getℓ(orb)
+    Tm += Matrix(r -> ℓ*(ℓ+1)/(2r^2), R)
 
-    V = Matrix(r -> ℓ*(ℓ+1)/(2r^2) + atom.potential(orb, r), R)
+    V = Matrix(r -> atom.potential(orb, r), R)
 
     applied(*, R, Tm, R'), applied(*, R, V, R')
 end
@@ -33,7 +35,7 @@ one_body_hamiltonian(atom, orb) = +(one_body_hamiltonian(Tuple, atom, orb)...)
 """
     KineticEnergyHamiltonian
 
-The kinetic energy part of the one-body Hamiltonian, excluding the
+The kinetic energy part of the one-body Hamiltonian, ubcluding the
 centrifugal potential. It is diagonal in spin, i.e. it does not couple
 orbitals of opposite spin.
 """
@@ -47,9 +49,8 @@ Base.show(io::IO, ::KineticEnergyHamiltonian) = write(io, "T̂")
 """
     PotentialEnergyHamiltonian
 
-The potential energy part of the one-body Hamiltonian, including the
-centrifugal potential. It is diagonal in spin, i.e. it does not couple
-orbitals of opposite spin.
+The potential energy part of the one-body Hamiltonian. It is diagonal
+in spin, i.e. it does not couple orbitals of opposite spin.
 """
 struct PotentialEnergyHamiltonian <: OneBodyOperator end
 Base.iszero(me::OrbitalMatrixElement{1,A,PotentialEnergyHamiltonian,B}) where {A<:SpinOrbital,B<:SpinOrbital} =
