@@ -150,7 +150,7 @@ another value for `selector`.
 function Base.diff(atom::Atom{T,B,O},
                    H::QuantumOperator=FieldFreeOneBodyHamiltonian()+CoulombInteraction();
                    overlaps::Vector{OrbitalOverlap}=OrbitalOverlap[],
-                   selector=cfg -> outsidecoremodel(cfg, atom.potential),
+                   selector::Function=cfg -> outsidecoremodel(cfg, atom.potential),
                    observables::Dict{Symbol,Tuple{<:QuantumOperator,Bool}} = Dict(
                        :total_energy => (H,false),
                        :double_counted_energy => (H,true),
@@ -197,7 +197,8 @@ function Base.diff(atom::Atom{T,B,O},
     observables = map(collect(pairs(observables))) do (k,(operator,double_counted))
         k => Observable(operator, atom, overlaps,
                        integrals, integral_map,
-                       symmetries, double_counted=double_counted)
+                       symmetries, selector,
+                       double_counted=double_counted)
     end |> Dict
 
     AtomicEquations(atom, hfeqs, integrals, observables)

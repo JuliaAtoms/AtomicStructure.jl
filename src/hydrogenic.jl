@@ -31,7 +31,13 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) where {T,
         end
 
         Z = charge(atom.potential)
-        hydrogen_like_eng = n -> -Z^2/(2n^2)
+        Q = num_electrons(outsidecoremodel(first(atom.configurations),
+                                           atom.potential))
+        # This is a heuristic to get energy shifts that work for both
+        # point charge nuclei and pseudopotentials; the latter screen
+        # the bare charge but not fully, and thus we admix with a
+        # little bit of the unscreened charge.
+        hydrogen_like_eng = n -> -(0.3Z+0.7Q)^2/(2n^2)
 
         eng_fmt = FormatSpec("+10.7f")
         Δeng_fmt = FormatSpec("+10.3e")
@@ -39,15 +45,18 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) where {T,
 
         for ℓ in keys(orbitals)
             print_block(io) do io
+                min_n = minimum(getn, orbitals[ℓ])
+                max_n = maximum(getn, orbitals[ℓ])
+
                 # For shift-and-invert type of diagonalization, we target an
                 # eigenvalue slightly below the lowest energy in partial wave
                 # ℓ of a hydrogen-like system with point charge Z.
-                min_n = ℓ + 1
                 Iₚℓ = hydrogen_like_eng(min_n)
                 σ = 2Iₚℓ
 
                 max_n = maximum(getn, orbitals[ℓ])
-                nev = max_n - ℓ
+                nev = max_n - (min_n-1)
+                nev ≥ 1 || throw(BoundsError("Trying to find $(nev) eigenvalues"))
 
                 verbosity > 1 &&
                     println(io, "Diagonalizing symmetry ℓ = $(spectroscopic_label(ℓ)), maximum n = $(max_n) => $(nev) eigenvalues required")
@@ -58,7 +67,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) where {T,
                 λᴴ,Φᴴ = diagonalize_one_body(H, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
                 for orb in orbitals[ℓ]
                     j = findfirst(isequal(orb), atom.orbitals)
-                    copyto!(view(Φ, :, j), view(Φᴴ, :, getn(orb)-ℓ))
+                    copyto!(view(Φ, :, j), view(Φᴴ, :, getn(orb)-(min_n-1)))
                 end
 
                 if verbosity > 2
@@ -90,7 +99,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) where {T,
                 ml = maximum(length.(string.(atom.configurations)))
                 configfmt = "{1:<$(ml+3)s}"
                 linefmt = FormatExpr("$(configfmt) {2:7.5f} {3:12.5e}")
-                N = num_electrons(atom)
+                N = Q
                 printfmtln(io, "$(configfmt) {2:7s}  {3:11s} ", "Cfg", "√N", "$(N)-N²")
                 for (i,config) in enumerate(atom.configurations)
                     i > nconfigs && break

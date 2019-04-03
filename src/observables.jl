@@ -24,9 +24,10 @@ function Observable(operator::QuantumOperator, atom::A,
                     overlaps::Vector{<:OrbitalOverlap},
                     integrals::Vector{OrbitalIntegral},
                     integral_map::Dict{Any,Int},
-                    symmetries::Dict;
+                    symmetries::Dict,
+                    selector::Function;
                     double_counted::Bool=false) where {T,A<:Atom{T}}
-    M = Matrix(operator, atom.configurations, overlaps)
+    M = Matrix(operator, selector.(atom.configurations), overlaps)
 
     m,n = size(M)
 
