@@ -183,7 +183,7 @@ coordinate of `dst` encompasses that of `src` and grid spacing
 function Base.copyto!(dst::Atom, src::Atom)
     Rsrc = radial_basis(src)
     Rdst = radial_basis(dst)
-    axes(Rsrc,1) ⊆ axes(Rdst,1) &&
+    axes(Rsrc,1).domain ⊆ axes(Rdst,1).domain &&
         axes(Rsrc,2) ⊆ axes(Rdst,2) ||
         throw(ArgumentError("$(Rsrc) not a subset of $(Rdst)"))
 
