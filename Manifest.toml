@@ -109,7 +109,7 @@ version = "0.0.0"
 
 [[CoulombIntegrals]]
 deps = ["BlockBandedMatrices", "ContinuumArrays", "FEDVRQuasi", "FiniteDifferencesQuasi", "IntervalSets", "IterativeFactorizations", "LazyArrays", "LinearAlgebra", "Polynomials", "SpecialFunctions", "Test"]
-git-tree-sha1 = "200d2339d3a1f9530a284f6354f90ae015a57520"
+git-tree-sha1 = "1d42770d07782df23916f64b8ba2cec17bccac83"
 repo-rev = "applied"
 repo-url = "https://github.com/jagot/CoulombIntegrals.jl.git"
 uuid = "42e5845a-f9f1-11e8-0afe-795ea56ed153"
