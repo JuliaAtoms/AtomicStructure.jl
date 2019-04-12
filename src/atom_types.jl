@@ -44,6 +44,7 @@ outsidecoremodel(configuration::Configuration, potential::P) where P =
     filter((orb,occ,state) -> getspatialorb(orb) ∉ core(ground_state(potential)), configuration)
 outsidecoremodel(configuration::Configuration, ::PointCharge) where P =
     configuration
+outsidecoremodel(csf::CSF, potential) = outsidecoremodel(get_config(csf), potential)
 
 """
     Atom(radial_orbitals, orbitals, configurations, potential, ::Type{C})
