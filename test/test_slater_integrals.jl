@@ -1,6 +1,3 @@
-using SCF
-using PrettyTables
-
 include("exact_slater.jl")
 
 function test_hydrogenic_slater_integrals!(data, tests,
