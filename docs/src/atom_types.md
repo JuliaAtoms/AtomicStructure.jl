@@ -9,11 +9,10 @@ end
 
 ```@docs
 Atom
-Atom(radial_orbitals::RadialOrbitals{T,B}, orbitals::Vector{O}, configurations::Vector{<:TC}, potential::P, ::Type{C}) where {T<:Number,B,O,TC<:ManyElectronWavefunction,C,P}
-Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, potential::P, ::Type{C}) where {T<:Number,B<:AbstractQuasiMatrix{T},TC,C,P}
-Atom(init::Symbol, ::Type{T}, R::B, configurations::Vector{TC}, potential::P, ::Type{C}; kwargs...) where {T<:Number,B<:AbstractQuasiMatrix{T},TC,C,P}
-Atom(init::Init, R::B, configurations::Vector{TC}, potential::P, ::Type{C}; kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC,C,P<:AbstractPotential}
-Atom(R::B, configurations::Vector{<:TC}, potential::P, ::Type{C}=eltype(R); kwargs...) where {B<:AbstractQuasiMatrix,TC<:ManyElectronWavefunction,C,P<:AbstractPotential}
+Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, potential::P, ::Type{C}, mix_coeffs::CV=vcat(one(C), zeros(C, length(configurations)-1))) where {T<:Number,B<:BasisOrRestricted,TC,C,CV<:AbstractVector{<:C},P}
+Atom(init::Symbol, ::Type{T}, R::B, args...; kwargs...) where {T<:Number,B<:BasisOrRestricted,TC,C,P}
+Atom(init::Init, R::B, args...; kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T}}
+Atom(R::B, configurations::Vector{<:TC}, potential::P, ::Type{C}=eltype(R), args...; kwargs...) where {B<:AbstractQuasiMatrix,TC<:ManyElectronWavefunction,C,P<:AbstractPotential}
 Atom(other_atom::Atom{T,B,O,TC,C,P}, configurations::Vector{<:TC}; kwargs...) where {T,B,O,TC,C,P}
 DiracAtom
 ```

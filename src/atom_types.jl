@@ -21,11 +21,11 @@ The `potential` can be used to model either the nucleus by itself (a
 point charge or a nucleus of finite extent) or the core orbitals
 (i.e. a pseudo-potential).
 """
-mutable struct Atom{T,B<:Basis,O<:AbstractOrbital,TC<:ManyElectronWavefunction,C,P<:AbstractPotential} <: AbstractQuantumSystem
+mutable struct Atom{T,B<:Basis,O<:AbstractOrbital,TC<:ManyElectronWavefunction,CV<:AbstractVector,P<:AbstractPotential} <: AbstractQuantumSystem
     radial_orbitals::RadialOrbitals{T,B}
     orbitals::Vector{O}
     configurations::Vector{TC}
-    mix_coeffs::Vector{C} # Mixing coefficients for multi-configurational atoms
+    mix_coeffs::CV # Mixing coefficients for multi-configurational atoms
     potential::P
 end
 
@@ -47,29 +47,17 @@ outsidecoremodel(configuration::Configuration, ::PointCharge) where P =
 outsidecoremodel(csf::CSF, potential) = outsidecoremodel(get_config(csf), potential)
 
 """
-    Atom(radial_orbitals, orbitals, configurations, potential, ::Type{C})
-
-Create an [`Atom`](@ref) from the lists of `radial_orbitals`
-associated with `orbitals` and electronic `configurations`, with a
-nucleus modelled by `potential`. `C` determines the `eltype` of the
-mixing coefficients, which are initialized to `[1,0,0,...]`.
-"""
-Atom(radial_orbitals::RadialOrbitals{T,B}, orbitals::Vector{O},
-     configurations::Vector{<:TC}, potential::P, ::Type{C}) where {T<:Number,B<:Basis,O,TC<:ManyElectronWavefunction,C,P} =
-         Atom{T,B,O,TC,C,P}(radial_orbitals, orbitals,
-                            configurations, vcat(one(T), zeros(C, length(configurations)-1)),
-                            potential)
-
-"""
-    Atom(undef, ::Type{T}, R::AbstractQuasiMatrix, configurations, potential, ::Type{C})
+    Atom(undef, ::Type{T}, R::AbstractQuasiMatrix, configurations, potential, ::Type{C}[, mix_coeffs])
 
 Create an [`Atom`](@ref) on the space spanned by `R`, from the list of
 electronic `configurations`, with a nucleus modelled by `potential`,
 and leave the orbitals uninitialized. `T` determines the `eltype` of
-the radial orbitals and `C` the mixing coefficients.
+the radial orbitals and `C` the mixing coefficients, which by default,
+are initialized to `[1,0,0,...]`.
 """
 function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, potential::P,
-              ::Type{C}) where {T<:Number,B<:BasisOrRestricted,TC,C,P}
+              ::Type{C},
+              mix_coeffs::CV=vcat(one(C), zeros(C, length(configurations)-1))) where {T<:Number,B<:BasisOrRestricted,TC,C,CV<:AbstractVector{<:C},P}
     isempty(configurations) &&
         throw(ArgumentError("At least one configuration required to create an atom"))
     all(isequal(num_electrons(first(configurations))),
@@ -90,7 +78,7 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
 
     Φ = Matrix{T}(undef, size(R,2), length(orbs))
     RΦ = applied(*, R, Φ)
-    Atom(RΦ, orbs, configurations, potential, C)
+    Atom(RΦ, orbs, configurations, mix_coeffs, potential)
 end
 
 """
@@ -101,9 +89,8 @@ electronic `configurations`, with a nucleus modelled by `potential`,
 and initialize the orbitals according to `init`. `T` determines the
 `eltype` of the radial orbitals and `C` the mixing coefficients.
 """
-function Atom(init::Symbol, ::Type{T}, R::B, configurations::Vector{TC},
-              potential::P, ::Type{C}; kwargs...) where {T<:Number,B<:BasisOrRestricted,TC,C,P}
-    atom = Atom(undef, T, R, configurations, potential, C)
+function Atom(init::Symbol, ::Type{T}, R::B, args...; kwargs...) where {T<:Number,B<:BasisOrRestricted,TC,C,P}
+    atom = Atom(undef, T, R, args...)
     if init == :hydrogenic
         hydrogenic!(atom; kwargs...)
     elseif init == :zero
@@ -130,13 +117,11 @@ electronic `configurations`, with a nucleus modelled by `potential`,
 and initialize the orbitals according to `init`. `C` determines the
 `eltype` of the mixing coefficients.
 """
-Atom(init::Init, R::B, configurations::Vector{TC}, potential::P, ::Type{C};
-     kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC,C,P<:AbstractPotential} =
-         Atom(init, T, R, configurations, potential, C; kwargs...)
+Atom(init::Init, R::B, args...; kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T}} =
+    Atom(init, T, R, args...; kwargs...)
 
-DiracAtom(init::Init, R::B, configurations::Vector{TC}, potential::P, ::Type{C};
-          kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC<:RelativisticCSF,C,P<:AbstractPotential} =
-    Atom(init, T, R, configurations, potential, C; kwargs...)
+DiracAtom(init::Init, R::B, configurations::Vector{TC}, args...; kwargs...) where {Init,T,B<:AbstractQuasiMatrix{T},TC<:RelativisticCSF} =
+    Atom(init, T, R, configurations, args...; kwargs...)
 
 """
     Atom(R::AbstractQuasiMatrix, configurations, potential[, ::Type{C}=eltype(R)])
@@ -145,9 +130,9 @@ Create an [`Atom`](@ref) on the space spanned by `R`, from the list of
 electronic `configurations`, with a nucleus modelled by `potential`,
 and initialize the orbitals to their hydrogenic values.
 """
-Atom(R::B, configurations::Vector{<:TC}, potential::P, ::Type{C}=eltype(R);
+Atom(R::B, configurations::Vector{<:TC}, potential::P, ::Type{C}=eltype(R), args...;
      kwargs...) where {B<:AbstractQuasiMatrix,TC<:ManyElectronWavefunction,C,P<:AbstractPotential} =
-         Atom(:hydrogenic, R, configurations, potential, C; kwargs...)
+         Atom(:hydrogenic, R, configurations, potential, C, args...; kwargs...)
 
 """
     Atom(other_atom::Atom, configurations)
