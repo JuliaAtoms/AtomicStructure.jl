@@ -69,7 +69,7 @@ and leave the orbitals uninitialized. `T` determines the `eltype` of
 the radial orbitals and `C` the mixing coefficients.
 """
 function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, potential::P,
-              ::Type{C}) where {T<:Number,B<:AbstractQuasiMatrix{T},TC,C,P}
+              ::Type{C}) where {T<:Number,B<:BasisOrRestricted,TC,C,P}
     isempty(configurations) &&
         throw(ArgumentError("At least one configuration required to create an atom"))
     all(isequal(num_electrons(first(configurations))),
@@ -102,7 +102,7 @@ and initialize the orbitals according to `init`. `T` determines the
 `eltype` of the radial orbitals and `C` the mixing coefficients.
 """
 function Atom(init::Symbol, ::Type{T}, R::B, configurations::Vector{TC},
-              potential::P, ::Type{C}; kwargs...) where {T<:Number,B<:AbstractQuasiMatrix{T},TC,C,P}
+              potential::P, ::Type{C}; kwargs...) where {T<:Number,B<:BasisOrRestricted,TC,C,P}
     atom = Atom(undef, T, R, configurations, potential, C)
     if init == :hydrogenic
         hydrogenic!(atom; kwargs...)
