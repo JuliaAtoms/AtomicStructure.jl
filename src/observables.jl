@@ -76,18 +76,21 @@ function Observable(operator::QuantumOperator, atom::A,
     Observable(eqs, similar(first(eqs).ϕ))
 end
 
+realifreal(::Type{R}, v) where {R<:Real} = real(v)
+realifreal(::Type{R}, v) where {R} = v
+
 """
     observe!(A::M, o::Observable)
 
 Compute the observable `o` between all configurations and store the
 results as matrix elements of `A`.
 """
-function observe!(A::M, o::Observable{T}) where {M<:AbstractMatrix{<:Real},T}
+function observe!(A::M, o::Observable{T}) where {R,M<:AbstractMatrix{R},T}
     A .= zero(T)
     for eq in o.equations
         for term in eq.hamiltonian.terms
             materialize!(MulAdd(coefficient(term), term.A, eq.ϕ, zero(T), o.tmp))
-            A[term.i,term.j] += real((materialize(applied(*, eq.ϕ', o.tmp))))
+            A[term.i,term.j] += realifreal(R, (materialize(applied(*, eq.ϕ', o.tmp))))
         end
     end
     A
