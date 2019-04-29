@@ -67,6 +67,7 @@ function Observable(operator::QuantumOperator, atom::A,
         equation
     end
 
+    # TODO: Should observables really project out symmetry orbitals?
     eqs = generate_atomic_orbital_equations(
         atom, MCEquationSystem(equation_system, symbolic_integrals),
         integrals, integral_map,

@@ -83,6 +83,12 @@ get_operator(top::IdentityOperator, atom::Atom,
              ::O, source_orbital::O) where O =
                  SourceTerm(top, source_orbital, view(atom, source_orbital))
 
+function get_operator(top::Projector, ::Atom, orbital::O, source_orbital::O) where O
+    orbital == source_orbital || return 0
+    SourceTerm(IdentityOperator{1}(), source_orbital,
+               top.ϕs[findfirst(isequal(source_orbital), top.orbitals)])
+end
+
 get_operator(op::QO, atom::Atom, ::O, ::O) where {QO,O} =
     throw(ArgumentError("Unsupported operator $op"))
 
@@ -110,6 +116,7 @@ function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSys
             else
                 for t in equation_terms
                     operator = get_operator(t.operator, atom, orbital, t.source_orbital)
+                    iszero(operator) && continue
 
                     pushterms!(terms, operator, [t],
                                integrals, integral_map, eqs.integrals)

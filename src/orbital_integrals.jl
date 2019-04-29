@@ -9,6 +9,8 @@ corresponds to a scalar value, rank 1 to a diagonal matrix, etc.
 """
 abstract type OrbitalIntegral{N,O<:AbstractOrbital,T,B<:Basis,OV<:RadialOrbital{T,B}} end
 
+Base.iszero(::OrbitalIntegral) = false
+
 # ** Orbital overlap integral
 
 """
@@ -177,6 +179,8 @@ struct SourceTerm{QO,O,OV}
     ov::OV
 end
 
+Base.iszero(::SourceTerm) = false
+
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:SourceTerm, Source, Dest}) where {T,Source,Dest} =
     materialize!(MulAdd(ma.α, ma.A.operator, ma.A.ov, ma.β, ma.C))
 
@@ -196,6 +200,8 @@ the Hamiltonian.
 struct ShiftTerm{T}
     shift::UniformScaling{T}
 end
+
+Base.iszero(::ShiftTerm) = false
 
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ShiftTerm, Source, Dest}) where {T,Source,Dest} =
     BLAS.axpy!(ma.α*ma.A.shift.λ, ma.B.args[2], ma.C.args[2])

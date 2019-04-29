@@ -1,11 +1,21 @@
 """
-    Projector(ϕs)
+    Projector(ϕs, orbitals)
 
-Represents the projector *out of* the subspace spanned by the radial
-orbitals `ϕs`
+Represents the projector on the subspace spanned by the radial
+orbitals `ϕs` (corresponding to `orbitals`).
 """
-struct Projector{T,B<:AbstractQuasiMatrix,RO<:RadialOrbital{T,B}}
+struct Projector{T,B<:AbstractQuasiMatrix,RO<:RadialOrbital{T,B},O} <: NBodyOperator{1}
     ϕs::Vector{RO}
+    orbitals::Vector{O}
+end
+
+Base.iszero(me::OrbitalMatrixElement{1,A,<:Projector,B}) where {A<:SpinOrbital,B<:SpinOrbital} =
+    me.a[1] ∉ me.o.orbitals || me.b[1] ∉ me.o.orbitals
+
+function Base.show(io::IO, projector::Projector)
+    write(io, "P(")
+    write(io, join(string.(projector.orbitals), " "))
+    write(io, ")")
 end
 
 projectout!(y::RO, ::Nothing) where RO = y
