@@ -79,7 +79,7 @@ function get_operator(op::CoulombPotentialMultipole, atom::Atom,
     HFPotential(:exchange, op.o.k, a, a, view(atom, a), view(atom, a))
 end
 
-get_operator(::IdentityOperator, atom::Atom,
+get_operator(top::IdentityOperator, atom::Atom,
              ::O, source_orbital::O) where O =
                  SourceTerm(top, source_orbital, view(atom, source_orbital))
 
@@ -109,7 +109,6 @@ function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSys
                            integrals, integral_map, eqs.integrals)
             else
                 for t in equation_terms
-                    top = t.operator
                     operator = get_operator(t.operator, atom, orbital, t.source_orbital)
 
                     pushterms!(terms, operator, [t],

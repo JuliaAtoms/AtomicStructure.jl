@@ -180,6 +180,11 @@ end
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:SourceTerm, Source, Dest}) where {T,Source,Dest} =
     materialize!(MulAdd(ma.α, ma.A.operator, ma.A.ov, ma.β, ma.C))
 
+function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:IdentityOperator{1}, Source, Dest}) where {T,Source,Dest}
+    lmul!(ma.β, ma.C.args[2])
+    BLAS.axpy!(ma.α, ma.B.args[2], ma.C.args[2])
+end
+
 # * Shift terms
 
 """
