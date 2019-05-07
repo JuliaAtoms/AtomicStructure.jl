@@ -73,7 +73,10 @@ function Observable(operator::QuantumOperator, atom::A,
         integrals, integral_map,
         symmetries)
 
-    Observable(eqs, similar(first(eqs).ϕ))
+    tmp = similar(first(eqs).ϕ)
+    tmp.args[2] .= false # To clear any NaNs
+
+    Observable(eqs, tmp)
 end
 
 realifreal(::Type{R}, v) where {R<:Real} = real(v)
