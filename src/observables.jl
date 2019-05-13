@@ -98,3 +98,16 @@ function observe!(A::M, o::Observable{T}) where {R,M<:AbstractMatrix{R},T}
     end
     A
 end
+
+"""
+    observe!(A::M, o::Observable, atom::Atom)
+
+Compute the observable `o` between all configurations, store the
+results as matrix elements of `A`, and finally contract with respect
+to the mixing coefficients of `atom` and return the result as a
+scalar.
+"""
+function observe!(A::M, o::Observable{T}, atom::Atom) where {R,M<:AbstractMatrix{R},T}
+    observe!(A, o)
+    atom.mix_coeffs'A*atom.mix_coeffs
+end
