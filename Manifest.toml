@@ -1,10 +1,10 @@
 # This file is machine-generated - editing it directly is not advised
 
 [[AbstractFFTs]]
-deps = ["Compat", "LinearAlgebra"]
-git-tree-sha1 = "8d59c3b1463b5e0ad05a3698167f85fac90e184d"
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "380e36c66edfa099cd90116b24c1ce8cafccac40"
 uuid = "621f4979-c628-5d54-868e-fcf4e3e8185c"
-version = "0.3.2"
+version = "0.4.1"
 
 [[AlgebraicMultigrid]]
 deps = ["Compat", "IterativeSolvers", "Random"]
@@ -14,7 +14,7 @@ version = "0.2.2"
 
 [[AngularMomentumAlgebra]]
 deps = ["AtomicLevels", "EnergyExpressions", "LazyArrays", "LinearAlgebra", "SparseArrays", "Test", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "a029606730a802d046a4fb5233c6cefbcb33660b"
+git-tree-sha1 = "23b419808bd966f775120ad23c826b32f1bd75e2"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -28,7 +28,7 @@ version = "0.0.4"
 
 [[AtomicLevels]]
 deps = ["BlockBandedMatrices", "Combinatorics", "Formatting", "Parameters", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "f9055de25ebe9b5cc95cb9e211764b0b3f5fb51b"
+git-tree-sha1 = "9574fb9c5ee3fe69d61b252b61c89b45da1dfbec"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/AtomicLevels.jl.git"
 uuid = "10933b4c-d60f-11e8-1fc6-bd9035a249a1"
@@ -44,9 +44,9 @@ version = "0.1.0"
 
 [[BandedMatrices]]
 deps = ["FillArrays", "LazyArrays", "LinearAlgebra", "MatrixFactorizations", "Random", "SparseArrays", "Test"]
-git-tree-sha1 = "1249cc93e4a685e8f0aaf1aa858fdd636551c754"
+git-tree-sha1 = "b4693af0992d443010df2ac35dbf8e67f27640ff"
 uuid = "aae01518-5342-5314-be14-df237901396f"
-version = "0.9.0"
+version = "0.9.1"
 
 [[Base64]]
 uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
@@ -58,22 +58,22 @@ uuid = "9e28174c-4ba2-5203-b857-d8d62c4213ee"
 version = "0.8.10"
 
 [[BinaryProvider]]
-deps = ["Libdl", "Pkg", "SHA", "Test"]
-git-tree-sha1 = "055eb2690182ebc31087859c3dd8598371d3ef9e"
+deps = ["Libdl", "SHA"]
+git-tree-sha1 = "c7361ce8a2129f20b0e05a89f7070820cfed6648"
 uuid = "b99e7846-7c00-51b0-8f62-c81ae34c0232"
-version = "0.5.3"
+version = "0.5.4"
 
 [[BlockArrays]]
-deps = ["Base64", "LinearAlgebra", "Random", "SparseArrays", "Test"]
-git-tree-sha1 = "b9970ac7c9f0b315692d541d7bfca561f0f221c1"
+deps = ["LinearAlgebra"]
+git-tree-sha1 = "1c488d0cd6672e74abfb7fa212b7a8017ac07a17"
 uuid = "8e7c35d0-a365-5155-bbbb-fb81a777f24e"
-version = "0.8.0"
+version = "0.9.0"
 
 [[BlockBandedMatrices]]
 deps = ["BandedMatrices", "BlockArrays", "Distributed", "FillArrays", "LazyArrays", "LinearAlgebra", "MatrixFactorizations", "Pkg", "Profile", "Random", "SharedArrays", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "37c49931b263962b744002e750ea6fa6f470386a"
+git-tree-sha1 = "717511ea2e25e687e447a28ee0cfe3e50316955a"
 uuid = "ffab5731-97b5-5995-9138-79e8c1846df0"
-version = "0.4.0"
+version = "0.4.3"
 
 [[CSTParser]]
 deps = ["LibGit2", "Test", "Tokenize"]
@@ -109,8 +109,8 @@ version = "0.0.0"
 
 [[CoulombIntegrals]]
 deps = ["BlockBandedMatrices", "ContinuumArrays", "FEDVRQuasi", "FiniteDifferencesQuasi", "IntervalSets", "IterativeFactorizations", "LazyArrays", "LinearAlgebra", "Polynomials", "SpecialFunctions", "Test"]
-git-tree-sha1 = "1d42770d07782df23916f64b8ba2cec17bccac83"
-repo-rev = "applied"
+git-tree-sha1 = "2c207728e9aac7ebcdf868428ff1f9ed6201a044"
+repo-rev = "master"
 repo-url = "https://github.com/jagot/CoulombIntegrals.jl.git"
 uuid = "42e5845a-f9f1-11e8-0afe-795ea56ed153"
 version = "0.1.0"
@@ -152,20 +152,20 @@ uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 version = "0.7.0"
 
 [[Documenter]]
-deps = ["Base64", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "Pkg", "REPL", "Random", "Test", "Unicode"]
-git-tree-sha1 = "11ba1460e7429eddc2a71f912cd5b9a66fbd8cf5"
+deps = ["Base64", "DocStringExtensions", "InteractiveUtils", "JSON", "LibGit2", "Logging", "Markdown", "REPL", "Unicode"]
+git-tree-sha1 = "38509269fc99a9bc450fdb9e17e805021f3e5b1b"
 uuid = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
-version = "0.22.2"
+version = "0.22.4"
 
 [[DomainSets]]
 deps = ["IntervalSets", "LinearAlgebra", "StaticArrays", "Statistics", "Test"]
-git-tree-sha1 = "84beb94a9595c1a7a692880b424f82470a326976"
+git-tree-sha1 = "8172e0bf793c497fd23990281a800379000182bc"
 uuid = "5b8099bc-c8ec-5219-889f-1d9e522a28bf"
-version = "0.0.1"
+version = "0.0.2"
 
 [[EnergyExpressions]]
 deps = ["AtomicLevels", "Combinatorics", "LinearAlgebra", "SparseArrays", "Test", "UnicodeFun"]
-git-tree-sha1 = "64a5a1df5b9ecae3cd7dd143b2e5becb86c31987"
+git-tree-sha1 = "a68d1edf597da56263d7d7809283a40391259576"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/EnergyExpressions.jl"
 uuid = "f4b57a2e-27c7-11e9-0cb0-edd185b706f6"
@@ -173,7 +173,7 @@ version = "0.1.0"
 
 [[FEDVRQuasi]]
 deps = ["BandedMatrices", "BlockBandedMatrices", "ContinuumArrays", "FastGaussQuadrature", "FillArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "Printf", "Test"]
-git-tree-sha1 = "61e869d61adb26ede862f0774267f49d6e67e331"
+git-tree-sha1 = "44ce998bc862097eaf64dc82a4dd4d420ff79c15"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/FEDVRQuasi.jl.git"
 uuid = "a2e24d02-e4f7-11e8-15c0-0b59d0e1f6f3"
@@ -193,9 +193,9 @@ version = "0.3.3"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays", "Test"]
-git-tree-sha1 = "2def0123a4f3572234405b0e3d80bfe5d3e1a2a4"
+git-tree-sha1 = "9ab8f76758cbabba8d7f103c51dce7f73fcf8e92"
 uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
-version = "0.5.0"
+version = "0.6.3"
 
 [[FiniteDifferencesQuasi]]
 deps = ["ContinuumArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "Printf", "Test"]
@@ -213,9 +213,9 @@ version = "0.3.5"
 
 [[InfiniteArrays]]
 deps = ["DSP", "FillArrays", "LazyArrays", "LinearAlgebra", "SparseArrays", "Statistics", "Test"]
-git-tree-sha1 = "ceb060a732135d83d75f4b4059374d9d35e27b03"
+git-tree-sha1 = "9987fa7464aa1f3068ca85717ad61bd5c0441ec6"
 uuid = "4858937d-0d70-526a-a4dd-2d5cb5dd786c"
-version = "0.0.3"
+version = "0.1.0"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
@@ -242,10 +242,9 @@ uuid = "42fd0dbc-a981-5370-80f2-aaf504508153"
 version = "0.8.1"
 
 [[IteratorInterfaceExtensions]]
-deps = ["Test"]
-git-tree-sha1 = "5484e5ede2a4137b9643f4d646e8e7b87b794415"
+git-tree-sha1 = "a3f24677c21f5bbe9d2a714f95dcd58337fb2856"
 uuid = "82899510-4779-5014-852e-03e436cf321d"
-version = "0.1.1"
+version = "1.0.0"
 
 [[JSON]]
 deps = ["Dates", "Distributed", "Mmap", "Sockets", "Test", "Unicode"]
@@ -255,9 +254,9 @@ version = "0.20.0"
 
 [[LazyArrays]]
 deps = ["FillArrays", "LinearAlgebra", "MacroTools", "StaticArrays", "Test"]
-git-tree-sha1 = "4439e840fe68cbcde806fcc625d05166227a56a5"
+git-tree-sha1 = "78f4dd7e19b21d82f3541a59a887ab92f0ab00b6"
 uuid = "5078a376-72f3-5289-bfd5-ec5146d43c02"
-version = "0.8.0"
+version = "0.8.1"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
@@ -293,9 +292,9 @@ uuid = "a63ad114-7e13-5084-954f-fe012c677804"
 
 [[OrderedCollections]]
 deps = ["Random", "Serialization", "Test"]
-git-tree-sha1 = "85619a3f3e17bb4761fe1b1fd47f0e979f964d5b"
+git-tree-sha1 = "c4c13474d23c60d20a67b217f1d7f22a40edf8f1"
 uuid = "bac558e1-5e72-5ebc-8fee-abe8a469f55d"
-version = "1.0.2"
+version = "1.1.0"
 
 [[Parameters]]
 deps = ["Markdown", "OrderedCollections", "REPL", "Test"]
@@ -314,10 +313,10 @@ uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
 version = "0.5.2"
 
 [[PrettyTables]]
-deps = ["Crayons", "Formatting", "Parameters", "Reexport", "Tables", "Test"]
-git-tree-sha1 = "29309a816bc137f64fbd72fc359962dd4757320a"
+deps = ["Crayons", "Formatting", "Parameters", "Reexport", "Tables"]
+git-tree-sha1 = "0f1e65478057ac65f20ba6e579998e577849b3aa"
 uuid = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
-version = "0.4.1"
+version = "0.4.2"
 
 [[Primes]]
 deps = ["Test"]
@@ -334,10 +333,10 @@ deps = ["Printf"]
 uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
 
 [[ProgressMeter]]
-deps = ["Distributed", "Printf", "Random", "Test"]
-git-tree-sha1 = "48058bc11607676e5bbc0b974af79106c6200787"
+deps = ["Distributed", "Printf"]
+git-tree-sha1 = "0f08e0e74e5b160ca20d3962a2620038b75881c7"
 uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
-version = "0.9.0"
+version = "1.0.0"
 
 [[REPL]]
 deps = ["InteractiveUtils", "Markdown", "Sockets"]
@@ -415,16 +414,16 @@ deps = ["LinearAlgebra", "SparseArrays"]
 uuid = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [[TableTraits]]
-deps = ["IteratorInterfaceExtensions", "Test"]
-git-tree-sha1 = "eba4b1d0a82bdd773307d652c6e5f8c82104c676"
+deps = ["IteratorInterfaceExtensions"]
+git-tree-sha1 = "b1ad568ba658d8cbb3b892ed5380a6f3e781a81e"
 uuid = "3783bdb8-4a98-5b6b-af9a-565f29a5fe9c"
-version = "0.4.1"
+version = "1.0.0"
 
 [[Tables]]
 deps = ["IteratorInterfaceExtensions", "LinearAlgebra", "Requires", "TableTraits", "Test"]
-git-tree-sha1 = "719d5be11e89ae29d79b469c4238b63b53544d38"
+git-tree-sha1 = "351a4b894122e1553c6ed05fda54086ab036adef"
 uuid = "bd369af6-aec1-5ad0-b16a-f7cc5008161c"
-version = "0.1.18"
+version = "0.2.5"
 
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
