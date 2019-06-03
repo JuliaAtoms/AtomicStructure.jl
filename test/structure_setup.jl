@@ -59,6 +59,14 @@
                 println()
 
                 @test all(isapprox.(energy.(fock.equations), -24.587387/27.211, rtol=0.1))
+
+                @testset "Initialize multiconfigurational atom" begin
+                    new_atom = Atom(atom, spin_configurations([c"1s2", c"1s 2s"]))
+                    for o in atom.orbitals
+                        @test view(new_atom, o).args[2] == view(atom, o).args[2]
+                    end
+                    @test new_atom.orbitals == vcat(atom.orbitals, SpinOrbital(o"2s", 0, true), SpinOrbital(o"2s", 0, false))
+                end
             end
 
             @testset "Arnoldi shift-and-invert" begin

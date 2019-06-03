@@ -141,8 +141,8 @@ Create a new atom using the same basis and nuclear potential as
 `other_atom`, but with a different set of `configurations`. The
 orbitals of `other_atom` are copied over as starting guess.
 """
-function Atom(other_atom::Atom{T,B,O,TC,C,P},
-              configurations::Vector{<:TC}; kwargs...) where {T,B,O,TC,C,P}
+function Atom(other_atom::Atom{T,B,O,TC,CV,P},
+              configurations::Vector{<:TC}; kwargs...) where {T,B,O,TC,CV,P}
     core(first(configurations)) == core(first(other_atom.configurations)) ||
         throw(ArgumentError("Core orbitals must be the same"))
     R = radial_basis(other_atom)
@@ -151,7 +151,7 @@ function Atom(other_atom::Atom{T,B,O,TC,C,P},
     # other_atom. Ideally, missing orbitals would be estimated by
     # diagonalizing e.g. their energy expressions without the exchange
     # terms.
-    atom = Atom(R, configurations, other_atom.potential, C; kwargs...)
+    atom = Atom(R, configurations, other_atom.potential, eltype(CV); kwargs...)
     copyto!(atom, other_atom)
     atom
 end
