@@ -14,7 +14,7 @@ version = "0.2.2"
 
 [[AngularMomentumAlgebra]]
 deps = ["AtomicLevels", "EnergyExpressions", "LazyArrays", "LinearAlgebra", "SparseArrays", "Test", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "23b419808bd966f775120ad23c826b32f1bd75e2"
+git-tree-sha1 = "6aa41a022ef569e83b8b12e618af7d7642186f0b"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
