@@ -48,6 +48,55 @@ end
 
 integral_value(oo::OrbitalOverlapIntegral) = oo.value
 
+# ** Operator matrix element
+
+"""
+    OperatorMatrixElement(a, b, av, bv, Â, coeff, value)
+
+Represents the matrix element `coeff*⟨a|Â|b⟩`, for the operator `Â`
+and the orbitals `a` and `b`, along with `view`s of their radial
+orbitals `av` and `bv` and the current `value` of the
+integral. Typically, `Â` is a radial part of an operator and `coeff`
+is the associated angular coefficient; `coeff` can be of any type
+convertible to a scalar.
+"""
+mutable struct OperatorMatrixElement{aO,bO,T,B,OV,RO<:RadialOperator,Coeff} <: OrbitalIntegral{0,aO,bO,T,B,OV}
+    a::aO
+    b::bO
+    av::OV
+    bv::OV
+    Â::RO
+    coeff::Coeff
+    value::T
+    function OperatorMatrixElement(a::aO, b::bO, av::OV, bv::OV, Â::RO, coeff) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B},
+                                                                                      RO<:RadialOperator}
+        ome = new{aO,bO,T,B,OV,RO,typeof(coeff)}(a, b, av, bv, Â, coeff, zero(T))
+        SCF.update!(ome)
+        ome
+    end
+end
+
+function OperatorMatrixElement(a::aO, b::bO, av::OV, bv::OV, A::M, coeff) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B},
+                                                                                 M<:AbstractMatrix}
+    R = first(av.args)
+    OperatorMatrixElement(a, b, av, bv, applied(*,R,A,R'), coeff)
+end
+
+function Base.show(io::IO, ome::OperatorMatrixElement)
+    write(io, "⟨$(ome.a)|")
+    show(io, ome.Â)
+    write(io, "|$(ome.b)⟩")
+end
+
+function SCF.update!(ome::OperatorMatrixElement{aO,bO,T}; kwargs...) where {aO,bO,T}
+    # NB: It is assumed that ome.Â, if necessary, is updated /before/
+    # SCF.update!(ome) is called.
+    #
+    # TODO: This is not particularly efficient, since it allocates a
+    # temporary vector; rewrite using applied(*, ...).
+    ome.value = convert(T,ome.coeff)*first(ome.av' * (materialize(ome.Â)*ome.bv))
+end
+
 # ** Hartree–Fock potentials
 
 const HFPotentialOperator{T,B<:Basis} = RadialOperator{T,B,Diagonal{T,Vector{T}}}

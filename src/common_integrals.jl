@@ -28,6 +28,24 @@ function create_integral(symbolic_integral::CoulombPotentialMultipole, atom::Ato
     HFPotential(:direct, k, a, b, view(atom, a), view(atom, b))
 end
 
+function create_integral(symbolic_integral::OrbitalMatrixElement{2,<:SpinOrbital,CoulombInteractionMultipole,<:SpinOrbital},
+                         atom::Atom, integrals, integral_map)
+    a,b = symbolic_integral.a[1],symbolic_integral.b[1]
+    ∂I = diff(symbolic_integral, conj(a))
+    # The operator in a two-electron integral is a HFPotential (that
+    # may be shared with many other two-electron integrals). The
+    # potential must be updated before the two-electron integral is
+    # computed, and we achieve this by making sure it appears before
+    # the two-electron integral in the list of integrals (which is
+    # updated sequentially).
+    hfpotential = get_or_create_integral!(integrals, integral_map, ∂I.operator, atom)
+    # We know that the coefficient is purely numeric (and likely
+    # unity), since we varied a single OrbitalMatrixElement with
+    # respect to one of the orbitals.
+    coeff = ∂I.factor.coeff
+    OperatorMatrixElement(a, b, view(atom, a), view(atom, b), hfpotential.V̂, coeff)
+end
+
 create_integral(symbolic_integral, atom::Atom, integrals, integral_map) =
         throw(ArgumentError("$(symbolic_integral) of type $(typeof(symbolic_integral)) not yet supported"))
 
