@@ -51,7 +51,7 @@ multiplied by an overall factor given by expression and multipole
 expansions. `integrals` contain common [`OrbitalIntegral`](@ref)s
 and `integral_map` maps from `symbolic_integrals` to `integrals`.
 """
-function pushterms!(terms::Vector{<:OrbitalHamiltonianTerm{O,T,B,OV}},
+function pushterms!(terms::Vector{<:OrbitalHamiltonianTerm{O,O,T,B,OV}},
                     operator::QO,
                     equation_terms::Vector,
                     integrals::Vector{OrbitalIntegral},
@@ -59,7 +59,7 @@ function pushterms!(terms::Vector{<:OrbitalHamiltonianTerm{O,T,B,OV}},
                     symbolic_integrals) where {O,T,B,OV,QO}
     for eq_term in equation_terms
         push!(terms,
-              OrbitalHamiltonianTerm{O,T,B,OV,QO}(
+              OrbitalHamiltonianTerm{O,O,T,B,OV,QO}(
                   eq_term.i, eq_term.j, T(eq_term.coeff),
                   operator,
                   [get_integral(integrals, integral_map, symbolic_integrals[i])

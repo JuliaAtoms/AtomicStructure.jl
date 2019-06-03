@@ -11,12 +11,12 @@ of [`OrbitalIntegral`](@ref)s arising from the presence of
 non-orthogonal orbitals and whose values should be multiplied to form
 the overall coefficient.
 """
-struct OrbitalHamiltonianTerm{O,T,B<:Basis,OV,QO}
+struct OrbitalHamiltonianTerm{aO,bO,T,B<:Basis,OV,QO}
     i::Int
     j::Int
     coeff::T
     A::QO
-    integrals::Vector{OrbitalIntegral{<:Any,O,T,B,OV}}
+    integrals::Vector{OrbitalIntegral{<:Any,aO,bO,T,B,OV}}
 end
 """
     coefficient(term::OrbitalHamiltonianTerm)
@@ -57,9 +57,9 @@ Lagrange multipliers associated with them, by projecting out
 components of other orbitals every time the `OrbitalHamiltonian`
 action on `orbital` is computed.
 """
-mutable struct OrbitalHamiltonian{O,T,B,OV,Proj,RT}
+mutable struct OrbitalHamiltonian{aO,bO,O,T,B,OV,Proj,RT}
     R::RT
-    terms::Vector{OrbitalHamiltonianTerm{O,T,B,OV}}
+    terms::Vector{OrbitalHamiltonianTerm{aO,bO,T,B,OV}}
     mix_coeffs::Vector{T}
     projector::Proj
     orbital::O
@@ -71,7 +71,7 @@ Base.axes(hamiltonian::OrbitalHamiltonian) =
 Base.axes(hamiltonian::OrbitalHamiltonian, i) =
     axes(hamiltonian)[i]
 
-Base.eltype(hamiltonian::OrbitalHamiltonian{O,T,B,OV,Proj}) where {O,T,B,OV,Proj} = T
+Base.eltype(hamiltonian::OrbitalHamiltonian{aO,bO,O,T,B,OV,Proj}) where {aO,bO,O,T,B,OV,Proj} = T
 
 """
     energy_matrix!(H, hamiltonian, ϕ)
@@ -81,8 +81,8 @@ Compute the contribution of `hamiltonian` to the Hamiltonian matrix
 different multi-configurational [`OrbitalHamiltonianTerm`](@ref)s of
 `hamiltonian`.
 """
-function SCF.energy_matrix!(H::HM, hamiltonian::OrbitalHamiltonian{O,T,B},
-                            ϕ::RadialOrbital{T,B}) where {HM<:AbstractMatrix,O,T,B}
+function SCF.energy_matrix!(H::HM, hamiltonian::OrbitalHamiltonian{aO,bO,O,T,B},
+                            ϕ::RadialOrbital{T,B}) where {HM<:AbstractMatrix,aO,bO,O,T,B}
     tmp = similar(ϕ)
     for term in hamiltonian.terms
         materialize!(MulAdd(coefficient(term), term.A, ϕ, zero(T), tmp))
@@ -122,21 +122,21 @@ end
 
 # ** Materialization
 
-const OrbitalHamiltonianMatrixElement{O,T,B<:Basis} =
+const OrbitalHamiltonianMatrixElement{aO,bO,O,T,B<:Basis} =
     Mul{<:Any,<:Tuple{<:AdjointRadialOrbital{T,B},
-                      <:OrbitalHamiltonian{O,T,B},
+                      <:OrbitalHamiltonian{aO,bO,O,T,B},
                       <:RadialOrbital{T,B}}}
 
-const OrbitalHamiltonianMatrixVectorProduct{O,T,B<:Basis} =
-    Mul{<:Any,<:Tuple{<:OrbitalHamiltonian{O,T,B},<:RadialOrbital{T,B}}}
+const OrbitalHamiltonianMatrixVectorProduct{aO,bO,O,T,B<:Basis} =
+    Mul{<:Any,<:Tuple{<:OrbitalHamiltonian{aO,bO,O,T,B},<:RadialOrbital{T,B}}}
 
-const OrbitalHamiltonianMatrixMatrixProduct{O,T,B<:Basis} =
-    Mul{<:Any,<:Tuple{<:OrbitalHamiltonian{O,T,B},<:RadialOrbitals{T,B}}}
+const OrbitalHamiltonianMatrixMatrixProduct{aO,bO,O,T,B<:Basis} =
+    Mul{<:Any,<:Tuple{<:OrbitalHamiltonian{aO,bO,O,T,B},<:RadialOrbitals{T,B}}}
 
-Base.eltype(::OrbitalHamiltonianMatrixVectorProduct{O,T}) where {O,T} = T
+Base.eltype(::OrbitalHamiltonianMatrixVectorProduct{aO,bO,O,T}) where {aO,bO,O,T} = T
 
 function Base.copyto!(dest::RadialOrbital{T,B},
-                      matvec::OrbitalHamiltonianMatrixVectorProduct{O,T,B}) where {O,T,B<:Basis}
+                      matvec::OrbitalHamiltonianMatrixVectorProduct{aO,bO,O,T,B}) where {aO,bO,O,T,B<:Basis}
     axes(dest) == axes(matvec) || throw(DimensionMismatch("axes must be the same"))
     R′,v = dest.args
     hamiltonian,b = matvec.args
@@ -165,7 +165,7 @@ function Base.copyto!(dest::RadialOrbital{T,B},
 end
 
 function Base.copyto!(dest::RadialOrbitals{T,B},
-                      matvec::OrbitalHamiltonianMatrixMatrixProduct{O,T,B}) where {O,T,B<:Basis}
+                      matvec::OrbitalHamiltonianMatrixMatrixProduct{aO,bO,O,T,B}) where {aO,bO,O,T,B<:Basis}
     axes(dest) == axes(matvec) || throw(DimensionMismatch("axes must be the same"))
     R′,dv = dest.args
     hamiltonian,b = matvec.args
@@ -179,13 +179,13 @@ function Base.copyto!(dest::RadialOrbitals{T,B},
     dest
 end
 
-Base.similar(matvec::OrbitalHamiltonianMatrixVectorProduct{O,T,B}) where {O,T,B<:Basis} =
+Base.similar(matvec::OrbitalHamiltonianMatrixVectorProduct{aO,bO,O,T,B}) where {aO,bO,O,T,B<:Basis} =
     similar(matvec.args[2])
 
-LazyArrays.materialize(matvec::OrbitalHamiltonianMatrixVectorProduct{O,T,B}) where {O,T,B<:Basis,V} =
+LazyArrays.materialize(matvec::OrbitalHamiltonianMatrixVectorProduct{aO,bO,O,T,B}) where {aO,bO,O,T,B<:Basis,V} =
     copyto!(similar(matvec), matvec)
 
-function LazyArrays.materialize(matel::OrbitalHamiltonianMatrixElement{O,T,B}) where {O,T,B<:Basis}
+function LazyArrays.materialize(matel::OrbitalHamiltonianMatrixElement{aO,bO,O,T,B}) where {aO,bO,O,T,B<:Basis}
     a,op,b = matel.args
     materialize(applied(*, a, materialize(op⋆b)))
 end
@@ -235,7 +235,7 @@ function Base.copyto!(dest::M, hamiltonian::OrbitalHamiltonian) where {T,M<:Abst
     dest
 end
 
-function Base.similar(h::OrbitalHamiltonian{O,T,B}, ::Type{T}) where {O,T,B<:AbstractFiniteDifferences}
+function Base.similar(h::OrbitalHamiltonian{aO,bO,O,T,B}, ::Type{T}) where {aO,bO,O,T,B<:AbstractFiniteDifferences}
     R = h.R
     m = size(R,2)
     # TODO: This is only valid for RadialDifferences of
@@ -244,7 +244,7 @@ function Base.similar(h::OrbitalHamiltonian{O,T,B}, ::Type{T}) where {O,T,B<:Abs
     SymTridiagonal(o,0*o[2:end])
 end
 
-Base.similar(h::OrbitalHamiltonian{O,T,B}, ::Type{T}) where {O,T,B<:BasisOrRestricted{<:FEDVR}} =
+Base.similar(h::OrbitalHamiltonian{aO,bO,O,T,B}, ::Type{T}) where {aO,bO,O,T,B<:BasisOrRestricted{<:FEDVR}} =
     Matrix(undef, h.R)
 
 LazyArrays.materialize(h::OrbitalHamiltonian) =
@@ -257,11 +257,11 @@ LazyArrays.materialize(h::OrbitalHamiltonian) =
 
 Shift the [`OrbitalHamiltonian`](@ref) `h` by `λ`.
 """
-function Base.:(+)(h::OrbitalHamiltonian{O,T,B,OV,Proj,RT}, λ::UniformScaling) where {O,T,B,OV,Proj,RT}
+function Base.:(+)(h::OrbitalHamiltonian{aO,bO,O,T,B,OV,Proj,RT}, λ::UniformScaling) where {aO,bO,O,T,B,OV,Proj,RT}
     # The zeros designate that the shift is not to be weigthed by the mixing coefficients
     shift_term = OrbitalHamiltonianTerm(0, 0, one(T), ShiftTerm(λ),
-                                        Vector{OrbitalIntegral{<:Any,O,T,B,OV}}())
-    OrbitalHamiltonian{O,T,B,OV,Proj,RT}(h.R, vcat(h.terms, shift_term),
+                                        Vector{OrbitalIntegral{<:Any,aO,bO,T,B,OV}}())
+    OrbitalHamiltonian{aO,bO,O,T,B,OV,Proj,RT}(h.R, vcat(h.terms, shift_term),
                                          h.mix_coeffs, h.projector, h.orbital)
 end
 
@@ -281,8 +281,8 @@ Construct a `KrylovWrapper` such that `hamiltonian`, that acts on
 function spaces, can be used in a Krylov solver, which works with
 linear algebra vector spaces.
 """
-SCF.KrylovWrapper(hamiltonian::OrbitalHamiltonian{O,T,B,OV,Proj}) where {O,T,B,OV,Proj} =
-    KrylovWrapper{T,OrbitalHamiltonian{O,T,B,OV,Proj}}(hamiltonian)
+SCF.KrylovWrapper(hamiltonian::OrbitalHamiltonian{aO,bO,O,T,B,OV,Proj}) where {aO,bO,O,T,B,OV,Proj} =
+    KrylovWrapper{T,OrbitalHamiltonian{aO,bO,O,T,B,OV,Proj}}(hamiltonian)
 
 Base.size(hamiltonian::OrbitalHamiltonian, ::SCF.KrylovWrapper) =
     (size(hamiltonian.R,2),size(hamiltonian.R,2))

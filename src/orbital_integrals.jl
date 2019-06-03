@@ -7,7 +7,7 @@ Abstract type for integrals of rank `N` of orbitals, whose values need
 to be recomputed every time the orbitals are updated. Rank 0
 corresponds to a scalar value, rank 1 to a diagonal matrix, etc.
 """
-abstract type OrbitalIntegral{N,O<:AbstractOrbital,T,B<:Basis,OV<:RadialOrbital{T,B}} end
+abstract type OrbitalIntegral{N,aO<:AbstractOrbital,bO<:AbstractOrbital,T,B<:Basis,OV<:RadialOrbital{T,B}} end
 
 Base.iszero(::OrbitalIntegral) = false
 
@@ -20,15 +20,15 @@ Represents the orbital overlap integral `⟨a|b⟩`, for orbitals `a` and
 `b`, along with `view`s of their radial orbitals `av` and `bv` and the
 current `value` of the integral.
 """
-mutable struct OrbitalOverlapIntegral{O,T,B,OV} <: OrbitalIntegral{0,O,T,B,OV}
-    a::O
-    b::O
+mutable struct OrbitalOverlapIntegral{aO,bO,T,B,OV} <: OrbitalIntegral{0,aO,bO,T,B,OV}
+    a::aO
+    b::bO
     av::OV
     bv::OV
     value::T
 end
 
-function OrbitalOverlapIntegral(a::O, b::O, av::OV, bv::OV) where {O,T,B<:Basis,OV<:RadialOrbital{T,B}}
+function OrbitalOverlapIntegral(a::aO, b::bO, av::OV, bv::OV) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B}}
     oo = OrbitalOverlapIntegral(a, b, av, bv, zero(T))
     SCF.update!(oo)
     oo
@@ -61,20 +61,20 @@ corresponding radial orbitals). `V̂` is the resultant one-body
 potential formed, which can act on a third orbital and `poisson`
 computes the potential by solving Poisson's problem.
 """
-mutable struct HFPotential{kind,O,T,B<:Basis,OV,
-                           RO<:HFPotentialOperator{T,B},P<:PoissonProblem} <: OrbitalIntegral{1,O,T,B,OV}
+mutable struct HFPotential{kind,aO,bO,T,B<:Basis,OV,
+                           RO<:HFPotentialOperator{T,B},P<:PoissonProblem} <: OrbitalIntegral{1,aO,bO,T,B,OV}
     k::Int
-    a::O
-    b::O
+    a::aO
+    b::bO
     av::OV
     bv::OV
     V̂::RO
     poisson::P
 end
-HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV, V̂::RO, poisson::P) where {O,T,B<:Basis,OV<:RadialOrbital{T,B},RO<:RadialOperator{T,B},P} =
-    HFPotential{kind,O,T,B,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
+HFPotential(kind::Symbol, k::Int, a::aO, b::bO, av::OV, bv::OV, V̂::RO, poisson::P) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B},RO<:RadialOperator{T,B},P} =
+    HFPotential{kind,aO,bO,T,B,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
 
-function HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV) where {O,T,B<:Basis,OV<:RadialOrbital{T,B}}
+function HFPotential(kind::Symbol, k::Int, a::aO, b::bO, av::OV, bv::OV) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B}}
     R = av.args[1]
     D = Diagonal(Vector{T}(undef, size(R,2)))
     D.diag .= zero(T)
@@ -83,11 +83,11 @@ function HFPotential(kind::Symbol, k::Int, a::O, b::O, av::OV, bv::OV) where {O,
     update!(HFPotential(kind, k, a, b, av, bv, V̂, poisson))
 end
 
-Base.convert(::Type{HFPotential{kind,O₁,T,B,OV,RO}},
-             hfpotential::HFPotential{kind,O₂,T,B,OV,RO,P}) where {kind,O₁,O₂,T,B,OV,RO,P} =
-                 HFPotential{kind,O₁,T,B,OV,RO,P}(hfpotential.k,
-                                                  hfpotential.a, hfpotential.b, hfpotential.av, hfpotential.bv,
-                                                  hfpotential.V̂, hfpotential.poisson)
+Base.convert(::Type{HFPotential{kind,aO₁,bO₁,T,B,OV,RO}},
+             hfpotential::HFPotential{kind,aO₂,bO₂,T,B,OV,RO,P}) where {kind,aO₁,bO₁,aO₂,bO₂,T,B,OV,RO,P} =
+                 HFPotential{kind,aO₁,bO₁,T,B,OV,RO,P}(hfpotential.k,
+                                                       hfpotential.a, hfpotential.b, hfpotential.av, hfpotential.bv,
+                                                       hfpotential.V̂, hfpotential.poisson)
 
 # *** Direct potential
 
@@ -98,7 +98,7 @@ Special case of [`HFPotential`](@ref) for the direct interaction, in
 which case the potential formed from two orbitals can be precomputed
 before acting on a third orbital.
 """
-const DirectPotential{O,T,B,OV,RO,P} = HFPotential{:direct,O,T,B,OV,RO,P}
+const DirectPotential{aO,bO,T,B,OV,RO,P} = HFPotential{:direct,aO,bO,T,B,OV,RO,P}
 
 Base.show(io::IO, Y::DirectPotential) =
     write(io, "r⁻¹×Y", to_superscript(Y.k), "($(Y.a), $(Y.b))")
@@ -109,7 +109,7 @@ Base.show(io::IO, Y::DirectPotential) =
 Update the direct potential `p` by solving the Poisson problem with
 the current values of the orbitals forming the mutual density.
 """
-function SCF.update!(p::DirectPotential{O,T,B,OV,RO,P}; kwargs...) where {O,T,B,OV,RO,P}
+function SCF.update!(p::DirectPotential{aO,bO,T,B,OV,RO,P}; kwargs...) where {aO,bO,T,B,OV,RO,P}
     p.poisson(;kwargs...)
     p
 end
@@ -138,7 +138,7 @@ potential *cannot* be precomputed, but must be recomputed every time
 the operator is applied. This makes this potential expensive to handle
 and the number of times it is applied should be minimized, if possible.
 """
-const ExchangePotential{O,T,B,OV,RO,P} = HFPotential{:exchange,O,T,B,OV,RO,P}
+const ExchangePotential{aO,bO,T,B,OV,RO,P} = HFPotential{:exchange,aO,bO,T,B,OV,RO,P}
 
 Base.show(io::IO, Y::ExchangePotential) =
     write(io, "|$(Y.b)⟩r⁻¹×Y", to_superscript(Y.k), "($(Y.a), ●)")

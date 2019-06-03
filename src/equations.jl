@@ -53,13 +53,13 @@ Group all orbitals according to their symmetries, e.g. ℓ for
 multipliers are necessary to maintain orthogonality.
 """
 find_symmetries(orbitals::Vector{O}) where {O<:AbstractOrbital} =
-    merge!(vcat, [Dict(symmetry(orb) => [orb])
+    merge!(vcat, [Dict(symmetry(orb) => O[orb])
                   for orb in orbitals]...)
 
 # * Setup orbital equations
 
 function get_operator(::FieldFreeOneBodyHamiltonian, atom::Atom,
-                      orbital::O, source_orbital::O) where O
+                      orbital::aO, source_orbital::bO) where {aO,bO}
     orbital == source_orbital ||
         throw(ArgumentError("FieldFreeOneBodyHamiltonian not pertaining to $(orbital)"))
     AtomicOneBodyHamiltonian(atom, orbital)
@@ -67,29 +67,29 @@ end
 
 for (i,HT) in enumerate([:KineticEnergyHamiltonian, :PotentialEnergyHamiltonian])
     @eval begin
-        get_operator(::$HT, atom::Atom, orbital::O, ::O) where O =
+        get_operator(::$HT, atom::Atom, orbital::aO, ::bO) where {aO,bO} =
             AtomicOneBodyHamiltonian(one_body_hamiltonian(Tuple, atom, orbital)[$i],
                                      orbital)
     end
 end
 
 function get_operator(op::CoulombPotentialMultipole, atom::Atom,
-                      orbital::O, ::O) where O
+                      orbital::aO, ::bO) where {aO,bO}
     a,b = op.a[1],op.b[1]
     HFPotential(:exchange, op.o.k, a, a, view(atom, a), view(atom, a))
 end
 
 get_operator(top::IdentityOperator, atom::Atom,
-             ::O, source_orbital::O) where O =
+             ::aO, source_orbital::bO) where {aO,bO} =
                  SourceTerm(top, source_orbital, view(atom, source_orbital))
 
-function get_operator(top::Projector, ::Atom, orbital::O, source_orbital::O) where O
+function get_operator(top::Projector, ::Atom, orbital::aO, source_orbital::bO) where {aO,bO}
     orbital == source_orbital || return 0
     SourceTerm(IdentityOperator{1}(), source_orbital,
                top.ϕs[findfirst(isequal(source_orbital), top.orbitals)])
 end
 
-get_operator(op::QO, atom::Atom, ::O, ::O) where {QO,O} =
+get_operator(op::QO, atom::Atom, ::aO, ::bO) where {QO,aO,bO} =
     throw(ArgumentError("Unsupported operator $op"))
 
 """
@@ -106,7 +106,7 @@ function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSys
                                            verbosity=0) where {T,B,O}
     map(eqs.equations) do equation
         orbital = equation.orbital
-        terms = Vector{OrbitalHamiltonianTerm{O,T,B,RadialOrbital{T,B}}}()
+        terms = Vector{OrbitalHamiltonianTerm{O,O,T,B,RadialOrbital{T,B}}}()
 
         for (integral,equation_terms) in equation.terms
             if integral > 0
@@ -155,9 +155,10 @@ another value for `selector`.
 """
 function Base.diff(atom::Atom{T,B,O},
                    H::QuantumOperator=FieldFreeOneBodyHamiltonian()+CoulombInteraction();
-                   overlaps::Vector{OrbitalOverlap}=OrbitalOverlap[],
+                   overlaps::Vector{<:OrbitalOverlap}=OrbitalOverlap[],
                    selector::Function=cfg -> outsidecoremodel(cfg, atom.potential),
-                   observables::Dict{Symbol,Tuple{<:QuantumOperator,Bool}} = Dict(
+                   observables::Dict{Symbol,Tuple{<:QuantumOperator,Bool}} =
+                   Dict{Symbol,Tuple{<:QuantumOperator,Bool}}(
                        :total_energy => (H,false),
                        :double_counted_energy => (H,true),
                        :kinetic_energy => (KineticEnergyHamiltonian(),false),
@@ -202,10 +203,10 @@ function Base.diff(atom::Atom{T,B,O},
 
     observables = map(collect(pairs(observables))) do (k,(operator,double_counted))
         k => Observable(operator, atom, overlaps,
-                       integrals, integral_map,
-                       symmetries, selector,
-                       double_counted=double_counted)
-    end |> Dict
+                        integrals, integral_map,
+                        symmetries, selector,
+                        double_counted=double_counted)
+    end |> Dict{Symbol,Observable}
 
     AtomicEquations(atom, hfeqs, integrals, observables)
 end
