@@ -1,5 +1,7 @@
 module Atoms
 
+using Compat
+
 using AtomicLevels
 import AtomicLevels: AbstractOrbital, HalfInteger
 using AngularMomentumAlgebra
