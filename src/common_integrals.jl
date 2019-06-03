@@ -1,44 +1,41 @@
-"""
-    push_common_integral!(integrals, integral_map,
-                          integral, atom)
-
-Push the `integral` to `integrals`, constructing the correct
-[`OrbitalIntegral`](@ref) pertaining to the `atom`. Record the index
-of `integral` in `integrals` in the `integral_map`.
-"""
-function push_common_integral!(integrals::Vector{OrbitalIntegral},
-                               integral_map::Dict{Any,Int},
-                               integral, atom::A) where {A<:Atom}
-    if integral isa OrbitalOverlap
-        a,b = integral.a,integral.b
-        push!(integrals, OrbitalOverlapIntegral(a, b, view(atom, a), view(atom, b)))
-    elseif integral isa CoulombPotentialMultipole
-        a,b = integral.a[1],integral.b[1]
-        k = integral.o.k
-        # All CoulombPotentialMultipoles that occur as common
-        # integrals in an equation are direct potentials acting on
-        # either the orbital, or on a source orbital coupled
-        # through configuration interaction.
-        push!(integrals, HFPotential(:direct, k, a, b, view(atom, a), view(atom, b)))
-    else
-        throw(ArgumentError("$(integral) of type $(typeof(integral)) not yet supported"))
-    end
-    integral_map[integral] = length(integrals)
-end
-
-function append_common_integrals!(integrals::Vector{OrbitalIntegral},
-                                  integral_map::Dict{Any,Int},
-                                  atom::A, equation_integrals) where {A<:Atom}
-    for integral in equation_integrals
-        integral ∈ keys(integral_map) && continue
-        push_common_integral!(integrals, integral_map, integral, atom)
-    end
-end
-
-get_integral(integrals::Vector{OrbitalIntegral},
-             integral_map::Dict{Any,Int},
-             symbolic_integral) =
+get_integral(integrals::Vector, integral_map::Dict, symbolic_integral) =
     integrals[integral_map[symbolic_integral]]
+
+function get_or_create_integral!(integrals, integral_map, symbolic_integral, atom)
+    if symbolic_integral ∈ keys(integral_map)
+        get_integral(integrals, integral_map, symbolic_integral)
+    else
+        i = create_integral(symbolic_integral, atom, integrals, integral_map)
+        isnothing(i) && return
+        push!(integrals, i)
+        integral_map[symbolic_integral] = length(integrals)
+        i
+    end
+end
+
+function create_integral(symbolic_integral::OrbitalOverlap, atom::Atom, integrals, integral_map)
+    a,b = symbolic_integral.a,symbolic_integral.b
+    OrbitalOverlapIntegral(a, b, view(atom, a), view(atom, b))
+end
+
+function create_integral(symbolic_integral::CoulombPotentialMultipole, atom::Atom, integrals, integral_map)
+    a,b = symbolic_integral.a[1],symbolic_integral.b[1]
+    k = symbolic_integral.o.k
+    # All CoulombPotentialMultipoles that occur as common
+    # integrals in an equation are direct potentials acting on
+    # either the orbital, or on a source orbital coupled
+    # through configuration interaction.
+    HFPotential(:direct, k, a, b, view(atom, a), view(atom, b))
+end
+
+create_integral(symbolic_integral, atom::Atom, integrals, integral_map) =
+        throw(ArgumentError("$(symbolic_integral) of type $(typeof(symbolic_integral)) not yet supported"))
+
+function append_common_integrals!(integrals::Vector, integral_map::Dict, atom::Atom, equation_integrals)
+    for symbolic_integral in equation_integrals
+        get_or_create_integral!(integrals, integral_map, symbolic_integral, atom)
+    end
+end
 
 """
     pushterms!(terms, operator, equation_terms,
