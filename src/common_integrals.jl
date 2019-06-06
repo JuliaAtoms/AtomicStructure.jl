@@ -15,7 +15,7 @@ end
 
 function create_integral(symbolic_integral::OrbitalOverlap, atom::Atom, integrals, integral_map)
     a,b = symbolic_integral.a,symbolic_integral.b
-    OrbitalOverlapIntegral(a, b, view(atom, a), view(atom, b))
+    OrbitalOverlapIntegral(a, b, atom)
 end
 
 function create_integral(symbolic_integral::CoulombPotentialMultipole, atom::Atom, integrals, integral_map)
@@ -25,7 +25,7 @@ function create_integral(symbolic_integral::CoulombPotentialMultipole, atom::Ato
     # integrals in an equation are direct potentials acting on
     # either the orbital, or on a source orbital coupled
     # through configuration interaction.
-    HFPotential(:direct, k, a, b, view(atom, a), view(atom, b))
+    HFPotential(:direct, k, a, b, atom)
 end
 
 function create_integral(symbolic_integral::OrbitalMatrixElement{2,<:SpinOrbital,CoulombInteractionMultipole,<:SpinOrbital},
@@ -43,7 +43,7 @@ function create_integral(symbolic_integral::OrbitalMatrixElement{2,<:SpinOrbital
     # unity), since we varied a single OrbitalMatrixElement with
     # respect to one of the orbitals.
     coeff = ∂I.factor.coeff
-    OperatorMatrixElement(a, b, view(atom, a), view(atom, b), hfpotential.V̂, coeff)
+    OperatorMatrixElement(a, b, hfpotential.V̂, atom, coeff)
 end
 
 create_integral(symbolic_integral, atom::Atom, integrals, integral_map) =
@@ -66,15 +66,15 @@ multiplied by an overall factor given by expression and multipole
 expansions. `integrals` contain common [`OrbitalIntegral`](@ref)s
 and `integral_map` maps from `symbolic_integrals` to `integrals`.
 """
-function pushterms!(terms::Vector{<:OrbitalHamiltonianTerm{O,O,T,B,OV}},
+function pushterms!(terms::Vector{<:OrbitalHamiltonianTerm{aO,bO,T}},
                     operator::QO,
                     equation_terms::Vector,
-                    integrals::Vector{OrbitalIntegral},
+                    integrals::Vector,
                     integral_map::Dict{Any,Int},
-                    symbolic_integrals) where {O,T,B,OV,QO}
+                    symbolic_integrals) where {aO,bO,T,QO}
     for eq_term in equation_terms
         push!(terms,
-              OrbitalHamiltonianTerm{O,O,T,B,OV,QO}(
+              OrbitalHamiltonianTerm{aO,bO,T,QO}(
                   eq_term.i, eq_term.j, T(eq_term.coeff),
                   operator,
                   [get_integral(integrals, integral_map, symbolic_integrals[i])

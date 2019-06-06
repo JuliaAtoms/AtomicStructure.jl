@@ -22,7 +22,7 @@ integrals to [`OrbitalIntegral`](@ref)s.
 """
 function Observable(operator::QuantumOperator, atom::A,
                     overlaps::Vector{<:OrbitalOverlap},
-                    integrals::Vector{OrbitalIntegral},
+                    integrals::Vector,
                     integral_map::Dict{Any,Int},
                     symmetries::Dict,
                     selector::Function;

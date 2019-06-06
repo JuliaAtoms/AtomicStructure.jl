@@ -24,7 +24,7 @@ end
 SCF.hamiltonian(hfeq::AtomicOrbitalEquation) = hfeq.hamiltonian
 
 function AtomicOrbitalEquation(atom::A, equation::Equation, orbital::O,
-                               terms::Vector{<:OrbitalHamiltonianTerm{<:O,<:O,T,B}},
+                               terms::Vector{<:OrbitalHamiltonianTerm{<:O,<:O,T}},
                                symmetry_orbitals::Vector{<:O}) where {T,
                                                                       B<:Basis,
                                                                       O<:AbstractOrbital,

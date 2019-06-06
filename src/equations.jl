@@ -25,9 +25,12 @@ Base.iterate(iter::AtomicEquations, args...) = iterate(iter.equations, args...)
 
 Recompute all integrals using the current values for the radial orbitals.
 """
-SCF.update!(equations::AtomicEquations; kwargs...) =
-    foreach(integral -> SCF.update!(integral; kwargs...),
+function SCF.update!(equations::AtomicEquations, atom::Atom; kwargs...)
+    foreach(integral -> SCF.update!(integral, atom; kwargs...),
             equations.integrals)
+    foreach(eq -> update!(SCF.hamiltonian(eq), atom; kwargs...),
+            equations.equations)
+end
 
 """
     energy_matrix!(H, hfeqs::AtomicEquations[, which=:energy])
@@ -76,18 +79,18 @@ end
 function get_operator(op::CoulombPotentialMultipole, atom::Atom,
                       orbital::aO, ::bO) where {aO,bO}
     a,b = op.a[1],op.b[1]
-    HFPotential(:exchange, op.o.k, a, a, view(atom, a), view(atom, a))
+    HFPotential(:exchange, op.o.k, a, a, atom)
 end
 
 get_operator(top::IdentityOperator, atom::Atom,
              ::aO, source_orbital::bO) where {aO,bO} =
-                 SourceTerm(top, source_orbital, view(atom, source_orbital))
+                 SourceTerm(top, source_orbital, atom[source_orbital])
 
-function get_operator(top::Projector, ::Atom, orbital::aO, source_orbital::bO) where {aO,bO}
-    orbital == source_orbital || return 0
-    SourceTerm(IdentityOperator{1}(), source_orbital,
-               top.ϕs[findfirst(isequal(source_orbital), top.orbitals)])
-end
+# function get_operator(top::Projector, ::Atom, orbital::aO, source_orbital::bO) where {aO,bO}
+#     orbital == source_orbital || return 0
+#     SourceTerm(IdentityOperator{1}(), source_orbital,
+#                top.ϕs[findfirst(isequal(source_orbital), top.orbitals)])
+# end
 
 get_operator(op::QO, atom::Atom, ::aO, ::bO) where {QO,aO,bO} =
     throw(ArgumentError("Unsupported operator $op"))
@@ -100,13 +103,13 @@ For each variationally derived orbital equation in `eqs`, generate the
 corresponding [`AtomicOrbitalEquation`](@ref).
 """
 function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSystem,
-                                           integrals::Vector{OrbitalIntegral},
+                                           integrals::Vector,
                                            integral_map::Dict{Any,Int},
                                            symmetries::Dict;
                                            verbosity=0) where {T,B,O}
     map(eqs.equations) do equation
         orbital = equation.orbital
-        terms = Vector{OrbitalHamiltonianTerm{O,O,T,B,RadialOrbital{T,B}}}()
+        terms = Vector{OrbitalHamiltonianTerm{O,O,T}}()
 
         for (integral,equation_terms) in equation.terms
             if integral > 0

@@ -7,7 +7,7 @@ Abstract type for integrals of rank `N` of orbitals, whose values need
 to be recomputed every time the orbitals are updated. Rank 0
 corresponds to a scalar value, rank 1 to a diagonal matrix, etc.
 """
-abstract type OrbitalIntegral{N,aO<:AbstractOrbital,bO<:AbstractOrbital,T,B<:Basis,OV<:RadialOrbital{T,B}} end
+abstract type OrbitalIntegral{N,aO<:AbstractOrbital,bO<:AbstractOrbital,T} end
 
 Base.iszero(::OrbitalIntegral) = false
 
@@ -20,17 +20,15 @@ Represents the orbital overlap integral `⟨a|b⟩`, for orbitals `a` and
 `b`, along with `view`s of their radial orbitals `av` and `bv` and the
 current `value` of the integral.
 """
-mutable struct OrbitalOverlapIntegral{aO,bO,T,B,OV} <: OrbitalIntegral{0,aO,bO,T,B,OV}
+mutable struct OrbitalOverlapIntegral{aO,bO,T} <: OrbitalIntegral{0,aO,bO,T}
     a::aO
     b::bO
-    av::OV
-    bv::OV
     value::T
 end
 
-function OrbitalOverlapIntegral(a::aO, b::bO, av::OV, bv::OV) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B}}
-    oo = OrbitalOverlapIntegral(a, b, av, bv, zero(T))
-    SCF.update!(oo)
+function OrbitalOverlapIntegral(a::aO, b::bO, atom::Atom{T}) where {aO,bO,T}
+    oo = OrbitalOverlapIntegral(a, b, zero(T))
+    SCF.update!(oo, atom)
     oo
 end
 
@@ -42,8 +40,8 @@ Base.show(io::IO, oo::OrbitalOverlapIntegral) =
 
 Update the value of the integral `oo`.
 """
-function SCF.update!(oo::OrbitalOverlapIntegral; kwargs...)
-    oo.value = oo.av'oo.bv
+function SCF.update!(oo::OrbitalOverlapIntegral, atom::Atom; kwargs...)
+    oo.value = view(atom, oo.a)'view(atom, oo.b)
 end
 
 integral_value(oo::OrbitalOverlapIntegral) = oo.value
@@ -51,35 +49,32 @@ integral_value(oo::OrbitalOverlapIntegral) = oo.value
 # ** Operator matrix element
 
 """
-    OperatorMatrixElement(a, b, av, bv, Â, coeff, value)
+    OperatorMatrixElement(a, b, Â, coeff, value)
 
 Represents the matrix element `coeff*⟨a|Â|b⟩`, for the operator `Â`
-and the orbitals `a` and `b`, along with `view`s of their radial
-orbitals `av` and `bv` and the current `value` of the
+and the orbitals `a` and `b`, along with the current `value` of the
 integral. Typically, `Â` is a radial part of an operator and `coeff`
 is the associated angular coefficient; `coeff` can be of any type
 convertible to a scalar.
 """
-mutable struct OperatorMatrixElement{aO,bO,T,B,OV,RO<:RadialOperator,Coeff} <: OrbitalIntegral{0,aO,bO,T,B,OV}
+mutable struct OperatorMatrixElement{aO,bO,RO,T,Coeff} <: OrbitalIntegral{0,aO,bO,T}
     a::aO
     b::bO
-    av::OV
-    bv::OV
     Â::RO
     coeff::Coeff
     value::T
-    function OperatorMatrixElement(a::aO, b::bO, av::OV, bv::OV, Â::RO, coeff) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B},
-                                                                                      RO<:RadialOperator}
-        ome = new{aO,bO,T,B,OV,RO,typeof(coeff)}(a, b, av, bv, Â, coeff, zero(T))
-        SCF.update!(ome)
+    function OperatorMatrixElement(a::aO, b::bO, Â::RO, atom::Atom{T}, coeff) where {aO,bO,T,
+                                                                                     RO<:RadialOperator}
+        ome = new{aO,bO,RO,T,typeof(coeff)}(a, b, Â, coeff, zero(T))
+        SCF.update!(ome, atom)
         ome
     end
 end
 
-function OperatorMatrixElement(a::aO, b::bO, av::OV, bv::OV, A::M, coeff) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B},
-                                                                                 M<:AbstractMatrix}
-    R = first(av.args)
-    OperatorMatrixElement(a, b, av, bv, applied(*,R,A,R'), coeff)
+function OperatorMatrixElement(a::aO, b::bO, A::M, atom::Atom{T}, coeff) where {aO,bO,T,
+                                                                                M<:AbstractMatrix}
+    R = radial_basis(atom)
+    OperatorMatrixElement(a, b, applied(*,R,A,R'), atom, coeff)
 end
 
 function Base.show(io::IO, ome::OperatorMatrixElement)
@@ -88,14 +83,16 @@ function Base.show(io::IO, ome::OperatorMatrixElement)
     write(io, "|$(ome.b)⟩")
 end
 
-function SCF.update!(ome::OperatorMatrixElement{aO,bO,T}; kwargs...) where {aO,bO,T}
+function SCF.update!(ome::OperatorMatrixElement{aO,bO,RO,T}, atom::Atom; kwargs...) where {aO,bO,RO,T}
     # NB: It is assumed that ome.Â, if necessary, is updated /before/
     # SCF.update!(ome) is called.
     #
     # TODO: This is not particularly efficient, since it allocates a
     # temporary vector; rewrite using applied(*, ...).
-    ome.value = convert(T,ome.coeff)*first(ome.av' * (materialize(ome.Â)*ome.bv))
+    ome.value = convert(T,ome.coeff)*first(view(atom,ome.a)' * (materialize(ome.Â)*view(atom,ome.b)))
 end
+
+integral_value(ome::OperatorMatrixElement) = ome.value
 
 # ** Hartree–Fock potentials
 
@@ -110,8 +107,9 @@ corresponding radial orbitals). `V̂` is the resultant one-body
 potential formed, which can act on a third orbital and `poisson`
 computes the potential by solving Poisson's problem.
 """
-mutable struct HFPotential{kind,aO,bO,T,B<:Basis,OV,
-                           RO<:HFPotentialOperator{T,B},P<:PoissonProblem} <: OrbitalIntegral{1,aO,bO,T,B,OV}
+mutable struct HFPotential{kind,aO,bO,T,
+                           OV<:RadialOrbital,
+                           RO<:HFPotentialOperator{T},P<:PoissonProblem} <: OrbitalIntegral{1,aO,bO,T}
     k::Int
     a::aO
     b::bO
@@ -120,23 +118,25 @@ mutable struct HFPotential{kind,aO,bO,T,B<:Basis,OV,
     V̂::RO
     poisson::P
 end
-HFPotential(kind::Symbol, k::Int, a::aO, b::bO, av::OV, bv::OV, V̂::RO, poisson::P) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B},RO<:RadialOperator{T,B},P} =
-    HFPotential{kind,aO,bO,T,B,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
+HFPotential(kind::Symbol, k::Int, a::aO, b::bO, av::OV, bv::OV, V̂::RO, poisson::P) where {aO,bO,T,OV,RO<:RadialOperator{T},P} =
+    HFPotential{kind,aO,bO,T,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
 
-function HFPotential(kind::Symbol, k::Int, a::aO, b::bO, av::OV, bv::OV) where {aO,bO,T,B<:Basis,OV<:RadialOrbital{T,B}}
+function HFPotential(kind::Symbol, k::Int, a::aO, b::bO, atom::Atom{T}) where {aO,bO,T}
+    av, bv = view(atom, a), view(atom, b)
     R = av.args[1]
     D = Diagonal(Vector{T}(undef, size(R,2)))
     D.diag .= zero(T)
     V̂ = applied(*, R, D, R')
     poisson = PoissonProblem(k, av, bv, w′=applied(*, R, D.diag))
-    update!(HFPotential(kind, k, a, b, av, bv, V̂, poisson))
+    update!(HFPotential(kind, k, a, b, av, bv, V̂, poisson), atom)
 end
 
-Base.convert(::Type{HFPotential{kind,aO₁,bO₁,T,B,OV,RO}},
-             hfpotential::HFPotential{kind,aO₂,bO₂,T,B,OV,RO,P}) where {kind,aO₁,bO₁,aO₂,bO₂,T,B,OV,RO,P} =
-                 HFPotential{kind,aO₁,bO₁,T,B,OV,RO,P}(hfpotential.k,
-                                                       hfpotential.a, hfpotential.b, hfpotential.av, hfpotential.bv,
-                                                       hfpotential.V̂, hfpotential.poisson)
+Base.convert(::Type{HFPotential{kind,aO₁,bO₁,T,OV,RO,P}},
+             hfpotential::HFPotential{kind,aO₂,bO₂,T,OV,RO,P}) where {kind,aO₁,bO₁,aO₂,bO₂,T,OV,RO,P} =
+                 HFPotential{kind,aO₁,bO₁,T,OV,RO,P}(hfpotential.k,
+                                                     hfpotential.a, hfpotential.b,
+                                                     hfpotential.av, hfpotential.bv,
+                                                     hfpotential.V̂, hfpotential.poisson)
 
 # *** Direct potential
 
@@ -147,7 +147,7 @@ Special case of [`HFPotential`](@ref) for the direct interaction, in
 which case the potential formed from two orbitals can be precomputed
 before acting on a third orbital.
 """
-const DirectPotential{aO,bO,T,B,OV,RO,P} = HFPotential{:direct,aO,bO,T,B,OV,RO,P}
+const DirectPotential{aO,bO,T,OV,RO,P} = HFPotential{:direct,aO,bO,T,OV,RO,P}
 
 Base.show(io::IO, Y::DirectPotential) =
     write(io, "r⁻¹×Y", to_superscript(Y.k), "($(Y.a), $(Y.b))")
@@ -158,8 +158,8 @@ Base.show(io::IO, Y::DirectPotential) =
 Update the direct potential `p` by solving the Poisson problem with
 the current values of the orbitals forming the mutual density.
 """
-function SCF.update!(p::DirectPotential{aO,bO,T,B,OV,RO,P}; kwargs...) where {aO,bO,T,B,OV,RO,P}
-    p.poisson(;kwargs...)
+function SCF.update!(p::DirectPotential{aO,bO,T,OV,RO,P}, atom::Atom; kwargs...) where {aO,bO,T,OV,RO,P}
+    p.poisson(view(atom, p.a) .⋆ view(atom, p.b); kwargs...)
     p
 end
 
@@ -187,14 +187,16 @@ potential *cannot* be precomputed, but must be recomputed every time
 the operator is applied. This makes this potential expensive to handle
 and the number of times it is applied should be minimized, if possible.
 """
-const ExchangePotential{aO,bO,T,B,OV,RO,P} = HFPotential{:exchange,aO,bO,T,B,OV,RO,P}
+const ExchangePotential{aO,bO,T,OV,RO,P} = HFPotential{:exchange,aO,bO,T,OV,RO,P}
 
 Base.show(io::IO, Y::ExchangePotential) =
     write(io, "|$(Y.b)⟩r⁻¹×Y", to_superscript(Y.k), "($(Y.a), ●)")
 
-# We can't update the exchange potentials, since they depend on the
-# orbital they act on.
-SCF.update!(p::ExchangePotential; kwargs...) = p
+function SCF.update!(p::ExchangePotential, atom::Atom; kwargs...)
+    p.av = view(atom, p.a)
+    p.bv = view(atom, p.b)
+    p
+end
 
 """
     materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest})
@@ -206,7 +208,7 @@ the mutual density) and `x` and `y` are [`RadialOrbital`](@ref)s.
 """
 function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest}) where {T,Source,Dest}
     p = ma.A
-    p.poisson(ma.B) # Form exchange potential from conj(p.a)*b
+    p.poisson(p.av .⋆ ma.B) # Form exchange potential from conj(p.a)*b
     # Act with the exchange potential on p.bv
     materialize!(MulAdd(ma.α, p.V̂.args[2], p.bv.args[2],
                         ma.β, ma.C.args[2]))
@@ -229,6 +231,9 @@ struct SourceTerm{QO,O,OV}
 end
 
 Base.iszero(::SourceTerm) = false
+
+update!(st::SourceTerm, atom::Atom) =
+    copyto!(st.ov, view(atom, st.source_orbital))
 
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:SourceTerm, Source, Dest}) where {T,Source,Dest} =
     materialize!(MulAdd(ma.α, ma.A.operator, ma.A.ov, ma.β, ma.C))
