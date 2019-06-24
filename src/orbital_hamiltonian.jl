@@ -18,6 +18,15 @@ struct OrbitalHamiltonianTerm{aO,bO,T,QO}
     A::QO
     integrals::Vector{OrbitalIntegral{<:Any,aO,bO,T}}
 end
+
+function Base.show(io::IO, t::OrbitalHamiltonianTerm)
+    write(io, "OrbitalHamiltonianTerm at [$(t.i),$(t.j)]: ")
+    show(io, t.A)
+    write(io, " × ($(t.coeff)) (#∫: $(length(t.integrals)))")
+end
+
+Base.show(io::IO, ::MIME"text/plain", t::OrbitalHamiltonianTerm) = show(io, t)
+
 """
     coefficient(term::OrbitalHamiltonianTerm)
 

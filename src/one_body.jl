@@ -106,6 +106,8 @@ Base.zero(ĥ::AtomicOneBodyHamiltonian) =
 
 SCF.update!(::AtomicOneBodyHamiltonian, ::Atom) = nothing
 
+matrix(ĥ::AtomicOneBodyHamiltonian) = matrix(ĥ.op)
+
 """
     ĥ ⋆ ϕ
 

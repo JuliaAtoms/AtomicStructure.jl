@@ -243,6 +243,8 @@ struct SourceTerm{QO,O,OV}
     ov::OV
 end
 
+Base.show(io::IO, st::SourceTerm) = write(io, "SourceTerm($(st.operator)|$(st.source_orbital)⟩)")
+
 Base.iszero(::SourceTerm) = false
 Base.similar(st::SourceTerm) = similar(st.ov)
 
