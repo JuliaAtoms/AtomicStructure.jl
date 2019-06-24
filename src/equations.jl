@@ -140,8 +140,11 @@ function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSys
     end
 end
 
+atomic_hamiltonian(::Atom{T,B,O,TC,CV,P}) where {T,B,O,TC,CV,P<:AbstractPotential} =
+    FieldFreeOneBodyHamiltonian() + CoulombInteraction()
+
 """
-    diff(atom[, H]; overlaps=[], selector=outsidecoremodel, verbosity=0)
+    diff(atom; H=atomic_hamiltonian(atom), overlaps=[], selector=outsidecoremodel, verbosity=0)
 
 Differentiate the energy expression of the Hamiltonian `H` associated
 with the `atom`'s configurations(s) with respect to the atomic
@@ -156,8 +159,8 @@ modelled by `atom.potential` of each configuration are considered for
 generating the energy expression, this can be changed by choosing
 another value for `selector`.
 """
-function Base.diff(atom::Atom{T,B,O},
-                   H::QuantumOperator=FieldFreeOneBodyHamiltonian()+CoulombInteraction();
+function Base.diff(atom::Atom{T,B,O};
+                   H::QuantumOperator=atomic_hamiltonian(atom),
                    overlaps::Vector{<:OrbitalOverlap}=OrbitalOverlap[],
                    selector::Function=cfg -> outsidecoremodel(cfg, atom.potential),
                    observables::Dict{Symbol,Tuple{<:QuantumOperator,Bool}} =

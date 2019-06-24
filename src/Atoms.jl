@@ -5,6 +5,7 @@ using Compat
 using AtomicLevels
 import AtomicLevels: AbstractOrbital, HalfInteger
 using AngularMomentumAlgebra
+import AngularMomentumAlgebra: jmⱼ
 using EnergyExpressions
 import EnergyExpressions: NBodyMatrixElement, OrbitalMatrixElement,
     orbital_equation, MCEquationSystem, QuantumOperator
@@ -28,9 +29,11 @@ using ArnoldiMethod
 using SCF
 import SCF: norm_rot!, update!, KrylovWrapper, print_block
 using CoulombIntegrals
+import CoulombIntegrals: locs
 using IterativeFactorizations
 
 using AtomicPotentials
+using PseudoPotentials
 
 using Formatting
 using UnicodeFun
@@ -60,6 +63,7 @@ include("orbital_hamiltonian.jl")
 include("orbital_equation.jl")
 include("common_integrals.jl")
 include("observables.jl")
+include("spin_orbit.jl")
 include("equations.jl")
 
 end # module
