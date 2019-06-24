@@ -109,7 +109,7 @@ computes the potential by solving Poisson's problem.
 """
 mutable struct HFPotential{kind,aO,bO,T,
                            OV<:RadialOrbital,
-                           RO<:HFPotentialOperator{T},P<:PoissonProblem} <: OrbitalIntegral{1,aO,bO,T}
+                           RO<:HFPotentialOperator{T},P<:AbstractPoissonProblem} <: OrbitalIntegral{1,aO,bO,T}
     k::Int
     a::aO
     b::bO
@@ -121,13 +121,19 @@ end
 HFPotential(kind::Symbol, k::Int, a::aO, b::bO, av::OV, bv::OV, V̂::RO, poisson::P) where {aO,bO,T,OV,RO<:RadialOperator{T},P} =
     HFPotential{kind,aO,bO,T,OV,RO,P}(k, a, b, av, bv, V̂, poisson)
 
-function HFPotential(kind::Symbol, k::Int, a::aO, b::bO, atom::Atom{T}) where {aO,bO,T}
+get_poisson(::CoulombInteraction{Nothing}, args...; kwargs...) =
+    PoissonProblem(args...; kwargs...)
+
+get_poisson(g::CoulombInteraction{<:AbstractQuasiMatrix}, args...; kwargs...) =
+    AsymptoticPoissonProblem(args..., g.o; kwargs...)
+
+function HFPotential(kind::Symbol, k::Int, a::aO, b::bO, atom::Atom{T}, g::CoulombInteraction) where {aO,bO,T}
     av, bv = view(atom, a), view(atom, b)
     R = av.args[1]
     D = Diagonal(Vector{T}(undef, size(R,2)))
     D.diag .= zero(T)
     V̂ = applied(*, R, D, R')
-    poisson = PoissonProblem(k, av, bv, w′=applied(*, R, D.diag))
+    poisson = get_poisson(g, k, av, bv, w′=applied(*, R, D.diag))
     update!(HFPotential(kind, k, a, b, av, bv, V̂, poisson), atom)
 end
 

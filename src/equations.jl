@@ -79,7 +79,7 @@ end
 function get_operator(op::CoulombPotentialMultipole, atom::Atom,
                       orbital::aO, ::bO) where {aO,bO}
     a,b = op.a[1],op.b[1]
-    HFPotential(:exchange, op.o.k, a, a, atom)
+    HFPotential(:exchange, op.o.k, a, a, atom, op.o.g)
 end
 
 get_operator(top::IdentityOperator, atom::Atom,

@@ -20,15 +20,15 @@ end
 
 function create_integral(symbolic_integral::CoulombPotentialMultipole, atom::Atom, integrals, integral_map)
     a,b = symbolic_integral.a[1],symbolic_integral.b[1]
-    k = symbolic_integral.o.k
+    k,g = symbolic_integral.o.k,symbolic_integral.o.g
     # All CoulombPotentialMultipoles that occur as common
     # integrals in an equation are direct potentials acting on
     # either the orbital, or on a source orbital coupled
     # through configuration interaction.
-    HFPotential(:direct, k, a, b, atom)
+    HFPotential(:direct, k, a, b, atom, g)
 end
 
-function create_integral(symbolic_integral::OrbitalMatrixElement{2,<:SpinOrbital,CoulombInteractionMultipole,<:SpinOrbital},
+function create_integral(symbolic_integral::OrbitalMatrixElement{2,<:SpinOrbital,<:CoulombInteractionMultipole,<:SpinOrbital},
                          atom::Atom, integrals, integral_map)
     a,b = symbolic_integral.a[1],symbolic_integral.b[1]
     ∂I = diff(symbolic_integral, conj(a))
