@@ -70,8 +70,7 @@ mutable struct OperatorMatrixElement{aO,bO,RO,T,Coeff} <: OrbitalIntegral{0,aO,b
     Â::RO
     coeff::Coeff
     value::T
-    function OperatorMatrixElement(a::aO, b::bO, Â::RO, atom::Atom{T}, coeff) where {aO,bO,T,
-                                                                                     RO<:RadialOperator}
+    function OperatorMatrixElement(a::aO, b::bO, Â::RO, atom::Atom{T}, coeff) where {aO,bO,T,RO}
         ome = new{aO,bO,RO,T,typeof(coeff)}(a, b, Â, coeff, zero(T))
         SCF.update!(ome, atom)
         ome
