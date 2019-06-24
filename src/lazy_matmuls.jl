@@ -18,6 +18,28 @@ function LazyArrays.materialize!(ma::MulAdd{<:LazyArrays.DiagonalLayout, <:Any, 
     ma.C
 end
 
+function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T,
+                                            <:RadialOperator{<:Any, <:Any, <:Diagonal},
+                                            Source, Dest}) where {T,Source<:RadialOrbital,Dest<:RadialOrbital}
+    A = ma.A.args[2]
+    B = ma.B.args[2]
+    C = ma.C.args[2]
+
+    mA, nA = size(A)
+    mB = length(B)
+    nA == mB || throw(DimensionMismatch("Dimensions must match"))
+    length(C) == mA || throw(DimensionMismatch("Dimensions must match"))
+
+    lmul!(ma.β, C)
+    (nA == 0 || mB == 0) && return ma.C
+
+    @inbounds for k = 1:mB
+        C[k] += ma.α * A.diag[k] * B[k]
+    end
+
+    ma.C
+end
+
 function LazyArrays.default_blasmul!(α, A::Diagonal, B::AbstractVector, β, C::AbstractVector)
     mA, nA = size(A)
     mB = length(B)
@@ -60,4 +82,16 @@ function LazyArrays.default_blasmul!(α, A::SymTridiagonal, B::AbstractVector, �
     end
 
     C
+end
+
+function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T,
+                                            <:RadialOperator{<:Any, <:Any, <:SymTridiagonal},
+                                            Source, Dest}) where {T,Source<:RadialOrbital,Dest<:RadialOrbital}
+    A = ma.A.args[2]
+    B = ma.B.args[2]
+    C = ma.C.args[2]
+
+    LazyArrays.default_blasmul!(ma.α, A, B, ma.β, C)
+
+    ma.C
 end
