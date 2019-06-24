@@ -85,6 +85,28 @@ end
 get_operator(top::IdentityOperator, atom::Atom,
              ::aO, source_orbital::bO) where {aO,bO} =
                  SourceTerm(top, source_orbital, atom[source_orbital])
+SCF.update!(::IdentityOperator, ::Atom; kwargs...) = nothing
+
+function get_operator(op::RadialOperator, atom::Atom, orbital::aO, source_orbital::bO) where {aO, bO}
+    if orbital == source_orbital
+        # In this case, the operator is diagonal in orbital space,
+        # i.e. it maps an orbital onto itself.
+        op
+    else
+        # In this case, the operator maps from source_orbital to
+        # orbital.
+        SourceTerm(op, source_orbital, atom[source_orbital])
+    end
+end
+
+function get_operator(M::AbstractMatrix, atom::Atom, a::aO, b::bO) where {aO, bO}
+    R = radial_basis(atom)
+    get_operator(R*M*R', atom, a, b)
+end
+
+# RadialOperators (which are built from matrices), are independent of
+# the atom.
+SCF.update!(::RadialOperator, ::Atom; kwargs...) = nothing
 
 # function get_operator(top::Projector, ::Atom, orbital::aO, source_orbital::bO) where {aO,bO}
 #     orbital == source_orbital || return 0
@@ -114,8 +136,16 @@ function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSys
         for (integral,equation_terms) in equation.terms
             if integral > 0
                 operator = get_integral(integrals, integral_map, eqs.integrals[integral])
-                pushterms!(terms, operator, equation_terms,
+                # We first add all terms with operators diagonal in
+                # orbital space.
+                pushterms!(terms, operator, filter(t -> t.source_orbital == orbital, equation_terms),
                            integrals, integral_map, eqs.integrals)
+                # We then add those terms are that are off-diagonal in
+                # orbital space.
+                for t in filter(t -> t.source_orbital ≠ orbital, equation_terms)
+                    pushterms!(terms, SourceTerm(operator, t.source_orbital, atom[t.source_orbital]), [t],
+                               integrals, integral_map, eqs.integrals)
+                end
             else
                 for t in equation_terms
                     operator = get_operator(t.operator, atom, orbital, t.source_orbital)

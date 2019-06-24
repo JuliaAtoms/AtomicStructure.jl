@@ -45,6 +45,7 @@ function coefficient(term::OrbitalHamiltonianTerm, c::Vector)
     conj(c[term.i])*c[term.j]*coeff
 end
 
+update!(::AbstractMatrix, ::Atom) = nothing
 update!(t::OrbitalHamiltonianTerm, atom::Atom) = update!(t.A, atom)
 
 """
@@ -75,8 +76,10 @@ Base.axes(hamiltonian::OrbitalHamiltonian, i) =
 
 Base.eltype(hamiltonian::OrbitalHamiltonian{aO,bO,O,T,Proj}) where {aO,bO,O,T,Proj} = T
 
-update!(h::OrbitalHamiltonian, atom::Atom) =
+function update!(h::OrbitalHamiltonian, atom::Atom)
     foreach(t -> update!(t, atom), h.terms)
+    h.mix_coeffs = atom.mix_coeffs
+end
 
 """
     energy_matrix!(H, hamiltonian, ϕ)
@@ -230,6 +233,10 @@ function Base.copyto!(dest::M, hamiltonian::OrbitalHamiltonian) where {T,M<:Abst
             term.A.V̂.args[2]
         elseif term.A isa ShiftTerm
             term.A.shift
+        elseif term.A isa RadialOperator
+            term.A.args[2]
+        elseif term.A isa Diagonal
+            term.A
         else
             throw(ArgumentError("Don't know how to materialize a $(typeof(term.A)) as a matrix"))
         end

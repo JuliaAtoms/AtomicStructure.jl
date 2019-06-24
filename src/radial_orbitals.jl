@@ -24,6 +24,11 @@ const AdjointRadialOrbitals{T,B<:Basis} = AdjointRadialOrbitalArray{T,2,B}
 const RadialOperator{T,B<:Basis,M<:AbstractMatrix{T}} =
     Mul{<:Any,<:Tuple{<:BasisOrRestricted{B},M,<:AdjointBasisOrRestricted{B}}}
 
+Base.iszero(op::RadialOperator) = iszero(op.args[2])
+Base.iszero(op::MulQuasiArray{<:Any,2,<:Mul{
+    <:Any,<:Tuple{<:BasisOrRestricted,<:AbstractMatrix,<:AdjointBasisOrRestricted}}}) =
+        iszero(op.applied)
+
 matrix(o::RadialOperator) = o.args[2]
 
 function Base.zero(o::RadialOperator)

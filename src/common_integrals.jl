@@ -28,6 +28,15 @@ function create_integral(symbolic_integral::CoulombPotentialMultipole, atom::Ato
     HFPotential(:direct, k, a, b, atom, g)
 end
 
+function create_integral(ome::OrbitalMatrixElement{1,aO,<:OneBodyOperator,bO},
+                         atom::Atom{T}, integrals, integral_map) where {aO<:SpinOrbital,bO<:SpinOrbital,T}
+    a,o,b = ome.a,ome.o,ome.b
+    op = Atoms.get_operator(o, atom, a[1], b[1])
+    iszero(op) && return ZeroIntegral{aO,bO,real(T)}()
+
+    OperatorMatrixElement(a[1], b[1], op, atom, 1)
+end
+
 function create_integral(symbolic_integral::OrbitalMatrixElement{2,<:SpinOrbital,<:CoulombInteractionMultipole,<:SpinOrbital},
                          atom::Atom, integrals, integral_map)
     a,b = symbolic_integral.a[1],symbolic_integral.b[1]

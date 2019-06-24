@@ -11,6 +11,13 @@ abstract type OrbitalIntegral{N,aO<:AbstractOrbital,bO<:AbstractOrbital,T} end
 
 Base.iszero(::OrbitalIntegral) = false
 
+# ** Zero integral
+struct ZeroIntegral{aO,bO,T} <: OrbitalIntegral{0,aO,bO,T} end
+
+integral_value(::ZeroIntegral{aO,bO,T}) where {aO,bO,T} = zero(T)
+
+SCF.update!(::ZeroIntegral, ::Atom; kwargs...) = nothing
+
 # ** Orbital overlap integral
 
 """
@@ -237,9 +244,22 @@ struct SourceTerm{QO,O,OV}
 end
 
 Base.iszero(::SourceTerm) = false
+Base.similar(st::SourceTerm) = similar(st.ov)
+
+function Base.copyto!(dest::Mul{<:Any,<:Tuple{<:AbstractQuasiMatrix,<:AbstractArray{<:Any,N}}},
+                      src::Mul{<:Any,<:Tuple{<:AbstractQuasiMatrix,<:AbstractArray{<:Any,N}}}) where N
+    d = last(dest.args)
+    s = last(src.args)
+    copyto!(IndexStyle(d), d, IndexStyle(s), s)
+    dest
+end
 
 update!(st::SourceTerm, atom::Atom) =
     copyto!(st.ov, view(atom, st.source_orbital))
+
+# These are source terms that do not depend on the atom (e.g. external
+# source term, or a constant orbital).
+update!(::SourceTerm{<:IdentityOperator,<:AbstractString}, ::Atom) = nothing
 
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:SourceTerm, Source, Dest}) where {T,Source,Dest} =
     materialize!(MulAdd(ma.α, ma.A.operator, ma.A.ov, ma.β, ma.C))
