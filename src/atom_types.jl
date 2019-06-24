@@ -32,6 +32,13 @@ end
 get_config(config::Configuration) = config
 get_config(csf::CSF) = csf.config
 
+function Base.copy(atom::A) where {A<:Atom}
+    R,Φ = atom.radial_orbitals.args
+    A(applied(*, R, copy(Φ)), copy(atom.orbitals),
+      copy(atom.configurations), copy(atom.mix_coeffs),
+      atom.potential)
+end
+
 """
     outsidecoremodel(configuration::Configuration, potential::P)
 
