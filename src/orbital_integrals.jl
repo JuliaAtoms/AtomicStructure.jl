@@ -48,7 +48,7 @@ Base.show(io::IO, oo::OrbitalOverlapIntegral) =
 Update the value of the integral `oo`.
 """
 function SCF.update!(oo::OrbitalOverlapIntegral, atom::Atom; kwargs...)
-    oo.value = view(atom, oo.a)'view(atom, oo.b)
+    oo.value = materialize(applied(*, view(atom, oo.a)', view(atom, oo.b)))[1]
 end
 
 integral_value(oo::OrbitalOverlapIntegral) = oo.value
@@ -95,7 +95,11 @@ function SCF.update!(ome::OperatorMatrixElement{aO,bO,RO,T}, atom::Atom; kwargs.
     #
     # TODO: This is not particularly efficient, since it allocates a
     # temporary vector; rewrite using applied(*, ...).
-    ome.value = convert(T,ome.coeff)*first(view(atom,ome.a)' * (materialize(ome.Â)*view(atom,ome.b)))
+    b = view(atom,ome.b)
+    tmp = similar(b)
+    tmp.args[2] .= zero(T)
+    materialize!(MulAdd(1, ome.Â, b, 0, tmp))
+    ome.value = convert(T,ome.coeff)*materialize(applied(*, view(atom,ome.a)', tmp))
 end
 
 integral_value(ome::OperatorMatrixElement) = ome.value

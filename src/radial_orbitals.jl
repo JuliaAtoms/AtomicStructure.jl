@@ -11,6 +11,8 @@ implemented as an `AbstractQuasimatrix`.
 const RadialOrbital{T,B<:Basis} = RadialOrbitalArray{T,1,B}
 const AdjointRadialOrbital{T,B<:Basis} = AdjointRadialOrbitalArray{T,1,B}
 
+Base.axes(v::RadialOrbital, p::Int) = p == 1 ? axes(v)[1] : 1
+
 """
     RadialOrbitals
 
