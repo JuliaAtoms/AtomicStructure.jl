@@ -188,8 +188,7 @@ precomputed direct potential computed via `SCF.update!`) and `x` and
 `y` are [`RadialOrbital`](@ref)s.
 """
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest}) where {T,Source,Dest} =
-    materialize!(MulAdd(ma.α, ma.A.V̂.args[2], ma.B.args[2],
-                        ma.β, ma.C.args[2]))
+    materialize!(MulAdd(ma.α, ma.A.V̂, ma.B, ma.β, ma.C))
 
 # *** Exchange potential
 
@@ -226,8 +225,7 @@ function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePo
     p = ma.A
     p.poisson(p.av .⋆ ma.B) # Form exchange potential from conj(p.a)*b
     # Act with the exchange potential on p.bv
-    materialize!(MulAdd(ma.α, p.V̂.args[2], p.bv.args[2],
-                        ma.β, ma.C.args[2]))
+    materialize!(MulAdd(ma.α, p.V̂, p.bv, ma.β, ma.C))
 end
 
 # * Source terms
@@ -270,7 +268,7 @@ LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:SourceTerm, Source,
     materialize!(MulAdd(ma.α, ma.A.operator, ma.A.ov, ma.β, ma.C))
 
 function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:IdentityOperator{1}, Source, Dest}) where {T,Source,Dest}
-    lmul!(ma.β, ma.C.args[2])
+    isone(ma.β) || lmul!(ma.β, ma.C.args[2])
     BLAS.axpy!(ma.α, ma.B.args[2], ma.C.args[2])
 end
 
