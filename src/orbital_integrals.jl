@@ -238,7 +238,7 @@ contribute to the equation for an orbital, and whose input is some
 other `source_orbital`. This kind of term appears in
 multi-configurational problems.
 """
-struct SourceTerm{QO,O,OV}
+mutable struct SourceTerm{QO,O,OV}
     operator::QO
     source_orbital::O
     ov::OV
@@ -257,8 +257,9 @@ function Base.copyto!(dest::Mul{<:Any,<:Tuple{<:AbstractQuasiMatrix,<:AbstractAr
     dest
 end
 
-update!(st::SourceTerm, atom::Atom) =
-    copyto!(st.ov, view(atom, st.source_orbital))
+function update!(st::SourceTerm, atom::Atom)
+    st.ov = view(atom, st.source_orbital)
+end
 
 # These are source terms that do not depend on the atom (e.g. external
 # source term, or a constant orbital).

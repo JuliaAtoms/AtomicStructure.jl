@@ -84,7 +84,7 @@ end
 
 get_operator(top::IdentityOperator, atom::Atom,
              ::aO, source_orbital::bO) where {aO,bO} =
-                 SourceTerm(top, source_orbital, atom[source_orbital])
+                 SourceTerm(top, source_orbital, view(atom, source_orbital))
 SCF.update!(::IdentityOperator, ::Atom; kwargs...) = nothing
 
 function get_operator(op::RadialOperator, atom::Atom, orbital::aO, source_orbital::bO) where {aO, bO}
@@ -95,7 +95,7 @@ function get_operator(op::RadialOperator, atom::Atom, orbital::aO, source_orbita
     else
         # In this case, the operator maps from source_orbital to
         # orbital.
-        SourceTerm(op, source_orbital, atom[source_orbital])
+        SourceTerm(op, source_orbital, view(atom, source_orbital))
     end
 end
 
@@ -143,7 +143,7 @@ function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSys
                 # We then add those terms are that are off-diagonal in
                 # orbital space.
                 for t in filter(t -> t.source_orbital ≠ orbital, equation_terms)
-                    pushterms!(terms, SourceTerm(operator, t.source_orbital, atom[t.source_orbital]), [t],
+                    pushterms!(terms, SourceTerm(operator, t.source_orbital, view(atom, t.source_orbital)), [t],
                                integrals, integral_map, eqs.integrals)
                 end
             else
