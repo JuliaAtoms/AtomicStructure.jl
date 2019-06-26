@@ -34,8 +34,10 @@ Return the multiplicative coefficient pertaining to `term`,
 _excluding_ the `conj(c_i)*c_j` mixing coefficients, due to the
 configuration-interaction.
 """
-coefficient(term::OrbitalHamiltonianTerm) =
-    term.coeff*prod(integral_value.(term.integrals))
+function coefficient(term::OrbitalHamiltonianTerm)
+    isempty(term.integrals) && return term.coeff
+    term.coeff*prod(integral_value, term.integrals)
+end
 
 """
     coefficient(term::OrbitalHamiltonianTerm, c::Vector)
