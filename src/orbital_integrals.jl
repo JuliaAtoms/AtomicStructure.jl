@@ -27,15 +27,17 @@ Represents the orbital overlap integral `⟨a|b⟩`, for orbitals `a` and
 `b`, along with `view`s of their radial orbitals `av` and `bv` and the
 current `value` of the integral.
 """
-mutable struct OrbitalOverlapIntegral{aO,bO,T} <: OrbitalIntegral{0,aO,bO,T}
+mutable struct OrbitalOverlapIntegral{aO,bO,T,OV} <: OrbitalIntegral{0,aO,bO,T}
     a::aO
     b::bO
+    av::OV
+    bv::OV
     value::T
 end
 
 function OrbitalOverlapIntegral(a::aO, b::bO, atom::Atom{T}) where {aO,bO,T}
-    oo = OrbitalOverlapIntegral(a, b, zero(T))
-    SCF.update!(oo, atom)
+    oo = OrbitalOverlapIntegral(a, b, view(atom, a), view(atom, b), zero(T))
+    SCF.update!(oo)
     oo
 end
 
@@ -47,8 +49,19 @@ Base.show(io::IO, oo::OrbitalOverlapIntegral) =
 
 Update the value of the integral `oo`.
 """
+function SCF.update!(oo::OrbitalOverlapIntegral; kwargs...)
+    oo.value = materialize(applied(*, oo.av', oo.bv))[1]
+end
+
+"""
+    SCF.update!(oo::OrbitalOverlapIntegral)
+
+Update the value of the integral `oo` with respect to `atom`.
+"""
 function SCF.update!(oo::OrbitalOverlapIntegral, atom::Atom; kwargs...)
-    oo.value = materialize(applied(*, view(atom, oo.a)', view(atom, oo.b)))[1]
+    oo.av = view(atom, oo.a)
+    oo.bv = view(atom, oo.b)
+    SCF.update!(oo; kwargs...)
 end
 
 integral_value(oo::OrbitalOverlapIntegral) = oo.value
@@ -64,17 +77,21 @@ integral. Typically, `Â` is a radial part of an operator and `coeff`
 is the associated angular coefficient; `coeff` can be of any type
 convertible to a scalar.
 """
-mutable struct OperatorMatrixElement{aO,bO,RO,T,Coeff} <: OrbitalIntegral{0,aO,bO,T}
+mutable struct OperatorMatrixElement{aO,bO,OV,RO,T,Coeff} <: OrbitalIntegral{0,aO,bO,T}
     a::aO
     b::bO
+    av::OV
+    bv::OV
     Â::RO
     coeff::Coeff
     value::T
-    function OperatorMatrixElement(a::aO, b::bO, Â::RO, atom::Atom{T}, coeff) where {aO,bO,T,RO}
-        ome = new{aO,bO,RO,T,typeof(coeff)}(a, b, Â, coeff, zero(T))
-        SCF.update!(ome, atom)
-        ome
-    end
+end
+
+function OperatorMatrixElement(a::aO, b::bO, Â::RO, atom::Atom{T}, coeff) where {aO,bO,T,RO}
+    ome = OperatorMatrixElement(a, b, view(atom, a), view(atom, b),
+                                Â, coeff, zero(T))
+    SCF.update!(ome)
+    ome
 end
 
 function OperatorMatrixElement(a::aO, b::bO, A::M, atom::Atom{T}, coeff) where {aO,bO,T,
@@ -89,17 +106,23 @@ function Base.show(io::IO, ome::OperatorMatrixElement)
     write(io, "|$(ome.b)⟩")
 end
 
-function SCF.update!(ome::OperatorMatrixElement{aO,bO,RO,T}, atom::Atom; kwargs...) where {aO,bO,RO,T}
+function SCF.update!(ome::OperatorMatrixElement{aO,bO,OV,RO,T}; kwargs...) where {aO,bO,OV,RO,T}
     # NB: It is assumed that ome.Â, if necessary, is updated /before/
     # SCF.update!(ome) is called.
     #
     # TODO: This is not particularly efficient, since it allocates a
     # temporary vector; rewrite using applied(*, ...).
-    b = view(atom,ome.b)
+    b = ome.bv
     tmp = similar(b)
     tmp.args[2] .= zero(T)
     materialize!(MulAdd(1, ome.Â, b, 0, tmp))
-    ome.value = convert(T,ome.coeff)*materialize(applied(*, view(atom,ome.a)', tmp))
+    ome.value = convert(T,ome.coeff)*materialize(applied(*, ome.av', tmp))
+end
+
+function SCF.update!(ome::OperatorMatrixElement, atom::Atom; kwargs...)
+    ome.av = view(atom, ome.a)
+    ome.bv = view(atom, ome.b)
+    SCF.update!(ome; kwargs...)
 end
 
 integral_value(ome::OperatorMatrixElement) = ome.value
@@ -174,9 +197,22 @@ Base.show(io::IO, Y::DirectPotential) =
 Update the direct potential `p` by solving the Poisson problem with
 the current values of the orbitals forming the mutual density.
 """
-function SCF.update!(p::DirectPotential{aO,bO,T,OV,RO,P}, atom::Atom; kwargs...) where {aO,bO,T,OV,RO,P}
-    p.poisson(view(atom, p.a) .⋆ view(atom, p.b); kwargs...)
+function SCF.update!(p::DirectPotential{aO,bO,T,OV,RO,P}; kwargs...) where {aO,bO,T,OV,RO,P}
+    p.poisson(p.av .⋆ p.bv; kwargs...)
     p
+end
+
+"""
+    SCF.update!(p::DirectPotential, atom::Atom)
+
+Update the direct potential `p` by solving the Poisson problem with
+the current values of the orbitals of `atom` forming the mutual
+density.
+"""
+function SCF.update!(p::DirectPotential{aO,bO,T,OV,RO,P}, atom::Atom; kwargs...) where {aO,bO,T,OV,RO,P}
+    p.av = view(atom, p.a)
+    p.bv = view(atom, p.b)
+    SCF.update!(p; kwargs...)
 end
 
 """
@@ -206,6 +242,8 @@ const ExchangePotential{aO,bO,T,OV,RO,P} = HFPotential{:exchange,aO,bO,T,OV,RO,P
 
 Base.show(io::IO, Y::ExchangePotential) =
     write(io, "|$(Y.b)⟩r⁻¹×Y", to_superscript(Y.k), "($(Y.a), ●)")
+
+SCF.update!(p::ExchangePotential; kwargs...) = p
 
 function SCF.update!(p::ExchangePotential, atom::Atom; kwargs...)
     p.av = view(atom, p.a)
@@ -257,7 +295,9 @@ function Base.copyto!(dest::Mul{<:Any,<:Tuple{<:AbstractQuasiMatrix,<:AbstractAr
     dest
 end
 
-function update!(st::SourceTerm, atom::Atom)
+update!(st::SourceTerm; kwargs...) = nothing
+
+function update!(st::SourceTerm, atom::Atom; kwargs...)
     st.ov = view(atom, st.source_orbital)
 end
 

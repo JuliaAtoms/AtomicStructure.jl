@@ -104,6 +104,7 @@ Base.axes(ĥ::AtomicOneBodyHamiltonian, args...) =
 Base.zero(ĥ::AtomicOneBodyHamiltonian) =
     ZeroAtomicOneBodyHamiltonian(axes(ĥ))
 
+SCF.update!(::AtomicOneBodyHamiltonian) = nothing
 SCF.update!(::AtomicOneBodyHamiltonian, ::Atom) = nothing
 
 matrix(ĥ::AtomicOneBodyHamiltonian) = matrix(ĥ.op)

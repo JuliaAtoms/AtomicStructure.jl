@@ -25,6 +25,19 @@ Base.iterate(iter::AtomicEquations, args...) = iterate(iter.equations, args...)
 
 Recompute all integrals using the current values for the radial orbitals.
 """
+function SCF.update!(equations::AtomicEquations; kwargs...)
+    foreach(integral -> SCF.update!(integral; kwargs...),
+            equations.integrals)
+    foreach(eq -> update!(SCF.hamiltonian(eq); kwargs...),
+            equations.equations)
+end
+
+"""
+    update!(equations::AtomicEquations, atom::Atom)
+
+Recompute all integrals using the current values for the radial
+orbitals of `atom`.
+"""
 function SCF.update!(equations::AtomicEquations, atom::Atom; kwargs...)
     foreach(integral -> SCF.update!(integral, atom; kwargs...),
             equations.integrals)
@@ -85,6 +98,7 @@ end
 get_operator(top::IdentityOperator, atom::Atom,
              ::aO, source_orbital::bO) where {aO,bO} =
                  SourceTerm(top, source_orbital, view(atom, source_orbital))
+SCF.update!(::IdentityOperator; kwargs...) = nothing
 SCF.update!(::IdentityOperator, ::Atom; kwargs...) = nothing
 
 function get_operator(op::RadialOperator, atom::Atom, orbital::aO, source_orbital::bO) where {aO, bO}
@@ -106,6 +120,7 @@ end
 
 # RadialOperators (which are built from matrices), are independent of
 # the atom.
+SCF.update!(::RadialOperator; kwargs...) = nothing
 SCF.update!(::RadialOperator, ::Atom; kwargs...) = nothing
 
 # function get_operator(top::Projector, ::Atom, orbital::aO, source_orbital::bO) where {aO,bO}

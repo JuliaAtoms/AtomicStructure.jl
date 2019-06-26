@@ -54,7 +54,9 @@ function coefficient(term::OrbitalHamiltonianTerm, c::Vector)
     conj(c[term.i])*c[term.j]*coeff
 end
 
+update!(::AbstractMatrix) = nothing
 update!(::AbstractMatrix, ::Atom) = nothing
+update!(t::OrbitalHamiltonianTerm) = update!(t.A)
 update!(t::OrbitalHamiltonianTerm, atom::Atom) = update!(t.A, atom)
 
 """
@@ -85,6 +87,7 @@ Base.axes(hamiltonian::OrbitalHamiltonian, i) =
 
 Base.eltype(hamiltonian::OrbitalHamiltonian{aO,bO,O,T,Proj}) where {aO,bO,O,T,Proj} = T
 
+update!(h::OrbitalHamiltonian) = foreach(t -> update!(t), h.terms)
 function update!(h::OrbitalHamiltonian, atom::Atom)
     foreach(t -> update!(t, atom), h.terms)
     h.mix_coeffs = atom.mix_coeffs
