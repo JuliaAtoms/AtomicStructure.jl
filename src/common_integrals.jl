@@ -56,7 +56,7 @@ function create_integral(symbolic_integral::OrbitalMatrixElement{2,<:SpinOrbital
 end
 
 create_integral(symbolic_integral, atom::Atom, integrals, integral_map) =
-        throw(ArgumentError("$(symbolic_integral) of type $(typeof(symbolic_integral)) not yet supported"))
+    throw(ArgumentError("$(symbolic_integral) of type $(typeof(symbolic_integral)) not yet supported"))
 
 function append_common_integrals!(integrals::Vector, integral_map::Dict, atom::Atom, equation_integrals)
     for symbolic_integral in equation_integrals
