@@ -17,6 +17,7 @@ mutable struct AtomicOrbitalEquation{T, B<:Basis,
     atom::A
     equation::Equation
     orbital::O
+    index::Int
     ϕ::RadialOrbital{T,B}
     hamiltonian::M
 end
@@ -38,7 +39,8 @@ function AtomicOrbitalEquation(atom::A, equation::Equation, orbital::O,
     hamiltonian = OrbitalHamiltonian(radial_basis(atom), terms,
                                      atom.mix_coeffs, projector, orbital)
 
-    AtomicOrbitalEquation(atom, equation, orbital, view(atom, orbital), hamiltonian)
+    AtomicOrbitalEquation(atom, equation, orbital, orbital_index(atom, orbital),
+                          view(atom, orbital), hamiltonian)
 end
 
 """
