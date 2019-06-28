@@ -21,28 +21,21 @@ Base.length(hfeqs::AtomicEquations) = length(hfeqs.equations)
 Base.iterate(iter::AtomicEquations, args...) = iterate(iter.equations, args...)
 
 """
-    update!(equations::AtomicEquations)
-
-Recompute all integrals using the current values for the radial orbitals.
-"""
-function SCF.update!(equations::AtomicEquations; kwargs...)
-    foreach(integral -> SCF.update!(integral; kwargs...),
-            equations.integrals)
-    foreach(eq -> update!(SCF.hamiltonian(eq); kwargs...),
-            equations.equations)
-end
-
-"""
-    update!(equations::AtomicEquations, atom::Atom)
+    update!(equations::AtomicEquations[, atom::Atom])
 
 Recompute all integrals using the current values for the radial
-orbitals of `atom`.
+orbitals (optionally specifying which `atom` from which the orbitals
+are taken).
 """
-function SCF.update!(equations::AtomicEquations, atom::Atom; kwargs...)
-    foreach(integral -> SCF.update!(integral, atom; kwargs...),
-            equations.integrals)
-    foreach(eq -> update!(SCF.hamiltonian(eq), atom; kwargs...),
-            equations.equations)
+function SCF.update!(equations::AtomicEquations, args...; kwargs...)
+    Threads.@threads for integral in equations.integrals
+        SCF.update!(integral, args...; kwargs...)
+    end
+    # Updating the operators is apparently not thread-safe at the
+    # moment. Why?
+    for eq in equations.equations
+        update!(SCF.hamiltonian(eq), args...; kwargs...)
+    end
 end
 
 """
