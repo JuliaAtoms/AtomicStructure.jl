@@ -343,3 +343,11 @@ function IterativeFactorizations.preconditioner(hamiltonian::OrbitalHamiltonian)
     hm = materialize(Ph)
     factorize(hm)
 end
+
+# ** Factorization
+IterativeFactorizations.factorization(hamiltonian::OrbitalHamiltonian, args...; kwargs...) =
+    IterativeFactorization(KrylovWrapper(hamiltonian), args...;
+                           isposdefA=false, verbosity=0, kwargs...)
+
+LinearAlgebra.factorize(hamiltonian::OrbitalHamiltonian) =
+    factorization(hamiltonian)
