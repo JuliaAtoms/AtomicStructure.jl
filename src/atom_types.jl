@@ -293,7 +293,7 @@ LinearAlgebra.normalize!(atom::A, v::V) where {A<:Atom,V<:AbstractVector} =
 
 function SCF.norm_rot!(ro::RO) where {RO<:RadialOrbital}
     normalize!(ro)
-    SCF.rotate_max_lobe!(ro.args[2])
+    SCF.rotate_first_lobe!(ro.args[2])
     ro
 end
 
