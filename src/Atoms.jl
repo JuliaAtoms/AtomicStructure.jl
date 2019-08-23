@@ -12,9 +12,10 @@ import EnergyExpressions: NBodyMatrixElement, OrbitalMatrixElement,
 
 using ContinuumArrays
 import ContinuumArrays: Basis
-import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint
+using QuasiArrays
+import QuasiArrays: MulQuasiArray
 using LazyArrays
-import LazyArrays: ⋆, materialize, materialize!, MulAdd
+import LazyArrays: materialize, materialize!, MulAdd
 using FillArrays
 using BandedMatrices
 using BlockBandedMatrices

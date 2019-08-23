@@ -4,7 +4,7 @@ nℓ(o::SpinOrbital) = nℓ(o.orb)
 function test_hydrogenic_orbitals(atom::Atom, tol=1e-8)
     R = radial_basis(atom)
     r = locs(R)
-    χ = R*(R[r,:])'
+    χ = R[r,:]
     Z = charge(atom.potential)
     for o in atom.orbitals
         n,ℓ = nℓ(o)
@@ -32,7 +32,7 @@ function test_hydrogenic_orbitals(atom::Atom, tol=1e-8)
                 2*√2/(3*√5) * ρ.^2
             end
         end
-        @test χ'view(atom, o) ≈ exact rtol=tol
+        @test χ*view(atom, o).args[2] ≈ exact rtol=tol
     end
 end
 

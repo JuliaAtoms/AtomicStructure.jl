@@ -33,8 +33,8 @@ function Base.show(io::IO, ro::RadialOperator{T,B,M}) where {T,B,M}
 end
 
 Base.iszero(op::RadialOperator) = iszero(op.args[2])
-Base.iszero(op::MulQuasiArray{<:Any,2,<:Mul{
-    <:Any,<:Tuple{<:BasisOrRestricted,<:AbstractMatrix,<:AdjointBasisOrRestricted}}}) =
+Base.iszero(op::MulQuasiArray{<:Any,2,<:Tuple{
+    <:BasisOrRestricted,<:AbstractMatrix,<:AdjointBasisOrRestricted}}) =
         iszero(op.applied)
 
 matrix(o::RadialOperator) = o.args[2]
