@@ -32,9 +32,8 @@ Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 UnicodeFun = "1cfade01-22cf-5700-b092-accc4b62d6e1"
 
 [extras]
-FiniteDifferencesQuasi = "2e420920-f185-11e8-29af-4b87f0732ba2"
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 PseudoPotentials = "d363707c-1fc7-11e9-39df-3fc87e3120f4"
 
 [targets]
-test = ["FiniteDifferencesQuasi", "PrettyTables", "PseudoPotentials"]
+test = ["PrettyTables", "PseudoPotentials"]
