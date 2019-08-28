@@ -21,7 +21,7 @@ makedocs(
             "Observables" => "observables.md"
         ]
     ],
-    assets = ["assets/latex.js"]
+    format = Documenter.HTML(assets = ["assets/latex.js"])
 )
 
 deploydocs(repo = "github.com/JuliaAtoms/Atoms.jl.git")

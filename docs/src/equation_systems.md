@@ -27,7 +27,6 @@ all the common integrals, and they are recomputed exactly once, when
 setting up the equation system.
 
 ```@docs
-push_common_integral!
 pushterms!
 ```
 

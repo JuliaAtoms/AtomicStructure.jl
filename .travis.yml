@@ -48,18 +48,6 @@ jobs:
       julia: 1.2
       os: linux
       script:
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/AtomicLevels.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/EnergyExpressions.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add LazyArrays"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaApproximation/ContinuumArrays.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/FiniteDifferencesQuasi.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/FEDVRQuasi.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/IterativeFactorizations.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/CoulombIntegrals.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/SolverTraces.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/SCF.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/AtomicPotentials.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; Pkg.instantiate(); Pkg.develop(PackageSpec(path=pwd()));'
+        # - julia --project=docs/ -e 'using Pkg; Pkg.instantiate(); Pkg.develop(PackageSpec(path=pwd()));'
         - julia --project=docs/ docs/make.jl
       after_success: skip
