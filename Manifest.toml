@@ -370,8 +370,8 @@ uuid = "92933f4c-e287-5a05-a399-4b506db050ca"
 version = "1.0.0"
 
 [[PseudoPotentials]]
-deps = ["AngularMomentumAlgebra", "AtomicLevels", "AtomicPotentials", "EnergyExpressions", "PrettyTables", "WignerSymbols"]
-git-tree-sha1 = "a49fae67fcc330dc1f247c38a4d78ca0fc1b5822"
+deps = ["AngularMomentumAlgebra", "AtomicLevels", "AtomicPotentials", "EnergyExpressions", "HalfIntegers", "PrettyTables", "WignerSymbols"]
+git-tree-sha1 = "61794896a2b2f5f6bd0cc7c752bb7413b48c71c1"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/PseudoPotentials.jl.git"
 uuid = "d363707c-1fc7-11e9-39df-3fc87e3120f4"

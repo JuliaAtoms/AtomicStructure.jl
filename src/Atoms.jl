@@ -3,7 +3,8 @@ module Atoms
 using Compat
 
 using AtomicLevels
-import AtomicLevels: AbstractOrbital, HalfInteger
+import AtomicLevels: AbstractOrbital
+using HalfIntegers
 using AngularMomentumAlgebra
 import AngularMomentumAlgebra: jmⱼ
 using EnergyExpressions

@@ -2,6 +2,7 @@ using Atoms
 using CoulombIntegrals
 import CoulombIntegrals: locs
 using AtomicLevels
+using HalfIntegers
 using AtomicPotentials
 using PseudoPotentials
 using AngularMomentumAlgebra
@@ -37,3 +38,4 @@ end
 include("test_slater_integrals.jl")
 include("structure_setup.jl")
 include("calculation_accuracy.jl")
+include("spin_orbit.jl")

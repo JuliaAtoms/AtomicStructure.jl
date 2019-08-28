@@ -11,15 +11,15 @@ Base.show(io::IO, ::SpinOrbitInteraction) = write(io, "V̂ₛₒ")
 Return the total mⱼ that `o` couples to in LS coupling, i.e. `mℓ+mₛ`.
 """
 mⱼ(o::SpinOrbital) =
-    o.mℓ + (o.spin ? HalfInteger(1,2) : HalfInteger(-1,2))
+    o.mℓ + (o.spin ? half(1) : half(-1))
 
 function Base.iszero(me::OrbitalMatrixElement{1,A,SpinOrbitInteraction,B}) where {A<:SpinOrbital,B<:SpinOrbital}
     a = me.a[1]
     b = me.b[1]
-        
+
     ℓa,ma = jmⱼ(a)
     ℓb,mb = jmⱼ(b)
-    # a.orb.n ≠ b.orb.n || 
+    # a.orb.n ≠ b.orb.n ||
     ℓa ≠ ℓb || iszero(ℓa) || mⱼ(a) != mⱼ(b)
 end
 
