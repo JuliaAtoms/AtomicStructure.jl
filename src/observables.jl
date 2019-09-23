@@ -36,7 +36,8 @@ function Observable(operator::QuantumOperator, atom::A,
                     integral_map::Dict{Any,Int},
                     symmetries::Dict,
                     selector::Function;
-                    double_counted::Bool=false) where {T,A<:Atom{T}}
+                    double_counted::Bool=false,
+                    kwargs...) where {T,A<:Atom{T}}
     M = Matrix(operator, selector.(atom.configurations), overlaps)
 
     m,n = size(M)
@@ -81,7 +82,7 @@ function Observable(operator::QuantumOperator, atom::A,
     eqs = generate_atomic_orbital_equations(
         atom, MCEquationSystem(equation_system, symbolic_integrals),
         integrals, integral_map,
-        symmetries)
+        symmetries; kwargs...)
 
     tmp = similar(first(eqs).ϕ)
     tmp.args[2] .= false # To clear any NaNs

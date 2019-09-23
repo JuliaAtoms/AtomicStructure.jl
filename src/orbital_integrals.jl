@@ -160,13 +160,13 @@ get_poisson(::CoulombInteraction{Nothing}, args...; kwargs...) =
 get_poisson(g::CoulombInteraction{<:AbstractQuasiMatrix}, args...; kwargs...) =
     AsymptoticPoissonProblem(args..., g.o; kwargs...)
 
-function HFPotential(kind::Symbol, k::Int, a::aO, b::bO, atom::Atom{T}, g::CoulombInteraction) where {aO,bO,T}
+function HFPotential(kind::Symbol, k::Int, a::aO, b::bO, atom::Atom{T}, g::CoulombInteraction; kwargs...) where {aO,bO,T}
     av, bv = view(atom, a), view(atom, b)
     R = av.args[1]
     D = Diagonal(Vector{T}(undef, size(R,2)))
     D.diag .= zero(T)
     V̂ = applied(*, R, D, R')
-    poisson = get_poisson(g, k, av, bv, w′=applied(*, R, D.diag))
+    poisson = get_poisson(g, k, av, bv; w′=applied(*, R, D.diag), kwargs...)
     update!(HFPotential(kind, k, a, b, av, bv, V̂, poisson), atom)
 end
 
