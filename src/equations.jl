@@ -65,6 +65,11 @@ find_symmetries(orbitals::Vector{O}) where {O<:AbstractOrbital} =
     merge!(vcat, [Dict(symmetry(orb) => O[orb])
                   for orb in orbitals]...)
 
+SCF.symmetries(atom::Atom) =
+    map(values(find_symmetries(atom.orbitals))) do orbitals
+        orbital_index.(Ref(atom), orbitals)
+    end
+
 # * Setup orbital equations
 
 function get_operator(::FieldFreeOneBodyHamiltonian, atom::Atom,
@@ -258,4 +263,10 @@ function Base.diff(atom::Atom{T,B,O};
     end |> Dict{Symbol,Observable}
 
     AtomicEquations(atom, hfeqs, integrals, observables)
+end
+
+# * Overlap matrix
+function SCF.overlap_matrix(atom::Atom)
+    R = radial_basis(atom)
+    R'R
 end

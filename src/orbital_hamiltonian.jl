@@ -179,10 +179,6 @@ function Base.copyto!(dest::RadialOrbital{T},
         materialize!(MulAdd(coeff, term.A, b, one(T), dest))
     end
 
-    # Project out all components parallel to other orbitals of the
-    # same symmetry.
-    projectout!(dest, hamiltonian.projector)
-
     dest
 end
 
@@ -325,6 +321,20 @@ the function space of the Hamiltonian.
 LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,Hamiltonian}, x::V₂) where {V₁,V₂,T,Hamiltonian<:OrbitalHamiltonian} =
     copyto!(applied(*, A.hamiltonian.R, y),
             A.hamiltonian⋆(applied(*, A.hamiltonian.R, x)))
+
+function SCF.OrthogonalKrylovWrapper(hamiltonian::OrbitalHamiltonian)
+    R = hamiltonian.R
+    S = R'R
+    SCF.OrthogonalKrylovWrapper(hamiltonian, KrylovWrapper(hamiltonian),
+                                length(hamiltonian.projector.orbitals), S)
+end
+
+function update!(okw::SCF.OrthogonalKrylovWrapper{<:OrbitalHamiltonian})
+    for (j,ϕ) in enumerate(okw.h.projector.ϕs)
+        copyto!(view(okw.C, :, j), ϕ.args[2])
+    end
+    okw
+end
 
 # ** Preconditioner
 
