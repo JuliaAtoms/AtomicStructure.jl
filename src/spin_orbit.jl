@@ -35,7 +35,7 @@ function get_operator(::SpinOrbitInteraction, atom::Atom, # {T,B,O,TC,CV,P},
     R = radial_basis(atom)
     r = locs(R)
     Vₛₒ = spin_orbit_potential(atom.potential, r, a, b)
-    applied(*,R,Diagonal(Vₛₒ),R')
+    operator(Diagonal(Vₛₒ), R)
 end
 
 # get_operator(::SpinOrbitInteraction, ::Atom{T,B,O,TC,CV,P},

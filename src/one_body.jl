@@ -1,25 +1,32 @@
 # * Generation of one-body Hamiltonian
 
+function potential_matrix(V::Function, R)
+    r = axes(R,1)
+    R'QuasiDiagonal(V.(r))*R
+end
+
+operator(M, R) = applied(*, R, M, R')
+
 """
     one_body_hamiltonian(::Type{Tuple}, atom, orb)
 
 Return the kinetic and one-body potential energy operators (as a
 tuple) for the orbital `orb` of `atom`.
 """
-function one_body_hamiltonian(::Type{Tuple}, atom::Atom{T,B,O₁}, orb::O₂) where {T,B,O₁,O₂}
+function one_body_hamiltonian(::Type{Tuple}, atom::Atom, orb)
     R = radial_basis(atom)
 
     D = Derivative(axes(R,1))
-    Tm = R'D'D*R
-    Tm /= -2
+    T = R'D'D*R
+    T /= -2
 
     # Add in centrifugal part
     ℓ = getℓ(orb)
-    Tm += Matrix(r -> ℓ*(ℓ+1)/(2r^2), R)
+    T += potential_matrix(r -> ℓ*(ℓ+1)/(2r^2), R)
 
-    V = Matrix(r -> atom.potential(orb, r), R)
+    V = potential_matrix(r -> atom.potential(orb, r), R)
 
-    applied(*, R, Tm, R'), applied(*, R, V, R')
+    operator(T, R), operator(V, R)
 end
 
 """
