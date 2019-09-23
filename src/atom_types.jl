@@ -100,6 +100,8 @@ function Atom(init::Symbol, ::Type{T}, R::B, args...; kwargs...) where {T<:Numbe
     atom = Atom(undef, T, R, args...)
     if init == :hydrogenic
         hydrogenic!(atom; kwargs...)
+    elseif init == :screened_hydrogenic
+        screened_hydrogenic!(atom; kwargs...)
     elseif init == :zero
         atom.radial_orbitals.args[2] .= zero(T)
     else
