@@ -203,7 +203,8 @@ modelled by `atom.potential` of each configuration are considered for
 generating the energy expression, this can be changed by choosing
 another value for `selector`.
 """
-function Base.diff(atom::Atom{T,B,O};
+function Base.diff(atom::Atom,
+                   energy_expression::EnergyExpression;
                    H::QuantumOperator=atomic_hamiltonian(atom),
                    overlaps::Vector{<:OrbitalOverlap}=OrbitalOverlap[],
                    selector::Function=cfg -> outsidecoremodel(cfg, atom.potential),
@@ -216,10 +217,12 @@ function Base.diff(atom::Atom{T,B,O};
                        :double_counted_energy => (H,true),
                        :kinetic_energy => (KineticEnergyHamiltonian(),false),
                    ),
-                   verbosity=0) where {T,B,O}
-
-    energy_expression = Matrix(H, configurations, overlaps)
+                   modify_eoms!::Function = eqs -> nothing,
+                   modify_integrals!::Function = (eqs,integrals,integral_map) -> nothing,
+                   modify_equations!::Function = hfeqs -> nothing,
+                   verbosity=0)
     eqs = diff(energy_expression, conj.(orbitals))
+    modify_eoms!(eqs)
 
     if verbosity > 0
         println("Energy expression:")
@@ -247,13 +250,16 @@ function Base.diff(atom::Atom{T,B,O};
     append_common_integrals!(integrals, integral_map,
                              atom, eqs.integrals,
                              poisson_cache=poisson_cache)
+    modify_integrals!(eqs, integrals, integral_map)
 
     hfeqs = generate_atomic_orbital_equations(atom, eqs,
                                               integrals, integral_map,
                                               symmetries; verbosity=verbosity,
                                               poisson_cache=poisson_cache)
+    modify_equations!(hfeqs)
 
     observables = map(collect(pairs(observables))) do (k,(operator,double_counted))
+        verbosity > 2 && println("Observable: $k ($operator)")
         k => Observable(operator, atom, overlaps,
                         integrals, integral_map,
                         symmetries, selector;
@@ -263,6 +269,19 @@ function Base.diff(atom::Atom{T,B,O};
     end |> Dict{Symbol,Observable}
 
     AtomicEquations(atom, hfeqs, integrals, observables)
+end
+
+Base.Matrix(H::QuantumOperator, atom::Atom;
+            overlaps::Vector{<:OrbitalOverlap}=OrbitalOverlap[],
+            selector::Function=cfg -> outsidecoremodel(cfg, atom.potential),
+            configurations = selector.(atom.configurations),
+            kwargs...) =
+    Matrix(H, configurations, overlaps)
+
+function Base.diff(atom::Atom; H::QuantumOperator=atomic_hamiltonian(atom),
+                   kwargs...)
+    energy_expression = Matrix(H, atom; kwargs...)
+    diff(atom, energy_expression; H=H, kwargs...)
 end
 
 # * Overlap matrix
