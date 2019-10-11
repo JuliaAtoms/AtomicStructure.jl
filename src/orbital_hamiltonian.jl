@@ -46,7 +46,7 @@ Return the multiplicative coefficient pertaining to `term`,
 _including_ the `conj(c_i)*c_j` mixing coefficients, due to the
 configuration-interaction.
 """
-function coefficient(term::OrbitalHamiltonianTerm, c::Vector)
+function coefficient(term::OrbitalHamiltonianTerm, c::AbstractVector)
     coeff = coefficient(term)
     # We use zero-valued i,j coordinates to designate terms which do
     # not originate from the configuration expansion, but rather added

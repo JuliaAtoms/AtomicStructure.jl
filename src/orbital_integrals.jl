@@ -115,7 +115,7 @@ function SCF.update!(ome::OperatorMatrixElement{aO,bO,OV,RO,T}; kwargs...) where
     b = ome.bv
     tmp = similar(b)
     tmp.args[2] .= zero(T)
-    materialize!(MulAdd(1, ome.Â, b, 0, tmp))
+    materialize!(MulAdd(one(T), ome.Â, b, zero(T), tmp))
     ome.value = convert(T,ome.coeff)*materialize(applied(*, ome.av', tmp))
 end
 
@@ -129,7 +129,7 @@ integral_value(ome::OperatorMatrixElement) = ome.value
 
 # ** Hartree–Fock potentials
 
-const HFPotentialOperator{T,B<:Basis} = RadialOperator{T,B,Diagonal{T,Vector{T}}}
+const HFPotentialOperator{T,B<:Basis} = RadialOperator{T,B,Diagonal{T,<:AbstractVector{T}}}
 
 """
     HFPotential(k, a, b, av, bv, V̂, poisson)

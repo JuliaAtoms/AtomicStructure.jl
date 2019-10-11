@@ -26,11 +26,11 @@ SCF.hamiltonian(hfeq::AtomicOrbitalEquation) = hfeq.hamiltonian
 
 function AtomicOrbitalEquation(atom::A, equation::Equation, orbital::O,
                                terms::Vector{<:OrbitalHamiltonianTerm{<:O,<:O,T}},
-                               symmetry_orbitals::Vector{<:O}) where {T,
-                                                                      B<:Basis,
-                                                                      O<:AbstractOrbital,
-                                                                      A<:Atom{T,B,O},
-                                                                      Equation}
+                               symmetry_orbitals) where {T,
+                                                         B<:Basis,
+                                                         O<:AbstractOrbital,
+                                                         A<:Atom{T,B,O},
+                                                         Equation}
     OV = typeof(view(atom,orbital))
     projector = Projector(OV[view(atom, other)
                              for other in symmetry_orbitals],
