@@ -34,6 +34,8 @@ UnicodeFun = "1cfade01-22cf-5700-b092-accc4b62d6e1"
 [extras]
 PrettyTables = "08abe8d2-0d0c-5749-adfa-8a2ac140af0d"
 PseudoPotentials = "d363707c-1fc7-11e9-39df-3fc87e3120f4"
+Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 
 [targets]
-test = ["PrettyTables", "PseudoPotentials"]
+test = ["PrettyTables", "PseudoPotentials", "Unitful", "UnitfulAtomic"]

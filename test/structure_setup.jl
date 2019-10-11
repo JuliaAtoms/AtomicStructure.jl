@@ -112,14 +112,14 @@ end
                     for o in atom.orbitals
                         @test view(new_atom, o).args[2] == view(atom, o).args[2]
                     end
-                    @test new_atom.orbitals == vcat(atom.orbitals, SpinOrbital(o"2s", 0, true), SpinOrbital(o"2s", 0, false))
+                    @test new_atom.orbitals == vcat(atom.orbitals, SpinOrbital(o"2s", 0, half(1)), SpinOrbital(o"2s", 0, half(-1)))
                 end
             end
 
-            @testset "Arnoldi shift-and-invert" begin
+            @testset "LOBPCG" begin
                 fock = Fock(atom; verbosity=Inf)
                 scf!(fock, verbosity=Inf, num_printouts=typemax(Int),
-                     method=:arnoldi_shift_invert)
+                     method=:lobpcg)
                 display(fock)
                 println()
 

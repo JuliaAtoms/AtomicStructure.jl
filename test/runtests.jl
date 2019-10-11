@@ -8,6 +8,9 @@ using PseudoPotentials
 using AngularMomentumAlgebra
 using SCF
 using PrettyTables
+using Unitful
+using UnitfulAtomic
+using Formatting
 
 # Needed as /an/ implementation of an AbstractQuasiMatrix, not the
 # only possibility:
@@ -28,7 +31,8 @@ function get_atom_grid(grid_type, rₘₐₓ, ρ, nucleus; fedvr_order=10, amend
         FEDVR(t, amend_order ? amended_order : fedvr_order)[:,2:end-1], range(t[1],stop=t[end],length=1001)
     else
         N = ceil(Int, rₘₐₓ/ρ + 1/2)
-        R=RadialDifferences(N, ρ, Z)
+        args = amend_order ? () : (zero(ρ),)
+        R=RadialDifferences(N, ρ, Z, args...)
         R,FiniteDifferencesQuasi.locs(R)
     end
 
