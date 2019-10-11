@@ -47,8 +47,8 @@ centrifugal potential. It is diagonal in spin, i.e. it does not couple
 orbitals of opposite spin.
 """
 struct KineticEnergyHamiltonian <: OneBodyOperator end
-Base.iszero(me::OrbitalMatrixElement{1,A,KineticEnergyHamiltonian,B}) where {A<:SpinOrbital,B<:SpinOrbital} =
-    me.a[1].spin != me.b[1].spin
+Base.iszero(me::OrbitalMatrixElement{1,A,KineticEnergyHamiltonian,B}) where {A<:SpinOrbital{<:Orbital},B<:SpinOrbital{<:Orbital}} =
+    me.a[1].m[2] != me.b[1].m[2]
 
 Base.show(io::IO, ::KineticEnergyHamiltonian) = write(io, "T̂")
 
@@ -60,8 +60,8 @@ The potential energy part of the one-body Hamiltonian. It is diagonal
 in spin, i.e. it does not couple orbitals of opposite spin.
 """
 struct PotentialEnergyHamiltonian <: OneBodyOperator end
-Base.iszero(me::OrbitalMatrixElement{1,A,PotentialEnergyHamiltonian,B}) where {A<:SpinOrbital,B<:SpinOrbital} =
-    me.a[1].spin != me.b[1].spin
+Base.iszero(me::OrbitalMatrixElement{1,A,PotentialEnergyHamiltonian,B}) where {A<:SpinOrbital{<:Orbital},B<:SpinOrbital{<:Orbital}} =
+    me.a[1].m[2] != me.b[1].m[2]
 
 Base.show(io::IO, ::PotentialEnergyHamiltonian) = write(io, "V̂")
 

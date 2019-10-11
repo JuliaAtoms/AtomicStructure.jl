@@ -10,22 +10,28 @@ Base.show(io::IO, ::SpinOrbitInteraction) = write(io, "V̂ₛₒ")
 
 Return the total mⱼ that `o` couples to in LS coupling, i.e. `mℓ+mₛ`.
 """
-mⱼ(o::SpinOrbital) =
-    o.mℓ + (o.spin ? half(1) : half(-1))
+mⱼ(o::SpinOrbital) = sum(o.m)
 
 function Base.iszero(me::OrbitalMatrixElement{1,A,SpinOrbitInteraction,B}) where {A<:SpinOrbital,B<:SpinOrbital}
     a = me.a[1]
     b = me.b[1]
 
-    ℓa,ma = jmⱼ(a)
-    ℓb,mb = jmⱼ(b)
-    # a.orb.n ≠ b.orb.n ||
-    ℓa ≠ ℓb || iszero(ℓa) || mⱼ(a) != mⱼ(b)
+    ℓa = first(jmⱼ(a))
+    ℓb = first(jmⱼ(b))
+    # This is correct for both nonrelativistic as well as relativistic
+    # spin-orbitals, since for the former, first(jmⱼ(o)),mⱼ(o) returns
+    # ℓ_o,m_j_o, and for the latter j_o,m_j_o. The pseudo-potentials
+    # are formed using 𝒫(ℓjmⱼ) projectors, which are diagonal in the
+    # basis of relativistic spin-orbitals (except for the principal
+    # quantum number n), but block-diagonal in the basis of
+    # non-relativistic spin-orbitals, with the entries of the blocks
+    # given by the Clebsch–Gordan coefficients ⟨ℓm_ℓsmₛ|ℓsjmⱼ⟩.
+    # Additionally, for relativistic spin-orbitals, we must check ℓ.
+    a.orb.ℓ ≠ b.orb.ℓ || ℓa ≠ ℓb || iszero(ℓa) || mⱼ(a) != mⱼ(b)
 end
 
 
-function get_operator(::SpinOrbitInteraction, atom::Atom, # {T,B,O,TC,CV,P},
-                      a::aO, b::bO) where {aO,bO} # ,T,B,O,TC,CV,P<:RelativisticPseudoPotential}
+function get_operator(::SpinOrbitInteraction, atom::Atom, a::SpinOrbital, b::SpinOrbital; kwargs...)
     if a == b && atom.potential isa RelativisticPseudoPotential
         # In case of two-component relativistic pseudopotentials, the
         # orbital-diagonal spin–orbit contribution is already
@@ -37,7 +43,3 @@ function get_operator(::SpinOrbitInteraction, atom::Atom, # {T,B,O,TC,CV,P},
     Vₛₒ = spin_orbit_potential(atom.potential, r, a, b)
     operator(Diagonal(Vₛₒ), R)
 end
-
-# get_operator(::SpinOrbitInteraction, ::Atom{T,B,O,TC,CV,P},
-#              ::aO, ::bO) where {aO,bO,T,B,O,TC,CV,P<:AbstractPotential} =
-#                  throw(ArgumentError("Spin–orbit interaction not yet implemented without RelativisticPseudoPotential"))

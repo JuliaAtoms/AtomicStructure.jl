@@ -48,7 +48,7 @@ this is the same as the `configuration` itself, but for
 pseudopotential, typically only the outer shells remain.
 """
 outsidecoremodel(configuration::Configuration, potential::P) where P =
-    filter((orb,occ,state) -> getspatialorb(orb) ∉ core(ground_state(potential)), configuration)
+    filter((orb,occ,state) -> nonrelorbital(getspatialorb(orb)) ∉ core(ground_state(potential)), configuration)
 outsidecoremodel(configuration::Configuration, ::PointCharge) where P =
     configuration
 outsidecoremodel(csf::CSF, potential) = outsidecoremodel(get_config(csf), potential)
@@ -76,7 +76,7 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
 
     pot_cfg = core(ground_state(potential))
     for cfg in configurations
-        cfg_closed_orbitals = getspatialorb.(core(get_config(cfg)).orbitals)
+        cfg_closed_orbitals = sort(unique(nonrelorbital.(getspatialorb.(core(get_config(cfg)).orbitals))))
         pot_cfg.orbitals ⊆ cfg_closed_orbitals ||
             throw(ArgumentError("Configuration modelled by nuclear potential ($(pot_cfg)) must belong to the closed set of all configurations"))
     end
