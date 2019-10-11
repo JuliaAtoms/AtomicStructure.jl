@@ -8,7 +8,7 @@ version = "0.2.2"
 
 [[AngularMomentumAlgebra]]
 deps = ["AtomicLevels", "EnergyExpressions", "HalfIntegers", "LazyArrays", "LinearAlgebra", "SparseArrays", "Test", "Unicode", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "9e9dc6547f0fb186b1f04def9ec69fc4e08db450"
+git-tree-sha1 = "39ccc7b528248f79451441b1f6e4ec93fca62507"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl.git"
 uuid = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -28,7 +28,7 @@ version = "1.2.1"
 
 [[AtomicLevels]]
 deps = ["BlockBandedMatrices", "Combinatorics", "Compat", "Formatting", "HalfIntegers", "Parameters", "UnicodeFun", "WignerSymbols"]
-git-tree-sha1 = "89416363673263ffff2790710fe03fc5bb733c34"
+git-tree-sha1 = "bc89d96837c5d260bcb5e5696237527f74f90957"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/AtomicLevels.jl.git"
 uuid = "10933b4c-d60f-11e8-1fc6-bd9035a249a1"
@@ -173,7 +173,7 @@ uuid = "8ba89e20-285c-5b6f-9357-94700520ee1b"
 
 [[EnergyExpressions]]
 deps = ["AtomicLevels", "Combinatorics", "LinearAlgebra", "SparseArrays", "Test", "UnicodeFun"]
-git-tree-sha1 = "f16c7e44499d6bb2c152ccece2e2736345367b91"
+git-tree-sha1 = "45a553180ac63f97bac06ac225b87d04bfc800e8"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/EnergyExpressions.jl"
 uuid = "f4b57a2e-27c7-11e9-0cb0-edd185b706f6"
@@ -377,7 +377,7 @@ version = "1.1.0"
 
 [[PseudoPotentials]]
 deps = ["AngularMomentumAlgebra", "AtomicLevels", "AtomicPotentials", "EnergyExpressions", "HalfIntegers", "PrettyTables", "WignerSymbols"]
-git-tree-sha1 = "61794896a2b2f5f6bd0cc7c752bb7413b48c71c1"
+git-tree-sha1 = "5abcf2de8eaca2390bc811f16370e9ca51708f2b"
 repo-rev = "master"
 repo-url = "https://github.com/jagot/PseudoPotentials.jl.git"
 uuid = "d363707c-1fc7-11e9-39df-3fc87e3120f4"
@@ -422,7 +422,7 @@ version = "0.8.3"
 
 [[SCF]]
 deps = ["ArnoldiMethod", "Crayons", "Formatting", "IntervalSets", "IterativeFactorizations", "IterativeSolvers", "LinearAlgebra", "Optim", "PrettyTables", "Roots", "SolverTraces", "SparseArrays", "Test", "UnicodeFun"]
-git-tree-sha1 = "4e7f83c59273872595342a518f0d4d72b00a90e8"
+git-tree-sha1 = "b0560e575a2744b82a80f20cac5c64649defcdd0"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"
