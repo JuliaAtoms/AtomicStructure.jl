@@ -3,6 +3,7 @@ using EnergyExpressions
 using AtomicLevels
 using Atoms
 
+DocMeta.setdocmeta!(Atoms, :DocTestSetup, :(using Atoms, AtomicLevels); recursive=true)
 makedocs(
     modules = [Atoms],
     sitename = "Atoms",
