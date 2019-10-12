@@ -33,7 +33,6 @@ install:
 build_script:
   - echo "%JL_BUILD_SCRIPT%"
   - C:\julia\bin\julia -e "using Pkg; Pkg.activate(pwd()); pkg\"instantiate\""
-  - C:\julia\bin\julia -e "using Pkg; Pkg.activate(pwd()); pkg\"add https://github.com/jagot/PseudoPotentials.jl.git\""
   - C:\julia\bin\julia -e "%JL_BUILD_SCRIPT%"
 
 test_script:
