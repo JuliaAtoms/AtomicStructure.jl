@@ -26,89 +26,133 @@ exact_energies = Dict(pc"He" => [-2.8616800, [o"1s" => -0.91795555]],
                                              o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]],
 
                       PseudoPotentials.XenonHF => [-14.989100, [o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]],
-                      PseudoPotentials.XenonWB => [-15.277055, [o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]])
+                      PseudoPotentials.XenonWB => [-15.277055, [o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]],
+                      PseudoPotentials.XenonDF2c => [-328.74543, [o"5s" => -1.0097, ro"5p-" => -0.4915, ro"5p" => -0.4398]])
+
+function shift_unit(u::U, d) where {U<:Unitful.Unit}
+    d = Int(3floor(Int, d/3))
+    iszero(d) && return u
+    for tens = Unitful.tens(u) .+ (d:(-3*sign(d)):0)
+        haskey(Unitful.prefixdict, tens) && return U(tens, u.power)
+    end
+    u
+end
+
+function shift_unit(u::Unitful.FreeUnits, d)
+    tu = typeof(u)
+    us,ds,a = tu.parameters
+
+    uu = shift_unit(us[1], d)
+
+    Unitful.FreeUnits{(uu,us[2:end]...), ds, a}()
+end
+
+function si_round(q::Quantity; fspec="{1:+9.4f} {2:s}")
+    v,u = ustrip(q), unit(q)
+    if !iszero(v)
+        u = shift_unit(u, log10(abs(v)))
+        q = u(q)
+    end
+    format(fspec, ustrip(q), unit(q))
+end
 
 function energy_errors(fock, exact_energies, Δ, δ)
     atom = fock.quantum_system
 
     Eexact,orbExact = exact_energies
-    exact_energies = vcat(Eexact, [repeat([E], degeneracy(o)) for (o,E) in orbExact]...)
+    exact_energies = if first(atom.orbitals) isa SpinOrbital
+        vcat(Eexact, [repeat([E], degeneracy(o)) for (o,E) in orbExact]...)
+    else
+        vcat(Eexact, [E for (o,E) in orbExact]...)
+    end
+
+    orbital_refs = unique(nonrelorbital.(first.(orbExact)))
 
     H = zeros(1,1)
     Etot = SCF.energy_matrix!(H, fock)[1,1]
-    energies = vcat(Etot, SCF.energy.(fock.equations))
+    energies = vcat(Etot, collect(SCF.energy(fock.equations.equations[i])/degeneracy(o)
+                                  for (i,o) in enumerate(atom.orbitals)
+                                  if nonrelorbital(Atoms.getspatialorb(o)) ∈ orbital_refs))
     errors = energies - exact_energies
 
-    labels = vcat("Total", string.(atom.orbitals))
-    pretty_table([labels energies 27.211energies exact_energies errors 27.211errors errors./abs.(exact_energies)],
-                 ["", "Energy [Ha]", "Energy [eV]", "HF limit [Ha]", "Error [Ha]", "Error [eV]", "Relative error"])
+    labels = vcat("Total", string.(collect(o for o in atom.orbitals
+                                           if nonrelorbital(Atoms.getspatialorb(o)) ∈ orbital_refs)))
+
+    Ha_formatter = (v,i) -> si_round(v*u"hartree")
+    eV_formatter = (v,i) -> si_round(v*u"eV")
+
+    pretty_table([labels exact_energies energies errors 27.211energies 27.211errors errors./abs.(exact_energies)],
+                 ["", "HF limit", "Energy", "Δ", "Energy", "Δ", "Δrel"],
+                 formatter=Dict(
+                     2 => Ha_formatter,
+                     3 => Ha_formatter,
+                     4 => Ha_formatter,
+                     5 => eV_formatter,
+                     6 => eV_formatter,
+                     7 => (v,i) -> si_round(100v*u"percent")
+                 ),
+                 highlighters=(Highlighter((v,i,j) -> abs(v[i,7])>0.2, foreground=:red, bold=true),
+                               Highlighter((v,i,j) -> abs(v[i,7])>0.01, foreground=:yellow, bold=true),))
 
     @test abs(errors[1]) < Δ
     @test all(abs.(errors[2:end]) .< δ)
 end
 
-function get_atom_grid(grid_type, rₘₐₓ, ρ, nucleus; fedvr_order=10, amend_order=true)
-    Z = charge(nucleus)
-
-    R,r = if grid_type == :fedvr
-        N = max(ceil(Int, rₘₐₓ/(ρ*fedvr_order)),2)
-        t = range(0.0, stop=rₘₐₓ, length=N)
-        amended_order = vcat(fedvr_order+5, Fill(fedvr_order,length(t)-2))
-        FEDVR(t, amend_order ? amended_order : fedvr_order)[:,2:end-1], range(t[1],stop=t[end],length=1001)
-    else
-        N = ceil(Int, rₘₐₓ/ρ + 1/2)
-        R=RadialDifferences(N, ρ, Z)
-        R,FiniteDifferencesQuasi.locs(R)
-    end
-
-    R,r
-end
-
 function atom_calc(nucleus::AbstractPotential, grid_type::Symbol, rₘₐₓ, ρ,
-                   Δ, δ; max_iter=200, kwargs...)
+                   Δ, δ;
+                   config_transform=identity, kwargs...)
     # If we're using a pseudopotential, we don't really need higher
     # order of the FEDVR basis functions in the first finite element,
     # since the orbitals almost vanish there.
     R,r = get_atom_grid(grid_type, rₘₐₓ, ρ, nucleus,
                         amend_order=nucleus isa PointCharge)
 
-    atom = Atom(R, [spin_configurations(ground_state(nucleus))[1]],
+    atom = Atom(R, [spin_configurations(config_transform(ground_state(nucleus)))[1]],
                 nucleus, eltype(R))
 
     fock = Fock(atom)
 
-    scf!(fock; max_iter=max_iter, num_printouts=typemax(Int), verbosity=2, kwargs...)
+    optimize!(fock; kwargs...)
     energy_errors(fock, exact_energies[nucleus], Δ, δ)
 end
 
 @testset "Calculation accuracy" begin
     @testset "Helium" begin
-        @testset "$(grid_type)" for (grid_type,Δ,δ) in [(:fedvr,2e-8,1e-9),
-                                                        (:fd,4e-3,4e-3)]
-            atom_calc(pc"He", grid_type, 10.0, 0.1, Δ, δ, ω=0.9)
+        @testset "$(orb_type) orbitals" for (orb_type,config_transform) in [
+            ("Non-relativistic", identity),
+            ("Relativistic", relconfigurations)
+        ]
+            @testset "$(grid_type)" for (grid_type,Δ,δ) in [(:fedvr,6e-9,7e-9),
+                                                            (:fd,4e-3,4e-3)]
+                atom_calc(pc"He", grid_type, 10.0, 0.1, Δ, δ, ω=0.9,
+                          config_transform=config_transform)
+            end
         end
     end
 
     @testset "Beryllium" begin
-        @testset "$(grid_type)" for (grid_type,Δ,δ) in [(:fedvr,2e-8,0.02),
-                                                        (:fd,0.06,0.025)]
-            atom_calc(pc"Be", grid_type, 15.0, 0.1, Δ, δ, ω=0.9)
+        @testset "$(grid_type)" for (grid_type,ρ,Δ,δ) in [(:fedvr,0.2,6e-7,2e-6),
+                                                          (:fd,0.05,0.02,0.009)]
+            atom_calc(pc"Be", grid_type, 15.0, ρ, Δ, δ, ω=0.9, scf_method=:arnoldi)
         end
     end
 
     @testset "Neon" begin
-        @testset "$nucleus" for (nucleus,Δ,δ) in [(pc"Ne",0.005,0.05),
+        @testset "$nucleus" for (nucleus,Δ,δ) in [(pc"Ne",0.005,0.005),
                                                   (PseudoPotentials.NeonHF,0.2,0.05)]
             atom_calc(nucleus, :fedvr, 10, 0.2, Δ, δ,
-                      ω=0.9, ωmax=1.0-1e-5)
+                      ω=0.999, ωmax=1.0-1e-3, scf_method=:arnoldi)
         end
     end
 
     @testset "Xenon" begin
-        @testset "$nucleus" for (nucleus,Δ,δ) in [# (pc"Xe",0.005,0.05),
-                                                  (PseudoPotentials.XenonHF,0.005,0.005)]
-            atom_calc(nucleus, :fedvr, 10, 0.2, Δ, δ,
-                      ω=0.9, ωmax=1.0-1e-5)
+        @testset "$nucleus" for (nucleus,grid_type,ρ,Δ,δ,config_transform) in [
+            (PseudoPotentials.XenonHF,:fd,0.1,4e-3,4e-3,identity),
+            (PseudoPotentials.XenonDF2c,:fd,0.1,0.2,1e-2,relconfigurations)
+        ]
+            atom_calc(nucleus, grid_type, 7.0, ρ, Δ, δ,
+                      ω=0.999, ωmax=1.0-1e-3,
+                      config_transform=config_transform, scf_method=:arnoldi)
         end
     end
 end

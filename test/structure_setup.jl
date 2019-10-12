@@ -1,20 +1,63 @@
-@testset "Structure setup" begin
-    rₘₐₓ = 300
-    ρ = 0.25
-    N = ceil(Int, rₘₐₓ/ρ + 1/2)
+nℓ(o::Orbital) = o.n,o.ℓ
+nℓ(o::SpinOrbital) = nℓ(o.orb)
 
+function test_hydrogenic_orbitals(atom::Atom, tol=1e-8)
+    R = radial_basis(atom)
+    r = locs(R)
+    χ = R[r,:]
+    Z = charge(atom.potential)
+    for o in atom.orbitals
+        n,ℓ = nℓ(o)
+        n > 3 && continue
+        ρ = Z*r/n
+        C = (Z/n)^(3/2)
+        # Table 2.2 of
+        #
+        #   Foot, C. J. (2005). Atomic physics. Oxford New York: Oxford
+        #   University Press.
+        exact = C * r .* exp.(-ρ) .* if n == 1
+            2
+        elseif n == 2
+            if ℓ == 0
+                2*(1 .- ρ)
+            else
+                2/√3 * ρ
+            end
+        elseif n == 3
+            if ℓ == 0
+                2*(1 .- 2ρ .+ 2/3*ρ.^2)
+            elseif ℓ == 1
+                4*√2/3 * ρ .* (1 .- ρ/2)
+            else
+                2*√2/(3*√5) * ρ.^2
+            end
+        end
+        @test χ*view(atom, o).args[2] ≈ exact rtol=tol
+    end
+end
+
+@testset "Structure setup" begin
     @testset "Hydrogenic orbitals" begin
         @testset "Hydrogen" begin
             nucleus = pc"H"
-            R = RadialDifferences(N, ρ)
-            for method in [:arnoldi_shift_invert, :arnoldi, :eigen]
-                atom = Atom(R, csfs([c"1s", c"2s", c"2p", c"3s", c"3p", c"3d"]),
-                            nucleus, method=method, verbosity=4)
+            rₘₐₓ = 50
+
+            @testset "$(grid_type)" for (grid_type,ρ,tol) ∈ [(:fd, 0.15, 2e-3),
+                                                             (:fedvr, 0.25, 1e-3)]
+                R = first(get_atom_grid(grid_type, rₘₐₓ, ρ, nucleus))
+                @testset "$(method)" for method in vcat([:arnoldi_shift_invert, :arnoldi],
+                                                        grid_type == :fd ? :eigen : [])
+                    atom = Atom(R, csfs([c"1s", c"2s", c"2p", c"3s", c"3p", c"3d"]),
+                                nucleus, method=method, verbosity=4)
+                    test_hydrogenic_orbitals(atom, tol)
+                end
             end
         end
         @testset "Helium" begin
             nucleus = pc"He"
-            R=RadialDifferences(N, ρ, charge(nucleus))
+            rₘₐₓ = 300
+            ρ = 0.25
+            R = first(get_atom_grid(:fd, rₘₐₓ, ρ, nucleus))
             @testset "CSFs" begin
                 atom = Atom(R, csfs([c"1s2", c"1s 2s", c"1s 2p", c"3s 3p", c"4s 3d", c"5s 5d"]),
                             nucleus, verbosity=4)
@@ -27,6 +70,10 @@
     end
 
     @testset "Hartree–Fock equations" begin
+        rₘₐₓ = 300
+        ρ = 0.25
+        N = ceil(Int, rₘₐₓ/ρ + 1/2)
+
         @testset "Hydrogen" begin
             nucleus = pc"H"
             R = RadialDifferences(N, ρ)
@@ -65,14 +112,14 @@
                     for o in atom.orbitals
                         @test view(new_atom, o).args[2] == view(atom, o).args[2]
                     end
-                    @test new_atom.orbitals == vcat(atom.orbitals, SpinOrbital(o"2s", 0, true), SpinOrbital(o"2s", 0, false))
+                    @test new_atom.orbitals == vcat(atom.orbitals, SpinOrbital(o"2s", 0, half(1)), SpinOrbital(o"2s", 0, half(-1)))
                 end
             end
 
-            @testset "Arnoldi shift-and-invert" begin
+            @testset "LOBPCG" begin
                 fock = Fock(atom; verbosity=Inf)
                 scf!(fock, verbosity=Inf, num_printouts=typemax(Int),
-                     method=:arnoldi_shift_invert)
+                     method=:lobpcg)
                 display(fock)
                 println()
 

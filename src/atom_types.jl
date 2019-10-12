@@ -32,6 +32,13 @@ end
 get_config(config::Configuration) = config
 get_config(csf::CSF) = csf.config
 
+function Base.copy(atom::A) where {A<:Atom}
+    R,Φ = atom.radial_orbitals.args
+    A(applied(*, R, copy(Φ)), copy(atom.orbitals),
+      copy(atom.configurations), copy(atom.mix_coeffs),
+      atom.potential)
+end
+
 """
     outsidecoremodel(configuration::Configuration, potential::P)
 
@@ -41,7 +48,7 @@ this is the same as the `configuration` itself, but for
 pseudopotential, typically only the outer shells remain.
 """
 outsidecoremodel(configuration::Configuration, potential::P) where P =
-    filter((orb,occ,state) -> getspatialorb(orb) ∉ core(ground_state(potential)), configuration)
+    filter((orb,occ,state) -> nonrelorbital(getspatialorb(orb)) ∉ core(ground_state(potential)), configuration)
 outsidecoremodel(configuration::Configuration, ::PointCharge) where P =
     configuration
 outsidecoremodel(csf::CSF, potential) = outsidecoremodel(get_config(csf), potential)
@@ -69,7 +76,7 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
 
     pot_cfg = core(ground_state(potential))
     for cfg in configurations
-        cfg_closed_orbitals = getspatialorb.(core(get_config(cfg)).orbitals)
+        cfg_closed_orbitals = sort(unique(nonrelorbital.(getspatialorb.(core(get_config(cfg)).orbitals))))
         pot_cfg.orbitals ⊆ cfg_closed_orbitals ||
             throw(ArgumentError("Configuration modelled by nuclear potential ($(pot_cfg)) must belong to the closed set of all configurations"))
     end
@@ -93,6 +100,8 @@ function Atom(init::Symbol, ::Type{T}, R::B, args...; kwargs...) where {T<:Numbe
     atom = Atom(undef, T, R, args...)
     if init == :hydrogenic
         hydrogenic!(atom; kwargs...)
+    elseif init == :screened_hydrogenic
+        screened_hydrogenic!(atom; kwargs...)
     elseif init == :zero
         atom.radial_orbitals.args[2] .= zero(T)
     else
@@ -286,7 +295,7 @@ LinearAlgebra.normalize!(atom::A, v::V) where {A<:Atom,V<:AbstractVector} =
 
 function SCF.norm_rot!(ro::RO) where {RO<:RadialOrbital}
     normalize!(ro)
-    SCF.rotate_max_lobe!(ro.args[2])
+    SCF.rotate_first_lobe!(ro.args[2])
     ro
 end
 

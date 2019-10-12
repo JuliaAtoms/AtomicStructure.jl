@@ -3,11 +3,15 @@ using EnergyExpressions
 using AtomicLevels
 using Atoms
 
+isdefined(Main, :NOPLOTS) && NOPLOTS || include("plots.jl")
+
+DocMeta.setdocmeta!(Atoms, :DocTestSetup, :(using Atoms, AtomicLevels); recursive=true)
 makedocs(
     modules = [Atoms],
     sitename = "Atoms",
     pages = [
         "Home" => "index.md",
+        "Examples" => "examples.md",
         "Theory" => [
             "Density matrices" => "density_matrices.md"
         ],
@@ -21,7 +25,7 @@ makedocs(
             "Observables" => "observables.md"
         ]
     ],
-    assets = ["assets/latex.js"]
+    format = Documenter.HTML(assets = ["assets/latex.js"])
 )
 
 deploydocs(repo = "github.com/JuliaAtoms/Atoms.jl.git")

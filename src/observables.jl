@@ -11,22 +11,33 @@ mutable struct Observable{T,B<:Basis,Equations<:AbstractVector{<:AtomicOrbitalEq
 end
 
 """
-    Observable(operator, atom, overlaps, integrals[; double_counted=false])
+    Observable(operator, atom, overlaps, integrals, integral_map, selector
+               [; double_counted=false])
 
 Construct an observable corresponding the `operator` acting on `atom`;
 if `double_counted`, only return those terms that would be
 double-counted, otherwise return the normal observable
 equations. `overlaps` is a list of non-orthogonal, `integrals` a list
 of common integrals, and `integral_map` is a mapping from symbolic
-integrals to [`OrbitalIntegral`](@ref)s.
+integrals to [`OrbitalIntegral`](@ref)s. `selector` selects those
+orbitals not modelled by the potential, e.g. all orbitals in case of a
+nuclear potential, fewer in case of a
+pseudopotential. `double_counted` can be used to only return those
+terms of the sum that would be double-counted if simply summing over
+orbital contributions (applicable to two-body operators only). Half
+the result of the double-counted term is then subtracted the sum over
+orbital contributions; this makes the expression slightly more
+symmetric in orbital space than if the sum is derived avoiding
+double-counting.
 """
 function Observable(operator::QuantumOperator, atom::A,
                     overlaps::Vector{<:OrbitalOverlap},
-                    integrals::Vector{OrbitalIntegral},
+                    integrals::Vector,
                     integral_map::Dict{Any,Int},
                     symmetries::Dict,
                     selector::Function;
-                    double_counted::Bool=false) where {T,A<:Atom{T}}
+                    double_counted::Bool=false,
+                    kwargs...) where {T,A<:Atom{T}}
     M = Matrix(operator, selector.(atom.configurations), overlaps)
 
     m,n = size(M)
@@ -71,7 +82,7 @@ function Observable(operator::QuantumOperator, atom::A,
     eqs = generate_atomic_orbital_equations(
         atom, MCEquationSystem(equation_system, symbolic_integrals),
         integrals, integral_map,
-        symmetries)
+        symmetries; kwargs...)
 
     tmp = similar(first(eqs).ϕ)
     tmp.args[2] .= false # To clear any NaNs

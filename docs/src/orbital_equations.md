@@ -15,14 +15,14 @@ coefficient
 OrbitalHamiltonian
 Projector
 projectout!
-SCF.energy_matrix!(H::HM, hamiltonian::OrbitalHamiltonian{O,T,B}, ϕ::RadialOrbital{T,B}) where {HM<:AbstractMatrix,O,T,B}
+SCF.energy_matrix!(H::HM, hamiltonian::OrbitalHamiltonian{aO,bO,O,T}, ϕ::RadialOrbital{T}) where {HM<:AbstractMatrix,aO,bO,O,T}
 Base.filter(fun::Function, H::OrbitalHamiltonian)
 Base.copyto!(dest::M, hamiltonian::OrbitalHamiltonian) where {T,M<:AbstractMatrix{T}}
 Base.:(+)(h::OrbitalHamiltonian{O,T,B,OV,Proj}, λ::UniformScaling) where {O,T,B,OV,Proj}
 Base.:(-)(h::OrbitalHamiltonian, λ::UniformScaling)
 SCF.KrylovWrapper
 LinearAlgebra.mul!(y::V₁, A::KrylovWrapper{T,Hamiltonian}, x::V₂) where {V₁,V₂,T,B,Hamiltonian<:OrbitalHamiltonian}
-MatrixFactorizations.preconditioner
+IterativeFactorizations.preconditioner
 ```
 
 ## Orbital integrals and terms
@@ -45,7 +45,7 @@ ShiftTerm
 
 ```@docs
 AtomicOrbitalEquation
-energy(hfeq::AtomicOrbitalEquation, term=:all)
+SCF.energy(hfeq::AtomicOrbitalEquation, which::Symbol=:total)
 ```
 
 ```@meta

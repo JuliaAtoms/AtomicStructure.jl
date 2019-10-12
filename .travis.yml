@@ -4,13 +4,20 @@ os:
   - linux
   - osx
 julia:
-  - 1.0
   - 1.1
+  - 1.2
+  - 1.3
   - nightly
 notifications:
   email: false
 git:
   depth: 99999999
+
+branches:
+  only:
+    - master
+    - /release-.*/
+    - /^v\d+\.\d+(\.\d+)?(-\S*)?$/
 
 ## uncomment the following lines to allow failures on nightly julia
 ## (tests will run but not make your overall status red)
@@ -29,9 +36,6 @@ matrix:
 # uncomment the following lines to override the default test script
 script:
  - julia -e 'using Pkg; Pkg.activate(pwd()); pkg"instantiate"'
- - julia -e 'using Pkg; Pkg.activate(pwd()); pkg"add https://github.com/jagot/FiniteDifferencesQuasi.jl.git"'
- - julia -e 'using Pkg; Pkg.activate(pwd()); pkg"add https://github.com/jagot/FEDVRQuasi.jl.git"'
- - julia -e 'using Pkg; Pkg.activate(pwd()); pkg"add https://github.com/jagot/PseudoPotentials.jl.git"'
  - julia -e 'using Pkg; Pkg.build(); Pkg.test(coverage=true)'
 after_success:
   # push coverage results to Codecov
@@ -40,22 +44,12 @@ after_success:
 jobs:
   include:
     - stage: "Documentation"
-      julia: 1.0
+      julia: 1.2
       os: linux
+      env:
+        - PYTHON=""
       script:
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/AtomicLevels.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/EnergyExpressions.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add LazyArrays@0.5.2"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaApproximation/ContinuumArrays.jl.git#3cc0434"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/FiniteDifferencesQuasi.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/FEDVRQuasi.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/MatrixFactorizations.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/CoulombIntegrals.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/jagot/SolverTraces.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/SCF.jl.git"'
-        - julia --project=docs/ -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/AtomicPotentials.jl.git"'
         - julia --project=docs/ -e 'using Pkg; Pkg.instantiate(); Pkg.develop(PackageSpec(path=pwd()));'
+        - julia --project=docs/ -e 'using Pkg; pkg"build PyPlot"'
         - julia --project=docs/ docs/make.jl
       after_success: skip
-

@@ -17,6 +17,7 @@ mutable struct AtomicOrbitalEquation{T, B<:Basis,
     atom::A
     equation::Equation
     orbital::O
+    index::Int
     ϕ::RadialOrbital{T,B}
     hamiltonian::M
 end
@@ -24,12 +25,12 @@ end
 SCF.hamiltonian(hfeq::AtomicOrbitalEquation) = hfeq.hamiltonian
 
 function AtomicOrbitalEquation(atom::A, equation::Equation, orbital::O,
-                               terms::Vector{<:OrbitalHamiltonianTerm{<:O,<:O,T,B}},
-                               symmetry_orbitals::Vector{<:O}) where {T,
-                                                                      B<:Basis,
-                                                                      O<:AbstractOrbital,
-                                                                      A<:Atom{T,B,O},
-                                                                      Equation}
+                               terms::Vector{<:OrbitalHamiltonianTerm{<:O,<:O,T}},
+                               symmetry_orbitals) where {T,
+                                                         B<:Basis,
+                                                         O<:AbstractOrbital,
+                                                         A<:Atom{T,B,O},
+                                                         Equation}
     OV = typeof(view(atom,orbital))
     projector = Projector(OV[view(atom, other)
                              for other in symmetry_orbitals],
@@ -38,7 +39,8 @@ function AtomicOrbitalEquation(atom::A, equation::Equation, orbital::O,
     hamiltonian = OrbitalHamiltonian(radial_basis(atom), terms,
                                      atom.mix_coeffs, projector, orbital)
 
-    AtomicOrbitalEquation(atom, equation, orbital, view(atom, orbital), hamiltonian)
+    AtomicOrbitalEquation(atom, equation, orbital, orbital_index(atom, orbital),
+                          view(atom, orbital), hamiltonian)
 end
 
 """

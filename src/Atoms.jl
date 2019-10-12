@@ -3,17 +3,20 @@ module Atoms
 using Compat
 
 using AtomicLevels
-import AtomicLevels: AbstractOrbital, HalfInteger
+import AtomicLevels: AbstractOrbital
+using HalfIntegers
 using AngularMomentumAlgebra
+import AngularMomentumAlgebra: jmⱼ
 using EnergyExpressions
 import EnergyExpressions: NBodyMatrixElement, OrbitalMatrixElement,
     orbital_equation, MCEquationSystem, QuantumOperator
 
 using ContinuumArrays
 import ContinuumArrays: Basis
-import ContinuumArrays.QuasiArrays: AbstractQuasiMatrix, MulQuasiArray, QuasiAdjoint
+using QuasiArrays
+import QuasiArrays: MulQuasiArray
 using LazyArrays
-import LazyArrays: ⋆, materialize, materialize!, MulAdd
+import LazyArrays: materialize, materialize!, MulAdd
 using FillArrays
 using BandedMatrices
 using BlockBandedMatrices
@@ -28,9 +31,11 @@ using ArnoldiMethod
 using SCF
 import SCF: norm_rot!, update!, KrylovWrapper, print_block
 using CoulombIntegrals
+import CoulombIntegrals: locs
 using IterativeFactorizations
 
 using AtomicPotentials
+using PseudoPotentials
 
 using Formatting
 using UnicodeFun
@@ -60,6 +65,7 @@ include("orbital_hamiltonian.jl")
 include("orbital_equation.jl")
 include("common_integrals.jl")
 include("observables.jl")
+include("spin_orbit.jl")
 include("equations.jl")
 
 end # module

@@ -11,6 +11,8 @@ implemented as an `AbstractQuasimatrix`.
 const RadialOrbital{T,B<:Basis} = RadialOrbitalArray{T,1,B}
 const AdjointRadialOrbital{T,B<:Basis} = AdjointRadialOrbitalArray{T,1,B}
 
+Base.axes(v::RadialOrbital, p::Int) = p == 1 ? axes(v)[1] : 1
+
 """
     RadialOrbitals
 
@@ -23,6 +25,17 @@ const AdjointRadialOrbitals{T,B<:Basis} = AdjointRadialOrbitalArray{T,2,B}
 
 const RadialOperator{T,B<:Basis,M<:AbstractMatrix{T}} =
     Mul{<:Any,<:Tuple{<:BasisOrRestricted{B},M,<:AdjointBasisOrRestricted{B}}}
+
+function Base.show(io::IO, ro::RadialOperator{T,B,M}) where {T,B,M}
+    write(io, "RadialOperator(")
+    show(io, M)
+    write(io, ")")
+end
+
+Base.iszero(op::RadialOperator) = iszero(op.args[2])
+Base.iszero(op::MulQuasiArray{<:Any,2,<:Tuple{
+    <:BasisOrRestricted,<:AbstractMatrix,<:AdjointBasisOrRestricted}}) =
+        iszero(op.applied)
 
 matrix(o::RadialOperator) = o.args[2]
 
