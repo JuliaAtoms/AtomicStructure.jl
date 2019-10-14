@@ -1,6 +1,12 @@
 using PyPlot
 using Jagot.plotting
 plot_style("ggplot")
+
+using PyCall
+Cycler = pyimport("cycler")
+plt.rc("axes", prop_cycle=(plt.rcParams["axes.prop_cycle"] +
+                           Cycler.cycler("linestyle", ["-","--",":","-.",".","-","--"])))
+
 using Statistics
 using Random
 
@@ -73,7 +79,7 @@ function plot_orbitals(atom::Atom; nrplot=1000, plot_basis=false,
                 for j in js
                     plot(r, abs2.(χ*view(atom, j).args[2]), label="$(atom.orbitals[j])")
                 end
-                # legend(framealpha=0.75,ncol=2)
+                legend(framealpha=0.75,ncol=2)
                 xscale("log")
                 i == m && xlabel(L"$r$ [au]")
                 spatial_orbs = unique([Atoms.getspatialorb(atom.orbitals[j])
@@ -128,6 +134,17 @@ function helium()
     fock = Fock(atom)
     optimize!(fock)
     plot_orbitals(atom)
+    begin
+        hydrogenics = [Atom(R, [spin_configurations(ground_state(n))[1]], n)
+                       for n in [pc"H", pc"He"]]
+        d = axes(R,1).domain
+        r = range(leftendpoint(d), stop=rightendpoint(d), length=1000)
+        χ = R[r, :]
+        for (hyd,label) in zip(hydrogenics, ["H 1s", "He+ 1s"])
+            plot(r, abs2.(χ*view(hyd, 1).args[2]), label=label)
+        end
+        legend(framealpha=0.75,ncol=2)
+    end
     savefig("docs/src/figures/helium.svg")
 end
 
@@ -142,8 +159,14 @@ function beryllium(grid_type)
     savefig("docs/src/figures/beryllium-$(grid_type).svg")
 end
 
+macro echo(expr)
+    println(expr)
+    :(@time $expr)
+end
+
+@info "Documentation plots"
 mkpath("docs/src/figures")
-hydrogen()
-helium()
-beryllium(:fedvr)
-beryllium(:fd)
+@echo hydrogen()
+@echo helium()
+@echo beryllium(:fedvr)
+@echo beryllium(:fd)
