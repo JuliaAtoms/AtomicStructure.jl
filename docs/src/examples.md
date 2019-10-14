@@ -53,7 +53,7 @@ Since hydrogen can be solved exactly, no Hartree–Fock iterations are
 needed, and the orbital is in fact initialized to its hydrogenic shape
 upon construction:
 
-```julia
+```julia-repl
 julia> nucleus = pc"H"
 Z = 1 [hydrogen]
 
@@ -90,7 +90,7 @@ formed from the nucleus and _all other electrons_:
    very helpful for heavier elements.
 
 The initial setup is very similar to hydrogen:
-```julia
+```julia-repl
 julia> nucleus = pc"He"
 Z = 2 [helium]
 
@@ -106,7 +106,7 @@ Atom{Float64}(R=FEDVR{Float64} basis with 9 elements on 0.0..10.0, restricted to
 Then we create a Fock operator, which will automatically form the
 energy expression and from that derive the orbital Hartree–Fock
 equations:
-```julia
+```julia-repl
 julia> fock = Fock(atom)
 Fock operator with
 - quantum system: Atom{Float64}(R=FEDVR{Float64} basis with 9 elements on 0.0..10.0, restricted to basis functions 2..86 ⊂ 1..87; Z = 2 [helium]; 2 e⁻ ⇒ Q = 0) with 1 Configuration{SpinOrbital{Orbital{Int64},Tuple{Int64,HalfIntegers.Half{Int64}}}}: 1s₀α 1s₀β
@@ -124,7 +124,7 @@ Fock operator with
 Note that the orbital energies pre-optimization corresponds to that of
 a ``1s`` electron in a ``Z=2`` potential. We are now ready to perform
 the optimization:
-```julia
+```julia-repl
 julia> optimize!(fock)
 [ Info: Performing initial SCF iterations
 Self-Consistent-Field calculation of
@@ -234,7 +234,7 @@ optimization on Riemannian manifolds is used.
 
 ### FEDVR
 
-```julia
+```julia-repl
 julia> nucleus = pc"Be"
 Z = 4 [beryllium]
 
@@ -408,7 +408,7 @@ iterations when solving the self-consistent problem, since the former
 is prone to errors in the Cholesky factorization if the grid is too
 coarse, whereas the latter struggle with too fine grids:
 
-```julia
+```julia-repl
 julia> nucleus = pc"Be"
 Z = 4 [beryllium]
 
