@@ -210,15 +210,26 @@ end
 
 # *** Materialization into a matrix
 
+get_operator_matrix(A::AtomicOneBodyHamiltonian) = A.op.args[2]
+get_operator_matrix(A::DirectPotential) = A.V̂.args[2]
+get_operator_matrix(A::ShiftTerm) = A.shift
+get_operator_matrix(A::RadialOperator) = A.args[2]
+get_operator_matrix(A::Diagonal) = A
+get_operator_matrix(A::IdentityOperator) = I
+get_operator_matrix(A::SourceTerm) = get_operator_matrix(A.operator)
+get_operator_matrix(A) =
+    throw(ArgumentError("Don't know how to materialize a $(typeof(A)) as a matrix"))
+
 """
     copyto!(dest::AbstractMatix, hamiltonian::OrbitalHamiltonian)
 
 Materialize the orbital `hamiltonian` into matrix form and store it in
 `dest`, using the current values of all other orbitals. This is only
 possible if the orbital `hamiltonian` does *not* contain any
-[`ExchangePotential`](@ref)s or [`SourceTerm`](@ref)s, since the
-former is non-local (and thus not representable as a matrix) and the
-latter is not a linear operator (but an affine one).
+[`ExchangePotential`](@ref)s or [`SourceTerm`](@ref)s (which are not
+diagonal in orbital space), since the former is non-local (and thus
+not representable as a matrix) and the latter is not a linear operator
+(but an affine one).
 
 Typical usage is to compute an easily factorizable matrix that can be
 used for preconditioning the solution of the full equation.
@@ -232,26 +243,13 @@ function Base.copyto!(dest::M, hamiltonian::OrbitalHamiltonian) where {T,M<:Abst
     dest .= zero(T)
 
     for term in hamiltonian.terms
-        (term.A isa SourceTerm ||
-         term.A isa ExchangePotential) &&
-         throw(ArgumentError("It is not possible to materialize a $(typeof(term.A)) as a matrix"))
+        term.A isa SourceTerm && term.A.source_orbital ≠ hamiltonian.orbital &&
+            throw(ArgumentError("It is not possible to materialize an orbitally off-diagonal $(typeof(term.A)) as a matrix"))
+        term.A isa ExchangePotential &&
+            throw(ArgumentError("It is not possible to materialize a $(typeof(term.A)) as a $M"))
         coeff = coefficient(term, c)
 
-        op = if term.A isa AtomicOneBodyHamiltonian
-            term.A.op.args[2]
-        elseif term.A isa DirectPotential
-            term.A.V̂.args[2]
-        elseif term.A isa ShiftTerm
-            term.A.shift
-        elseif term.A isa RadialOperator
-            term.A.args[2]
-        elseif term.A isa Diagonal
-            term.A
-        else
-            throw(ArgumentError("Don't know how to materialize a $(typeof(term.A)) as a matrix"))
-        end
-
-        dest += coeff*op
+        dest += coeff*get_operator_matrix(term.A)
     end
 
     dest
