@@ -82,11 +82,13 @@ function pushterms!(terms::Vector{<:OrbitalHamiltonianTerm{aO,bO,T}},
                     integral_map::Dict{Any,Int},
                     symbolic_integrals) where {aO,bO,T,QO}
     for eq_term in equation_terms
+        integrals = OrbitalIntegral{0}[
+            get_integral(integrals, integral_map, symbolic_integrals[i])
+            for i in eq_term.integrals
+        ]
         push!(terms,
-              OrbitalHamiltonianTerm{aO,bO,T,QO}(
+              OrbitalHamiltonianTerm{aO,bO,T,QO,typeof(integrals)}(
                   eq_term.i, eq_term.j, T(eq_term.coeff),
-                  operator,
-                  [get_integral(integrals, integral_map, symbolic_integrals[i])
-                   for i in eq_term.integrals]))
+                  operator, integrals))
     end
 end

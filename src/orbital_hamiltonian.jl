@@ -11,12 +11,12 @@ of [`OrbitalIntegral`](@ref)s arising from the presence of
 non-orthogonal orbitals and whose values should be multiplied to form
 the overall coefficient.
 """
-struct OrbitalHamiltonianTerm{aO,bO,T,QO}
+struct OrbitalHamiltonianTerm{aO,bO,T,QO,VOint}
     i::Int
     j::Int
     coeff::T
     A::QO
-    integrals::Vector{OrbitalIntegral{<:Any,aO,bO,T}}
+    integrals::VOint
 end
 
 function Base.show(io::IO, t::OrbitalHamiltonianTerm)
