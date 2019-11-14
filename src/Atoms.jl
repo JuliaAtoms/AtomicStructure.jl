@@ -17,6 +17,7 @@ using QuasiArrays
 import QuasiArrays: MulQuasiArray
 using LazyArrays
 import LazyArrays: materialize, materialize!, MulAdd
+using ArrayLayouts
 using FillArrays
 using BandedMatrices
 using BlockBandedMatrices

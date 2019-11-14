@@ -23,7 +23,7 @@ function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T,
     ma.C
 end
 
-LazyArrays.default_blasmul!(α, A::Diagonal, B::AbstractVector, β, C::AbstractVector) =
+ArrayLayouts.default_blasmul!(α, A::Diagonal, B::AbstractVector, β, C::AbstractVector) =
     diagmuladd!(α, A, B, β, C)
 
 # * SymTridiagonal matrices
@@ -63,5 +63,5 @@ function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T,
     ma.C
 end
 
-LazyArrays.default_blasmul!(α, A::SymTridiagonal, B::AbstractVector, β, C::AbstractVector) =
+ArrayLayouts.default_blasmul!(α, A::SymTridiagonal, B::AbstractVector, β, C::AbstractVector) =
     symtridiagmuladd!(α, A, B, β, C)
