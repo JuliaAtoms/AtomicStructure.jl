@@ -121,11 +121,11 @@ end
 SCF.update!(::RadialOperator; kwargs...) = nothing
 SCF.update!(::RadialOperator, ::Atom; kwargs...) = nothing
 
-# function get_operator(top::Projector, ::Atom, orbital::aO, source_orbital::bO) where {aO,bO}
-#     orbital == source_orbital || return 0
-#     SourceTerm(IdentityOperator{1}(), source_orbital,
-#                top.ϕs[findfirst(isequal(source_orbital), top.orbitals)])
-# end
+function get_operator(top::Projector, ::Atom, orbital::aO, source_orbital::bO) where {aO,bO}
+    orbital == source_orbital || return 0
+    SourceTerm(IdentityOperator{1}(), source_orbital,
+               top.ϕs[findfirst(isequal(source_orbital), top.orbitals)])
+end
 
 get_operator(op::QO, atom::Atom, ::aO, ::bO; kwargs...) where {QO,aO,bO} =
     throw(ArgumentError("Unsupported operator $op"))
@@ -220,7 +220,7 @@ function Base.diff(atom::Atom,
                    modify_eoms!::Function = eqs -> nothing,
                    modify_integrals!::Function = (eqs,integrals,integral_map) -> nothing,
                    modify_equations!::Function = hfeqs -> nothing,
-                   verbosity=0)
+                   verbosity=0, kwargs...)
     eqs = diff(energy_expression, conj.(orbitals))
     modify_eoms!(eqs)
 
@@ -248,8 +248,8 @@ function Base.diff(atom::Atom,
     integral_map = Dict{Any,Int}()
     poisson_cache = Dict{Int,CoulombIntegrals.PoissonCache}()
     append_common_integrals!(integrals, integral_map,
-                             atom, eqs.integrals,
-                             poisson_cache=poisson_cache)
+                             atom, eqs.integrals;
+                             poisson_cache=poisson_cache, kwargs...)
     modify_integrals!(eqs, integrals, integral_map)
 
     hfeqs = generate_atomic_orbital_equations(atom, eqs,
@@ -265,7 +265,7 @@ function Base.diff(atom::Atom,
                         symmetries, selector;
                         double_counted=double_counted,
                         poisson_cache=poisson_cache,
-                        verbosity=verbosity)
+                        verbosity=verbosity, kwargs...)
     end |> Dict{Symbol,Observable}
 
     AtomicEquations(atom, hfeqs, integrals, observables)
