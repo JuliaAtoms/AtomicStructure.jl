@@ -2,7 +2,7 @@
 
 function potential_matrix(V::Function, R)
     r = axes(R,1)
-    R'QuasiDiagonal(V.(r))*R
+    apply(*, R', QuasiDiagonal(V.(r)), R)
 end
 
 operator(M, R) = applied(*, R, M, R')
@@ -17,7 +17,7 @@ function one_body_hamiltonian(::Type{Tuple}, atom::Atom, orb)
     R = radial_basis(atom)
 
     D = Derivative(axes(R,1))
-    T = R'D'D*R
+    T = apply(*, R', D', D, R)
     T /= -2
 
     # Add in centrifugal part

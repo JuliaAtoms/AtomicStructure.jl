@@ -14,7 +14,7 @@ import EnergyExpressions: NBodyMatrixElement, OrbitalMatrixElement,
 using ContinuumArrays
 import ContinuumArrays: Basis
 using QuasiArrays
-import QuasiArrays: MulQuasiArray
+import QuasiArrays: MulQuasiArray, SubQuasiArray
 using LazyArrays
 import LazyArrays: materialize, materialize!, MulAdd
 using ArrayLayouts
