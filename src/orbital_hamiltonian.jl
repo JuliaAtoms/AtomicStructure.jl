@@ -255,7 +255,7 @@ function Base.copyto!(dest::M, hamiltonian::OrbitalHamiltonian) where {T,M<:Abst
     dest
 end
 
-function Base.similar(h::OrbitalHamiltonian{aO,bO,O,T,Proj,RT}, ::Type{T}) where {aO,bO,O,T,Proj,RT<:AbstractFiniteDifferences}
+function Base.similar(h::OrbitalHamiltonian{aO,bO,O,T,Proj,RT}, ::Type{T}) where {aO,bO,O,T,Proj,RT<:BasisOrRestricted{<:AbstractFiniteDifferences}}
     R = h.R
     m = size(R,2)
     # TODO: This is only valid for RadialDifferences of
