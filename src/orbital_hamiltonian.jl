@@ -333,29 +333,3 @@ function update!(okw::SCF.OrthogonalKrylovWrapper{<:OrbitalHamiltonian})
     end
     okw
 end
-
-# ** Preconditioner
-
-"""
-    IterativeFactorizations.preconditioner(hamiltonian::OrbitalHamiltonian)
-
-Return a factorization of the matrix corresponding to `hamiltonian`,
-where all terms arising from exchange and configuration interaction
-have been removes, since they cannot be represented by a matrix.
-"""
-function IterativeFactorizations.preconditioner(hamiltonian::OrbitalHamiltonian)
-    # To form the preconditioner, we select all terms of the shifted
-    # Hamiltonian, except the exchange potentials and source terms,
-    # which are not factorizable.
-    Ph = filter(t -> !(t.A isa ExchangePotential || t.A isa SourceTerm), hamiltonian)
-    hm = materialize(Ph)
-    factorize(hm)
-end
-
-# ** Factorization
-IterativeFactorizations.factorization(hamiltonian::OrbitalHamiltonian, args...; kwargs...) =
-    IterativeFactorization(KrylovWrapper(hamiltonian), args...;
-                           isposdefA=false, verbosity=0, kwargs...)
-
-LinearAlgebra.factorize(hamiltonian::OrbitalHamiltonian) =
-    factorization(hamiltonian)

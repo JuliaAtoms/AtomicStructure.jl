@@ -33,7 +33,6 @@ using SCF
 import SCF: norm_rot!, update!, KrylovWrapper, print_block
 using CoulombIntegrals
 import CoulombIntegrals: locs
-using IterativeFactorizations
 
 using AtomicPotentials
 using PseudoPotentials
