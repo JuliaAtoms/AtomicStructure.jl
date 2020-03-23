@@ -221,10 +221,10 @@ function Base.diff(atom::Atom,
                    modify_integrals!::Function = (eqs,integrals,integral_map) -> nothing,
                    modify_equations!::Function = hfeqs -> nothing,
                    verbosity=0, kwargs...)
-    eqs = diff(energy_expression, conj.(orbitals))
+    eqs = diff(energy_expression, conj.(orbitals); verbosity=verbosity)
     modify_eoms!(eqs)
 
-    if verbosity > 0
+    if verbosity > 1
         println("Energy expression:")
         display(energy_expression)
         println()
@@ -237,7 +237,7 @@ function Base.diff(atom::Atom,
         display(symmetries)
         println()
 
-        if verbosity > 1
+        if verbosity > 2
             println("Common integrals:")
             display(eqs.integrals)
             println()
@@ -259,7 +259,7 @@ function Base.diff(atom::Atom,
     modify_equations!(hfeqs)
 
     observables = map(collect(pairs(observables))) do (k,(operator,double_counted))
-        verbosity > 2 && println("Observable: $k ($operator)")
+        verbosity > 3 && println("Observable: $k ($operator)")
         k => Observable(operator, atom, overlaps,
                         integrals, integral_map,
                         symmetries, selector;
