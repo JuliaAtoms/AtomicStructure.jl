@@ -88,9 +88,13 @@ for (i,HT) in enumerate([:KineticEnergyHamiltonian, :PotentialEnergyHamiltonian]
 end
 
 function get_operator(op::CoulombPotentialMultipole, atom::Atom,
-                      orbital::aO, ::bO; kwargs...) where {aO,bO}
+                      orbital::aO, source_orbital::bO; kwargs...) where {aO,bO}
     a,b = op.a[1],op.b[1]
-    HFPotential(:exchange, op.o.k, a, a, atom, op.o.g; kwargs...)
+    if orbital == source_orbital
+        HFPotential(:direct, op.o.k, a, b, atom, op.o.g; kwargs...)
+    else
+        HFPotential(:exchange, op.o.k, a, source_orbital, atom, op.o.g; kwargs...)
+    end
 end
 
 get_operator(top::IdentityOperator, atom::Atom,
