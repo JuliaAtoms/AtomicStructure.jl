@@ -227,7 +227,7 @@ end
 
 Returns a copy of the `j`:th radial orbital.
 """
-Base.getindex(atom::Atom, j::I) where {I<:Integer} =
+Base.getindex(atom::Atom, j::Integer) =
     applied(*, radial_basis(atom), atom.radial_orbitals.args[2][:,j])
 
 """
@@ -235,15 +235,31 @@ Base.getindex(atom::Atom, j::I) where {I<:Integer} =
 
 Returns a copy of the radial orbital corresponding to `orb`.
 """
-Base.getindex(atom::Atom{T,B,O}, orb::O) where {T,B,O} =
+Base.getindex(atom::Atom{T,B,O}, orb::O) where {T,B,O<:AbstractOrbital} =
     atom[orbital_index(atom, orb)]
+
+"""
+    getindex(atom, js)
+
+Returns a copy of all radial orbitals with index `∈ js`.
+"""
+Base.getindex(atom::Atom, js::AbstractVector{<:Integer}) =
+    applied(*, radial_basis(atom), atom.radial_orbitals.args[2][:,js])
+
+"""
+    getindex(atom, orbs)
+
+Returns a copy of the radial orbitals corresponding to `orbs`.
+"""
+Base.getindex(atom::Atom{T,B,O}, orbs::AbstractVector{<:O}) where {T,B,O<:AbstractOrbital} =
+    atom[map(orb -> orbital_index(atom, orb), orbs)]
 
 """
     view(atom, j)
 
 Returns a `view` of the `j`:th radial orbital.
 """
-Base.view(atom::Atom, j::I) where {I<:Integer} =
+Base.view(atom::Atom, j::Integer) =
     applied(*, radial_basis(atom), view(atom.radial_orbitals.args[2], :, j))
 
 """
@@ -253,6 +269,14 @@ Returns a `view` of the radial orbital corresponding to `orb`.
 """
 Base.view(atom::Atom{T,B,O}, orb::O) where {T,B,O} =
     view(atom, orbital_index(atom, orb))
+
+"""
+    view(atom, j)
+
+Returns a `view` of all radial orbitals with index `∈ js`.
+"""
+Base.view(atom::Atom, js::AbstractVector{<:Integer}) =
+    applied(*, radial_basis(atom), view(atom.radial_orbitals.args[2], :, js))
 
 """
     SCF.coefficients(atom)
