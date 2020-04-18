@@ -13,9 +13,8 @@ operator(M, R) = applied(*, R, M, R')
 Return the kinetic and one-body potential energy operators (as a
 tuple) for the orbital `orb` of `atom`.
 """
-function one_body_hamiltonian(::Type{Tuple}, atom::Atom, orb)
-    R = radial_basis(atom)
-
+function one_body_hamiltonian(::Type{Tuple}, R::AbstractQuasiMatrix,
+                              potential, orb)
     D = Derivative(axes(R,1))
     T = apply(*, R', D', D, R)
     T /= -2
@@ -24,17 +23,21 @@ function one_body_hamiltonian(::Type{Tuple}, atom::Atom, orb)
     ℓ = getℓ(orb)
     T += potential_matrix(r -> ℓ*(ℓ+1)/(2r^2), R)
 
-    V = potential_matrix(r -> atom.potential(orb, r), R)
+    V = potential_matrix(r -> potential(orb, r), R)
 
     operator(T, R), operator(V, R)
 end
+
+one_body_hamiltonian(::Type{Tuple}, atom::Atom, orb) =
+    one_body_hamiltonian(Tuple, radial_basis(atom),
+                         atom.potential, orb)
 
 """
     one_body_hamiltonian(::Type{Tuple}, atom, orb)
 
 Return the one-body energy operator for the orbital `orb` of `atom`.
 """
-one_body_hamiltonian(atom, orb) = +(one_body_hamiltonian(Tuple, atom, orb)...)
+one_body_hamiltonian(args...) = +(one_body_hamiltonian(Tuple, args...)...)
 
 # * One-body Hamiltonian operators
 
