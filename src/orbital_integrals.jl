@@ -178,6 +178,8 @@ Base.convert(::Type{HFPotential{kind,aO₁,bO₁,T,OV,Density,Potential}},
                                                                   hfpotential.av, hfpotential.bv,
                                                                   hfpotential.ρ, hfpotential.V̂)
 
+Base.eltype(::HFPotential{<:Any,<:Any,<:Any,T}) where T = T
+
 # *** Direct potential
 
 """

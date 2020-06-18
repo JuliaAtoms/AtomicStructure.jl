@@ -217,8 +217,6 @@ get_operator_matrix(A::RadialOperator) = A.args[2]
 get_operator_matrix(A::Diagonal) = A
 get_operator_matrix(A::IdentityOperator) = I
 get_operator_matrix(A::SourceTerm) = get_operator_matrix(A.operator)
-get_operator_matrix(A) =
-    throw(ArgumentError("Don't know how to materialize a $(typeof(A)) as a matrix"))
 
 """
     copyto!(dest::AbstractMatix, hamiltonian::OrbitalHamiltonian)
@@ -245,8 +243,6 @@ function Base.copyto!(dest::M, hamiltonian::OrbitalHamiltonian) where {T,M<:Abst
     for term in hamiltonian.terms
         term.A isa SourceTerm && term.A.source_orbital ≠ hamiltonian.orbital &&
             throw(ArgumentError("It is not possible to materialize an orbitally off-diagonal $(typeof(term.A)) as a matrix"))
-        term.A isa ExchangePotential &&
-            throw(ArgumentError("It is not possible to materialize a $(typeof(term.A)) as a $M"))
         coeff = coefficient(term, c)
 
         dest += coeff*get_operator_matrix(term.A)
@@ -258,13 +254,14 @@ end
 function Base.similar(h::OrbitalHamiltonian{aO,bO,O,T,Proj,RT}, ::Type{T}) where {aO,bO,O,T,Proj,RT<:BasisOrRestricted{<:AbstractFiniteDifferences}}
     R = h.R
     m = size(R,2)
-    # TODO: This is only valid for RadialDifferences of
-    # FiniteDifferencesQuasi.jl
+    # TODO: This is only valid for {,Staggered}FiniteDifferences of
+    # CompactBases.jl
     o = ones(T, m)
     SymTridiagonal(o,0*o[2:end])
 end
 
-Base.similar(h::OrbitalHamiltonian{aO,bO,O,T,Proj,RT}, ::Type{T}) where {aO,bO,O,T,Proj,RT<:BasisOrRestricted{<:FEDVR}} =
+Base.similar(h::OrbitalHamiltonian{aO,bO,O,T,Proj,RT}, ::Type{T}) where {aO,bO,O,T,Proj,
+                                                                         RT<:BasisOrRestricted{<:Union{<:FEDVR,<:BSpline}}} =
     Matrix(undef, h.R)
 
 LazyArrays.materialize(h::OrbitalHamiltonian) =

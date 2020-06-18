@@ -202,9 +202,9 @@ uuid = "f6369f11-7733-5829-9624-2563aa707210"
 version = "0.10.10"
 
 [[HalfIntegers]]
-git-tree-sha1 = "4c2671229adff0a42b3999f4255904959472de8f"
+git-tree-sha1 = "a624b256fb0d7563bd9fd9497831a4faf75e4f39"
 uuid = "f0d1745a-41c9-11e9-1dd9-e5d34d218721"
-version = "1.1.1"
+version = "1.1.2"
 
 [[InteractiveUtils]]
 deps = ["Markdown"]
@@ -395,7 +395,7 @@ version = "1.0.2"
 
 [[SCF]]
 deps = ["ArnoldiMethod", "Compat", "Crayons", "Formatting", "IntervalSets", "IterativeSolvers", "LinearAlgebra", "Optim", "PrettyTables", "Roots", "SolverTraces", "SparseArrays", "Test", "UnicodeFun"]
-git-tree-sha1 = "38e9783bcef2f5a3db47f11ed06ca0df51f1213d"
+git-tree-sha1 = "3d86a3593b8623014b71daee51345f85a8c0d4a0"
 repo-rev = "master"
 repo-url = "https://github.com/JuliaAtoms/SCF.jl.git"
 uuid = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"
