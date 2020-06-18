@@ -5,9 +5,10 @@ Represents a physical quantity that can be observed, which is
 calculated as the matrix element of an operator between two
 configurations. All physical observables are real.
 """
-mutable struct Observable{T,B<:Basis,Equations<:AbstractVector{<:AtomicOrbitalEquation}}
+mutable struct Observable{T,B<:Basis,Equations<:AbstractVector{<:AtomicOrbitalEquation},Metric}
     equations::Equations
     tmp::RadialOrbital{T,B}
+    S::Metric
 end
 
 """
@@ -87,7 +88,7 @@ function Observable(operator::QuantumOperator, atom::A,
     tmp = similar(first(eqs).ϕ)
     tmp.args[2] .= false # To clear any NaNs
 
-    Observable(eqs, tmp)
+    Observable(eqs, tmp, atom.S)
 end
 
 realifreal(::Type{R}, v) where {R<:Real} = real(v)
@@ -104,7 +105,7 @@ function observe!(A::M, o::Observable{T}) where {R,M<:AbstractMatrix{R},T}
     for eq in o.equations
         for term in eq.hamiltonian.terms
             materialize!(MulAdd(coefficient(term), term.A, eq.ϕ, zero(T), o.tmp))
-            A[term.i,term.j] += realifreal(R, (materialize(applied(*, eq.ϕ', o.tmp))))
+            A[term.i,term.j] += realifreal(R, dot(eq.ϕ.args[2], o.S, o.tmp.args[2]))
         end
     end
     A
@@ -120,5 +121,6 @@ scalar.
 """
 function observe!(A::M, o::Observable{T}, atom::Atom) where {R,M<:AbstractMatrix{R},T}
     observe!(A, o)
-    atom.mix_coeffs'A*atom.mix_coeffs
+    c = atom.mix_coeffs
+    dot(c, A, c)
 end

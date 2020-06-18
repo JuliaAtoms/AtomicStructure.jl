@@ -34,7 +34,8 @@ function AtomicOrbitalEquation(atom::A, equation::Equation, orbital::O,
     OV = typeof(view(atom,orbital))
     projector = Projector(OV[view(atom, other)
                              for other in symmetry_orbitals],
-                          symmetry_orbitals)
+                          symmetry_orbitals,
+                          atom.S)
 
     hamiltonian = OrbitalHamiltonian(radial_basis(atom), terms,
                                      atom.mix_coeffs, projector, orbital)

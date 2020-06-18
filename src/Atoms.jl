@@ -22,8 +22,8 @@ using FillArrays
 using BandedMatrices
 using BlockBandedMatrices
 
-using FiniteDifferencesQuasi
-using FEDVRQuasi
+using CompactBases
+import CompactBases: BasisOrRestricted, AdjointBasisOrRestricted
 
 using LinearAlgebra
 using SparseArrays
@@ -52,7 +52,7 @@ getspatialorb(orb::SpinOrbital) = orb.orb
 getn(orb::AbstractOrbital) = getspatialorb(orb).n
 getℓ(orb::AbstractOrbital) = getspatialorb(orb).ℓ
 
-include("restricted_bases.jl")
+
 include("radial_orbitals.jl")
 include("atom_types.jl")
 include("one_body.jl")

@@ -1,3 +1,4 @@
+# TODO: Replace by FuncArray et al.
 const RadialOrbitalArray{T,N,B<:Basis} = Mul{<:Any,<:Tuple{<:BasisOrRestricted{B},<:AbstractArray{T,N}}}
 const AdjointRadialOrbitalArray{T,N,B<:Basis} = Mul{<:Any,<:Tuple{<:Adjoint{<:Any,<:AbstractArray{T,N}},<:AdjointBasisOrRestricted{B}}}
 

@@ -73,7 +73,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
                     println(io, "Target eigenvalue: ≤ $(Iₚℓ) Ha")
 
                 H = one_body_hamiltonian(atom, first(orbitals[ℓ]))
-                λᴴ,Φᴴ = diagonalize_one_body(H, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
+                λᴴ,Φᴴ = diagonalize_one_body(H, atom.S, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
                 if find_lowest
                     if first(λᴴ) < λmin
                         λmin = first(λᴴ)
@@ -104,11 +104,12 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
             linefmt = FormatExpr("{1:$(ml)s} {2:<9.7f} {3:12.5e}")
             verbosity > 2 && printfmtln(io, "{1:$(ml)s} {2:9s}  {3:11s}", "", "Initial n", "1-n")
             for j in eachindex(atom.orbitals)
-                n₀ = norm(atom[j])
-                iszero(n₀) || norm_rot!(view(atom, j))
+                ϕ = view(atom.radial_orbitals.args[2], :, j)
+                n₀ = √(dot(ϕ, atom.S, ϕ))
+                iszero(n₀) || norm_rot!(atom, ϕ)
 
                 if verbosity > 2
-                    n = norm(atom[j])
+                    n = √(dot(ϕ, atom.S, ϕ))
                     printfmtln(io, linefmt, atom.orbitals[j], n₀, 1-n)
                 end
             end
@@ -119,12 +120,11 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
                 ml = maximum(length.(string.(atom.configurations)))
                 configfmt = "{1:<$(ml+3)s}"
                 linefmt = FormatExpr("$(configfmt) {2:7.5f} {3:12.5e}")
-                N = Q
-                printfmtln(io, "$(configfmt) {2:7s}  {3:11s} ", "Cfg", "√N", "$(N)-N²")
+                printfmtln(io, "$(configfmt) {2:7s}  {3:11s} ", "Cfg", "Norm", "Norm-1")
                 for (i,config) in enumerate(atom.configurations)
                     i > nconfigs && break
                     n = norm(atom, configuration=i)
-                    printfmtln(io, linefmt, config, n, N-n^2)
+                    printfmtln(io, linefmt, config, n, n-1)
                 end
                 length(atom.configurations) > nconfigs && println(io, "⋮")
             end
@@ -187,7 +187,7 @@ function screened_hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) 
                     println(io, "Target eigenvalue: ≤ $(Iₚ) Ha")
 
                 H = one_body_hamiltonian(atom, o) + Vsc
-                λᴴ,Φᴴ = diagonalize_one_body(H, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
+                λᴴ,Φᴴ = diagonalize_one_body(H, atom.S, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
                 copyto!(view(Φ, :, i), view(Φᴴ, :, nev))
 
                 if verbosity > 2

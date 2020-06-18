@@ -137,8 +137,7 @@ Materialize the lazy multiplication–addition of the type `y ← α*H*x +
 are [`RadialOrbital`](@ref)s.
 """
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest}) where {T,Source,Dest} =
-    materialize!(MulAdd(ma.α, ma.A.op.args[2], ma.B.args[2],
-                        ma.β, ma.C.args[2]))
+    mul!(ma.C.args[2], ma.A.op.args[2], ma.B.args[2], ma.α, ma.β)
 
 Base.show(io::IO, ĥ::AtomicOneBodyHamiltonian) =
     write(io, "ĥ($(ĥ.orbital))")
@@ -163,13 +162,13 @@ choices are
 
 `tol` sets the Krylov tolerance.
 """
-function diagonalize_one_body(H::RadialOperator, nev::Int;
+function diagonalize_one_body(H::RadialOperator, S, nev::Int;
                               method::Symbol=:arnoldi_shift_invert, tol=1e-10, σ=-1,
                               verbosity=0, io=stdout)
     Hm = matrix(H)
     verbosity > 2 && println(io, "Diagonalizing via $(method)")
     if method == :arnoldi || method == :arnoldi_shift_invert
-        A,target = method == :arnoldi ? (Hm,SR()) : (ShiftInvert(Hm, σ),LR())
+        A,target = method == :arnoldi ? (LinearOperator(Hm,S),SR()) : (ShiftAndInvert(Hm, S, σ),LR())
 
         schur,history = partialschur(A, nev=nev, tol=tol, which=target)
         verbosity > 3 && println(io, history)

@@ -21,12 +21,13 @@ The `potential` can be used to model either the nucleus by itself (a
 point charge or a nucleus of finite extent) or the core orbitals
 (i.e. a pseudo-potential).
 """
-mutable struct Atom{T,B<:Basis,O<:AbstractOrbital,TC<:ManyElectronWavefunction,CV<:AbstractVector,P<:AbstractPotential} <: AbstractQuantumSystem
+mutable struct Atom{T,B<:Basis,O<:AbstractOrbital,TC<:ManyElectronWavefunction,CV<:AbstractVector,P<:AbstractPotential,Metric} <: AbstractQuantumSystem
     radial_orbitals::RadialOrbitals{T,B}
     orbitals::Vector{O}
     configurations::Vector{TC}
     mix_coeffs::CV # Mixing coefficients for multi-configurational atoms
     potential::P
+    S::Metric
 end
 
 get_config(config::Configuration) = config
@@ -85,7 +86,8 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
 
     Φ = Matrix{T}(undef, size(R,2), length(orbs))
     RΦ = applied(*, R, Φ)
-    Atom(RΦ, orbs, configurations, mix_coeffs, potential)
+    S = R'R
+    Atom(RΦ, orbs, configurations, mix_coeffs, potential, S)
 end
 
 """
@@ -304,23 +306,27 @@ This calculates the _amplitude_ norm of the `atom`, i.e. ᵖ√N where N
 is the number electrons. By default, it uses the first `configuration`
 of the `atom` to weight the individual orbital norms.
 """
-function LinearAlgebra.norm(atom::Atom{T}, p::Real=2; configuration::Int=1) where T
+function LinearAlgebra.norm(atom::Atom{T}; configuration::Int=1) where T
     RT = real(T)
     n = zero(RT)
     for (orb,occ,state) in outsidecoremodel(get_config(atom.configurations[configuration]),
                                             atom.potential)
-        n += occ*norm(view(atom, orb), p)^p
+        j = orbital_index(atom, orb)
+        ϕ = view(atom.radial_orbitals.args[2], :, j)
+        n += occ*dot(ϕ, atom.S, ϕ)
     end
-    n^(one(RT)/p) # Unsure why you'd ever want anything but the 2-norm, but hey
+    Q = num_electrons(outsidecoremodel(first(atom.configurations),
+                                       atom.potential))
+    √(n/Q)
 end
 
 LinearAlgebra.normalize!(atom::A, v::V) where {A<:Atom,V<:AbstractVector} =
-    normalize!(applied(*, radial_basis(atom), v))
+    ldiv!(√(dot(v, atom.S, v)), v)
 
-function SCF.norm_rot!(ro::RO) where {RO<:RadialOrbital}
-    normalize!(ro)
-    SCF.rotate_first_lobe!(ro.args[2])
-    ro
+function SCF.norm_rot!(atom::A, v::V) where {A<:Atom,V<:AbstractVector}
+    normalize!(atom, v)
+    SCF.rotate_first_lobe!(v)
+    v
 end
 
 export Atom, DiracAtom, radial_basis
