@@ -152,7 +152,7 @@ Create a new atom using the same basis and nuclear potential as
 `other_atom`, but with a different set of `configurations`. The
 orbitals of `other_atom` are copied over as starting guess.
 """
-function Atom(other_atom::Atom{T,B,O,TC,CV,P},
+function Atom(other_atom::Atom{T,B,O,<:TC,CV,P},
               configurations::Vector{<:TC}; kwargs...) where {T,B,O,TC,CV,P}
     core(first(configurations)) == core(first(other_atom.configurations)) ||
         throw(ArgumentError("Core orbitals must be the same"))

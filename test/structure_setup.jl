@@ -76,7 +76,7 @@ end
 
         @testset "Hydrogen" begin
             nucleus = pc"H"
-            R = RadialDifferences(N, ρ)
+            R = StaggeredFiniteDifferences(N, ρ)
             # atom = Atom(R, csfs(c"1s"), nucleus)
             atom = Atom(R, [spin_configurations(c"1s")[1]], nucleus)
 
@@ -96,7 +96,7 @@ end
 
         @testset "Helium" begin
             nucleus = pc"He"
-            R = RadialDifferences(N, ρ, charge(nucleus))
+            R = StaggeredFiniteDifferences(N, ρ, float(charge(nucleus)))
             atom = Atom(R, spin_configurations(c"1s2"), nucleus, verbosity=Inf)
 
             @testset "Arnoldi" begin
@@ -133,7 +133,7 @@ end
             rₘₐₓ = 50
             ρ = 0.15
             N = ceil(Int, rₘₐₓ/ρ + 1/2)
-            R = RadialDifferences(N, ρ, charge(nucleus))
+            R = StaggeredFiniteDifferences(N, ρ, float(charge(nucleus)))
             atom = Atom(R, spin_configurations(c"1s2 2s2"),
                         nucleus, verbosity=Inf)
 

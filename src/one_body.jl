@@ -162,13 +162,13 @@ choices are
 
 `tol` sets the Krylov tolerance.
 """
-function diagonalize_one_body(H::RadialOperator, S, nev::Int;
+function diagonalize_one_body(H::RadialOperator, R, nev::Int;
                               method::Symbol=:arnoldi_shift_invert, tol=1e-10, σ=-1,
                               verbosity=0, io=stdout)
     Hm = matrix(H)
     verbosity > 2 && println(io, "Diagonalizing via $(method)")
     if method == :arnoldi || method == :arnoldi_shift_invert
-        A,target = method == :arnoldi ? (LinearOperator(Hm,S),SR()) : (ShiftAndInvert(Hm, S, σ),LR())
+        A,target = method == :arnoldi ? (LinearOperator(Hm, R),SR()) : (ShiftAndInvert(Hm, R, σ),LR())
 
         schur,history = partialschur(A, nev=nev, tol=tol, which=target)
         verbosity > 3 && println(io, history)

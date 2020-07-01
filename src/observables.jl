@@ -88,7 +88,20 @@ function Observable(operator::QuantumOperator, atom::A,
     tmp = similar(first(eqs).ϕ)
     tmp.args[2] .= false # To clear any NaNs
 
-    Observable(eqs, tmp, atom.S)
+    # For non-orthogonal bases, we need to apply the metric inverse,
+    # after computing the action of a matrix representation of a
+    # linear operator on a ket. However, when computing the inner
+    # product with the bra afterwards, we again use the metric. Here,
+    # we short-circuit this by combining them into them identity
+    # operator I, if the operator metric equals the metric. For
+    # orthgonal bases, with the integration weights not built into the
+    # coefficients, and an identity matrix operator metric, we /do/
+    # need to use the metric for the inner product.
+    R = radial_basis(atom)
+    oS = CompactBases.operator_metric(R)
+    S = oS == atom.S ? I : (oS \ atom.S)
+
+    Observable(eqs, tmp, S)
 end
 
 realifreal(::Type{R}, v) where {R<:Real} = real(v)

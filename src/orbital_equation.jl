@@ -51,8 +51,12 @@ Compute the orbital energy for the orbital governed by
 `hfeq`. Optionally select which contribution is computed (`:total`,
 `:onebody`, `:direct`, or `:exchange`).
 """
-SCF.energy(hfeq::AtomicOrbitalEquation, which::Symbol=:total) =
-    materialize(applied(*, hfeq.ϕ', hfeq.hamiltonian[which], hfeq.ϕ))
+function SCF.energy(hfeq::AtomicOrbitalEquation, which::Symbol=:total)
+    v = hfeq.ϕ.args[2]
+    tmp = similar(v)
+    SCF.fock_matrix_element(KrylovWrapper(hfeq.hamiltonian[which]),
+                            hfeq.atom.S, v, v, tmp)
+end
 
 function Base.show(io::IO, hfeq::AtomicOrbitalEquation)
     EHa = energy(hfeq)

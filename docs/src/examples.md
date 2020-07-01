@@ -19,8 +19,7 @@ using AtomicPotentials
 using SCF
 
 using LinearAlgebra
-using FiniteDifferencesQuasi
-using FEDVRQuasi
+using CompactBases
 using IntervalSets
 ```
 
@@ -42,7 +41,7 @@ function get_atom_grid(grid_type, rₘₐₓ, ρ, nucleus; fedvr_order=10)
         # fine grids to converge.
         N = ceil(Int, rₘₐₓ/ρ + 1/2)
         args = amend_order ? () : (zero(ρ),)
-        RadialDifferences(N, ρ, Z, args...)
+        StaggeredFiniteDifferences(N, ρ, float(Z), args...)
     end
 end
 ```

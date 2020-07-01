@@ -12,10 +12,7 @@ using Unitful
 using UnitfulAtomic
 using Formatting
 
-# Needed as /an/ implementation of an AbstractQuasiMatrix, not the
-# only possibility:
-using FiniteDifferencesQuasi
-using FEDVRQuasi
+using CompactBases
 
 using FillArrays
 
@@ -32,8 +29,8 @@ function get_atom_grid(grid_type, rₘₐₓ, ρ, nucleus; fedvr_order=10, amend
     else
         N = ceil(Int, rₘₐₓ/ρ + 1/2)
         args = amend_order ? () : (zero(ρ),)
-        R=RadialDifferences(N, ρ, Z, args...)
-        R,FiniteDifferencesQuasi.locs(R)
+        R=StaggeredFiniteDifferences(N, ρ, float(Z), args...)
+        R,CompactBases.locs(R)
     end
 
     R,r

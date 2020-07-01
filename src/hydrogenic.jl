@@ -73,7 +73,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
                     println(io, "Target eigenvalue: ≤ $(Iₚℓ) Ha")
 
                 H = one_body_hamiltonian(atom, first(orbitals[ℓ]))
-                λᴴ,Φᴴ = diagonalize_one_body(H, atom.S, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
+                λᴴ,Φᴴ = diagonalize_one_body(H, R, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
                 if find_lowest
                     if first(λᴴ) < λmin
                         λmin = first(λᴴ)
@@ -187,7 +187,7 @@ function screened_hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) 
                     println(io, "Target eigenvalue: ≤ $(Iₚ) Ha")
 
                 H = one_body_hamiltonian(atom, o) + Vsc
-                λᴴ,Φᴴ = diagonalize_one_body(H, atom.S, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
+                λᴴ,Φᴴ = diagonalize_one_body(H, R, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
                 copyto!(view(Φ, :, i), view(Φᴴ, :, nev))
 
                 if verbosity > 2
@@ -224,7 +224,7 @@ taken from Eq. (10) of
     Parameters. The Journal of Chemical Physics, 74(6),
     3628–3630. http://dx.doi.org/10.1063/1.441475
 """
-function screening(i::Orbital, j::Orbital)
+function screening(i::AbstractOrbital, j::AbstractOrbital)
     r = (3j.n^2 - j.ℓ*(j.ℓ+1))/(3i.n^2 - i.ℓ*(i.ℓ+1))
     (1 + r^2)^(-3/2)
 end
@@ -259,7 +259,7 @@ julia> Atoms.screening(o"2s", c"1s2 2s2")
 shows that the `2s` electron is screened by both the `1s` electrons
 and a little bit of the the other `2s` electron.
 """
-function screening(i::Orbital, c::Configuration)
+function screening(i::AbstractOrbital, c::Configuration)
     σᵢ = 0.0
     for (j,wⱼ,_) in c
         σᵢ += (wⱼ - (i==j))*screening(i, getspatialorb(j))
