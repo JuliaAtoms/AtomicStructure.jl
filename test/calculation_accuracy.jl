@@ -37,7 +37,7 @@ exact_energies = Dict(
     PseudoPotentials.XenonWB => [-15.277055, [o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]],
     PseudoPotentials.XenonDF => [-328.74543, [o"4s" => -15.712602/2, o"4p" => -12.016674, o"4d" => -5.5557597,
                                               o"5s" => -1.0097, ro"5p-" => -0.4915, ro"5p" => -0.4398]],
-    PseudoPotentials.XenonDF2c => [-328.74543, [o"5s" => -1.0097, ro"5p-" => -0.4915, ro"5p" => -0.4398]],
+    PseudoPotentials.XenonDF2c => [-328.36818, [o"5s" => -1.0097, ro"5p-" => -0.4915, ro"5p" => -0.4398]],
 )
 
 function shift_unit(u::U, d) where {U<:Unitful.Unit}
@@ -111,17 +111,17 @@ function energy_errors(fock, exact_energies, Δ, δ)
     @test all(abs.(errors[2:end]) .< δ)
 end
 
-function atom_calc(nucleus::AbstractPotential, grid_type::Symbol, rₘₐₓ, ρ,
+function atom_calc(nucleus::AbstractPotential, grid_type::Symbol, rₘₐₓ, grid_kwargs,
                    Δ, δ;
                    config_transform=identity, kwargs...)
-    # If we're using a pseudopotential, we don't really need higher
-    # order of the FEDVR basis functions in the first finite element,
-    # since the orbitals almost vanish there.
-    R,r = get_atom_grid(grid_type, rₘₐₓ, ρ, nucleus,
-                        amend_order=nucleus isa PointCharge)
+    R = get_atom_grid(grid_type, rₘₐₓ, nucleus; grid_kwargs...)
 
-    atom = Atom(R, [spin_configurations(config_transform(ground_state(nucleus)))[1]],
-                nucleus, eltype(R))
+    atom = Atom(R, spin_configurations(config_transform(ground_state(nucleus))),
+                nucleus, eltype(R), verbosity=Inf)
+    # For open-shell atoms, we simply assume an equal distribution
+    # among the available spin-configurations. This is correct for
+    # e.g. lithium.
+    atom.mix_coeffs .= 1 ./ √(length(atom.configurations))
 
     fock = Fock(atom)
 
@@ -135,37 +135,76 @@ end
             ("Non-relativistic", identity),
             ("Relativistic", relconfigurations)
         ]
-            @testset "$(grid_type)" for (grid_type,Δ,δ) in [(:fedvr,6e-9,7e-9),
-                                                            (:fd,4e-3,4e-3)]
-                atom_calc(pc"He", grid_type, 10.0, 0.1, Δ, δ, ω=0.9,
-                          config_transform=config_transform)
+            @testset "$(grid_type)" for (grid_type,grid_kwargs,optim_kwargs,Δ,δ) in [
+                (:fd_uniform,   (ρ=0.1,),             (),             1e-2, 1e-2),
+                (:fd_staggered, (ρ=0.1,),             (),             4e-3, 4e-3),
+                (:fd_loglin,    (ρ=0.1,),             (),             1e-3, 1e-3),
+                (:implicit_fd,  (ρ=0.1,),             (),             3e-3, 3e-3),
+                (:fedvr,        (intervals=10,k=10,), (),             6e-9, 7e-9),
+                (:bsplines,     (k=4,m=2,),           (scf_iters=0,), 8e-4, 8e-4)
+            ]
+                atom_calc(pc"He", grid_type, 10.0, grid_kwargs, Δ, δ;
+                          ω=0.9, config_transform=config_transform,
+                          optim_kwargs...)
             end
         end
     end
 
+    @testset "Lithium" begin
+        @testset "$(grid_type)" for (grid_type,grid_kwargs,optim_kwargs,Δ,δ) in [
+            (:fd_uniform,   (ρ=0.1,),                (),             3e-2, 1e-2),
+            (:fd_staggered, (ρ=0.1,),                (),             3e-3, 2e-3),
+            (:fd_loglin,    (ρ=0.05,),               (),             5e-4, 3e-4),
+            # (:implicit_fd,  (ρ=0.1,),              (scf_iters=0,), 0.0, 0.0), # This does not converge
+            (:fedvr,        (intervals=10,k=10,),    (),             1e-6, 8e-5),
+            (:bsplines,     (intervals=30,k=4,m=2,), (scf_iters=0,), 2e-4, 3e-5)
+        ]
+            atom_calc(pc"Li", grid_type, 20.0, grid_kwargs, Δ, δ;
+                      ω=0.9,
+                      # Lithium is an open-shell atom, so we keep the
+                      # mixing coefficients fixed, since we run an
+                      # unrestricted Hartree–Fock calculation with
+                      # Slater determinants, which would otherwise
+                      # collapse into one of the spin projections.
+                      update_mixing_coefficients=false,
+                      optim_kwargs...)
+        end
+    end
+
     @testset "Beryllium" begin
-        @testset "$(grid_type)" for (grid_type,ρ,Δ,δ) in [(:fedvr,0.2,6e-7,2e-6),
-                                                          (:fd,0.05,0.02,0.009)]
-            atom_calc(pc"Be", grid_type, 15.0, ρ, Δ, δ, ω=0.9, scf_method=:arnoldi)
+        @testset "$(grid_type)" for (grid_type,grid_kwargs,optim_kwargs,Δ,δ) in [
+            (:fedvr,        (k=10,intervals=8,), (scf_iters=0,),        6e-7, 2e-6),
+            (:fd_staggered, (ρ=0.2,),            (scf_method=:lobpcg,), 0.02, 0.009) # This works, but takes forever
+        ]
+            atom_calc(pc"Be", grid_type, 15.0, grid_kwargs, Δ, δ;
+                      ω=0.9,
+                      linesearch=LineSearches.MoreThuente(), optim_kwargs...)
         end
     end
 
     @testset "Neon" begin
         @testset "$nucleus" for (nucleus,Δ,δ) in [(pc"Ne",0.005,0.005),
                                                   (PseudoPotentials.NeonHF,0.2,0.05)]
-            atom_calc(nucleus, :fedvr, 10, 0.2, Δ, δ,
+            atom_calc(nucleus, :fedvr, 10.0, (k=10,intervals=6,), Δ, δ,
                       ω=0.999, ωmax=1.0-1e-3, scf_method=:arnoldi)
         end
     end
 
+    @testset "Argon" begin
+        atom_calc(pc"Ar", :bsplines, 8.0, (intervals=30,k=4,m=2), 8e-3, 2e-3;
+                  g_tol=1e-8, scf_iters=0, opt_iters=1000,
+                  linesearch=LineSearches.MoreThuente())
+    end
+
     @testset "Xenon" begin
-        @testset "$nucleus" for (nucleus,grid_type,ρ,Δ,δ,config_transform) in [
-            (PseudoPotentials.XenonHF,:fd,0.1,4e-3,4e-3,identity),
-            (PseudoPotentials.XenonDF2c,:fd,0.1,0.2,1e-2,relconfigurations)
+        @testset "$nucleus — $(grid_type)" for (nucleus,grid_type,grid_kwargs,Δ,δ,config_transform) in [
+            (PseudoPotentials.XenonHF,   :fedvr,    (intervals=10, k=5,),     3e-2, 5e-3, identity)
+            (PseudoPotentials.XenonDF2c, :fedvr,    (intervals=10, k=5,),     3e-2, 5e-3, relconfigurations)
+            # (PseudoPotentials.XenonDF2c, :bsplines, (intervals=10, k=4, m=2), 1e-3, 3e-3, relconfigurations)
         ]
-            atom_calc(nucleus, grid_type, 7.0, ρ, Δ, δ,
+            atom_calc(nucleus, grid_type, 7.0, grid_kwargs, Δ, δ,
                       ω=0.999, ωmax=1.0-1e-3,
-                      config_transform=config_transform, scf_method=:arnoldi)
+                      config_transform=config_transform, scf_iters=0)
         end
     end
 end

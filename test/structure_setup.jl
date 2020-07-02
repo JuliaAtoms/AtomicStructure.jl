@@ -42,9 +42,9 @@ end
             nucleus = pc"H"
             rₘₐₓ = 50
 
-            @testset "$(grid_type)" for (grid_type,ρ,tol) ∈ [(:fd, 0.15, 2e-3),
-                                                             (:fedvr, 0.25, 1e-3)]
-                R = first(get_atom_grid(grid_type, rₘₐₓ, ρ, nucleus))
+            @testset "$(grid_type)" for (grid_type,grid_kwargs,tol) ∈ [(:fd_staggered, (ρ=0.15,),            2e-3),
+                                                                       (:fedvr,        (k=10,intervals=20,), 1e-3)]
+                R = get_atom_grid(grid_type, rₘₐₓ, nucleus; grid_kwargs...)
                 @testset "$(method)" for method in vcat([:arnoldi_shift_invert, :arnoldi],
                                                         grid_type == :fd ? :eigen : [])
                     atom = Atom(R, csfs([c"1s", c"2s", c"2p", c"3s", c"3p", c"3d"]),
@@ -57,7 +57,7 @@ end
             nucleus = pc"He"
             rₘₐₓ = 300
             ρ = 0.25
-            R = first(get_atom_grid(:fd, rₘₐₓ, ρ, nucleus))
+            R = get_atom_grid(:fd_staggered, rₘₐₓ, nucleus, ρ=ρ)
             @testset "CSFs" begin
                 atom = Atom(R, csfs([c"1s2", c"1s 2s", c"1s 2p", c"3s 3p", c"4s 3d", c"5s 5d"]),
                             nucleus, verbosity=4)
