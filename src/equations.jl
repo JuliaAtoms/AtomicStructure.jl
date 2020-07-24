@@ -103,7 +103,8 @@ get_operator(top::IdentityOperator, atom::Atom,
 SCF.update!(::IdentityOperator; kwargs...) = nothing
 SCF.update!(::IdentityOperator, ::Atom; kwargs...) = nothing
 
-function get_operator(op::RadialOperator, atom::Atom, orbital::aO, source_orbital::bO; kwargs...) where {aO, bO}
+function get_operator(op::Op, atom::Atom, orbital::aO, source_orbital::bO;
+                      kwargs...) where {Op<:Union{<:RadialOperator,<:CoulombRepulsionPotential}, aO, bO}
     if orbital == source_orbital
         # In this case, the operator is diagonal in orbital space,
         # i.e. it maps an orbital onto itself.
@@ -117,7 +118,7 @@ end
 
 function get_operator(M::AbstractMatrix, atom::Atom, a::aO, b::bO; kwargs...) where {aO, bO}
     R = radial_basis(atom)
-    get_operator(R*M*R', atom, a, b; kwargs...)
+    get_operator(applied(*, R, M, R'), atom, a, b; kwargs...)
 end
 
 # RadialOperators (which are built from matrices), are independent of
@@ -130,9 +131,6 @@ function get_operator(top::Projector, ::Atom, orbital::aO, source_orbital::bO) w
     SourceTerm(IdentityOperator{1}(), source_orbital,
                top.ϕs[findfirst(isequal(source_orbital), top.orbitals)])
 end
-
-get_operator(op::QO, atom::Atom, ::aO, ::bO; kwargs...) where {QO,aO,bO} =
-    throw(ArgumentError("Unsupported operator $op"))
 
 """
     generate_atomic_orbital_equations(atom::Atom, eqs::MCEquationSystem,

@@ -139,6 +139,10 @@ are [`RadialOrbital`](@ref)s.
 LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest}) where {T,Source,Dest} =
     mul!(ma.C.args[2], ma.A.op.args[2], ma.B.args[2], ma.α, ma.β)
 
+LinearAlgebra.mul!(y, h::AtomicOneBodyHamiltonian, x,
+                   α::Number=true, β::Number=false) =
+                       mul!(y, h.op.args[2], x, α, β)
+
 Base.show(io::IO, ĥ::AtomicOneBodyHamiltonian) =
     write(io, "ĥ($(ĥ.orbital))")
 
