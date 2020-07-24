@@ -77,7 +77,7 @@ integral. Typically, `Â` is a radial part of an operator and `coeff`
 is the associated angular coefficient; `coeff` can be of any type
 convertible to a scalar.
 """
-mutable struct OperatorMatrixElement{aO,bO,OV,RO,T,Coeff} <: OrbitalIntegral{0,aO,bO,T}
+mutable struct OperatorMatrixElement{aO,bO,OV,RO,T,Coeff,Metric,Tmp} <: OrbitalIntegral{0,aO,bO,T}
     a::aO
     b::bO
     av::OV
@@ -85,20 +85,23 @@ mutable struct OperatorMatrixElement{aO,bO,OV,RO,T,Coeff} <: OrbitalIntegral{0,a
     Â::RO
     coeff::Coeff
     value::T
+    S̃::Metric
+    tmp::Tmp
 end
 
-function OperatorMatrixElement(a::aO, b::bO, Â::RO, atom::Atom{T}, coeff) where {aO,bO,T,RO}
-    ome = OperatorMatrixElement(a, b, view(atom, a), view(atom, b),
-                                Â, coeff, zero(T))
+function OperatorMatrixElement(a::aO, b::bO, Â, atom::Atom{T}, coeff) where {aO,bO,T}
+    av = view(atom, a).args[2]
+    bv = view(atom, b).args[2]
+    tmp = similar(bv)
+
+    ome = OperatorMatrixElement(a, b, av, bv,
+                                Â, coeff, zero(T), atom.S̃, tmp)
     SCF.update!(ome)
     ome
 end
 
-function OperatorMatrixElement(a::aO, b::bO, A::M, atom::Atom{T}, coeff) where {aO,bO,T,
-                                                                                M<:AbstractMatrix}
-    R = radial_basis(atom)
-    OperatorMatrixElement(a, b, applied(*,R,A,R'), atom, coeff)
-end
+OperatorMatrixElement(a::aO, b::bO, Â::RadialOperator, atom::Atom{T}, coeff) where {aO,bO,T} =
+    OperatorMatrixElement(a, b, Â.args[2], atom, coeff)
 
 function Base.show(io::IO, ome::OperatorMatrixElement)
     write(io, "⟨$(ome.a)|")
@@ -109,14 +112,8 @@ end
 function SCF.update!(ome::OperatorMatrixElement{aO,bO,OV,RO,T}; kwargs...) where {aO,bO,OV,RO,T}
     # NB: It is assumed that ome.Â, if necessary, is updated /before/
     # SCF.update!(ome) is called.
-    #
-    # TODO: This is not particularly efficient, since it allocates a
-    # temporary vector; rewrite using applied(*, ...).
-    b = ome.bv
-    tmp = similar(b)
-    tmp.args[2] .= zero(T)
-    materialize!(MulAdd(one(T), ome.Â, b, zero(T), tmp))
-    ome.value = convert(T,ome.coeff)*materialize(applied(*, ome.av', tmp))
+    mul!(ome.tmp, ome.Â, ome.bv)
+    ome.value = convert(T,ome.coeff)*dot(ome.av, ome.S̃, ome.tmp)
 end
 
 function SCF.update!(ome::OperatorMatrixElement, atom::Atom; kwargs...)
@@ -160,8 +157,9 @@ HFPotential(kind::Symbol, k::Int, a::aO, b::bO, av::OV, bv::OV, ρ::Density, V̂
 get_coulomb_repulsion_potential(::CoulombInteraction{Nothing}, args...; kwargs...) =
     CoulombRepulsionPotential(args...; kwargs...)
 
-# get_coulomb_repulsion_potential(g::CoulombInteraction{<:AbstractQuasiMatrix}, args...; kwargs...) =
-#     AsymptoticPoissonProblem(args..., g.o; kwargs...)
+get_coulomb_repulsion_potential(g::CoulombInteraction{<:AbstractQuasiMatrix}, R, k, T; apply_metric_inverse=true, kwargs...) =
+    CoulombRepulsionPotential(R, AsymptoticPoissonProblem(R, k, g.o, T; kwargs...);
+                              apply_metric_inverse=apply_metric_inverse)
 
 function HFPotential(kind::Symbol, k::Int, a::aO, b::bO, atom::Atom{T}, g::CoulombInteraction; kwargs...) where {aO,bO,T}
     av, bv = view(atom, a), view(atom, b)

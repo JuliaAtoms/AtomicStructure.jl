@@ -21,14 +21,18 @@ The `potential` can be used to model either the nucleus by itself (a
 point charge or a nucleus of finite extent) or the core orbitals
 (i.e. a pseudo-potential).
 """
-mutable struct Atom{T,B<:Basis,O<:AbstractOrbital,TC<:ManyElectronWavefunction,CV<:AbstractVector,P<:AbstractPotential,Metric} <: AbstractQuantumSystem
+mutable struct Atom{T,B<:Basis,O<:AbstractOrbital,TC<:ManyElectronWavefunction,CV<:AbstractVector,P<:AbstractPotential,
+                    Metric, MatrixElementMetric} <: AbstractQuantumSystem
     radial_orbitals::RadialOrbitals{T,B}
     orbitals::Vector{O}
     configurations::Vector{TC}
     mix_coeffs::CV # Mixing coefficients for multi-configurational atoms
     potential::P
     S::Metric
+    S̃::MatrixElementMetric
 end
+
+Base.eltype(::Atom{T}) where T = T
 
 get_config(config::Configuration) = config
 get_config(csf::CSF) = csf.config
@@ -86,8 +90,11 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
 
     Φ = Matrix{T}(undef, size(R,2), length(orbs))
     RΦ = applied(*, R, Φ)
-    S = R'R
-    Atom(RΦ, orbs, configurations, mix_coeffs, potential, S)
+
+    S = metric(R)
+    S̃ = matrix_element_metric(R)
+
+    Atom(RΦ, orbs, configurations, mix_coeffs, potential, S, S̃)
 end
 
 """
