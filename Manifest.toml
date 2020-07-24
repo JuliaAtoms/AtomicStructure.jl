@@ -76,9 +76,7 @@ version = "0.3.0"
 
 [[CompactBases]]
 deps = ["BandedMatrices", "BlockBandedMatrices", "ContinuumArrays", "FastGaussQuadrature", "FillArrays", "Formatting", "IntervalSets", "LazyArrays", "LinearAlgebra", "OffsetArrays", "QuasiArrays", "RecipesBase", "SparseArrays"]
-git-tree-sha1 = "3cfebb4a52de164441345ed5989b8979aa24b0c7"
-repo-rev = "master"
-repo-url = "https://github.com/JuliaApproximation/CompactBases.jl"
+git-tree-sha1 = "609e6add2fdacf27be5c197c41ccbacbbd0fc1a5"
 uuid = "2c0377a8-7469-4ebd-be0f-82e501f20078"
 version = "0.1.1"
 
@@ -107,7 +105,7 @@ version = "0.2.4"
 
 [[CoulombIntegrals]]
 deps = ["BlockBandedMatrices", "CompactBases", "ContinuumArrays", "IntervalSets", "LazyArrays", "LinearAlgebra", "QuasiArrays", "SpecialFunctions", "Test"]
-git-tree-sha1 = "7c385801bd5fbddca6fb5229fc6c060b43ade2bf"
+git-tree-sha1 = "3201a2c4ad6d776f02fbe189902de99884a157f2"
 repo-rev = "compact-bases"
 repo-url = "https://github.com/jagot/CoulombIntegrals.jl"
 uuid = "42e5845a-f9f1-11e8-0afe-795ea56ed153"
@@ -290,9 +288,9 @@ uuid = "77ba4419-2d1f-58cd-9bb1-8ffee604a2e3"
 version = "0.3.4"
 
 [[OffsetArrays]]
-git-tree-sha1 = "4ba4cd84c88df8340da1c3e2d8dcb9d18dd1b53b"
+git-tree-sha1 = "2066e16af994955287f2e03ba1d9e890eb43b0dd"
 uuid = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
-version = "1.1.1"
+version = "1.1.2"
 
 [[OpenSpecFun_jll]]
 deps = ["CompilerSupportLibraries_jll", "Libdl", "Pkg"]
