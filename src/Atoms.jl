@@ -39,6 +39,7 @@ using PseudoPotentials
 
 using Formatting
 using UnicodeFun
+using ProgressMeter
 
 function unique_orbitals(configurations::Vector{C}) where {O,C<:Configuration{O}}
     map(configurations) do config

@@ -58,9 +58,16 @@ end
 create_integral(symbolic_integral, atom::Atom, integrals, integral_map; kwargs...) =
     throw(ArgumentError("$(symbolic_integral) of type $(typeof(symbolic_integral)) not yet supported"))
 
-function append_common_integrals!(integrals::Vector, integral_map::Dict, atom::Atom, equation_integrals; kwargs...)
+function append_common_integrals!(integrals::Vector, integral_map::Dict, atom::Atom, equation_integrals;
+                                  verbosity=0, kwargs...)
+    nint = length(equation_integrals)
+    p = if verbosity > 0 && nint > 0
+        @info "Appending common integrals"
+        Progress(nint)
+    end
     for symbolic_integral in equation_integrals
         get_or_create_integral!(integrals, integral_map, symbolic_integral, atom; kwargs...)
+        !isnothing(p) && ProgressMeter.next!(p)
     end
 end
 

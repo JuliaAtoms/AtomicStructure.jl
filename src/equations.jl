@@ -147,6 +147,10 @@ function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSys
                                            symmetries::Dict;
                                            verbosity=0,
                                            kwargs...) where {T,B,O}
+    p = if verbosity > 0
+        @info "Generating atomic orbital equations"
+        Progress(length(eqs.equations))
+    end
     map(eqs.equations) do equation
         orbital = equation.orbital
         terms = Vector{OrbitalHamiltonianTerm{O,O,T}}()
@@ -183,6 +187,8 @@ function generate_atomic_orbital_equations(atom::Atom{T,B,O}, eqs::MCEquationSys
         # `overlaps` imply for the Lagrange multipliers/projectors.
         symmetry_orbitals = filter(!isequal(orbital), symmetries[symmetry(orbital)])
         verbosity > 1 && println("Symmetry: ", symmetry_orbitals)
+
+        !isnothing(p) && ProgressMeter.next!(p)
 
         AtomicOrbitalEquation(atom, equation, orbital, terms, symmetry_orbitals)
     end
@@ -253,7 +259,8 @@ function Base.diff(atom::Atom,
     poisson_cache = Dict{Int,CoulombIntegrals.PoissonCache}()
     append_common_integrals!(integrals, integral_map,
                              atom, eqs.integrals;
-                             poisson_cache=poisson_cache, kwargs...)
+                             poisson_cache=poisson_cache,
+                             verbosity=verbosity, kwargs...)
     modify_integrals!(eqs, integrals, integral_map)
 
     hfeqs = generate_atomic_orbital_equations(atom, eqs,
@@ -280,7 +287,7 @@ Base.Matrix(H::QuantumOperator, atom::Atom;
             selector::Function=cfg -> outsidecoremodel(cfg, atom.potential),
             configurations = selector.(atom.configurations),
             kwargs...) =
-    Matrix(H, configurations, overlaps)
+    Matrix(H, configurations, overlaps; kwargs...)
 
 function Base.diff(atom::Atom; H::QuantumOperator=atomic_hamiltonian(atom),
                    kwargs...)
