@@ -50,11 +50,13 @@ end
 Return the part of the electronic `configuration` that is not part of
 the the configuration modelled by the `potential`. For a point charge,
 this is the same as the `configuration` itself, but for
-pseudopotential, typically only the outer shells remain.
+pseudo-potentials, typically only the outer shells remain.
 """
-outsidecoremodel(configuration::Configuration, potential::P) where P =
+outsidecoremodel(configuration::Configuration, potential) =
     filter((orb,occ,state) -> nonrelorbital(getspatialorb(orb)) ∉ core(ground_state(potential)), configuration)
-outsidecoremodel(configuration::Configuration, ::PointCharge) where P =
+outsidecoremodel(configuration::Configuration, ::PointCharge) =
+    configuration
+outsidecoremodel(configuration::Configuration, ::Yukawa) =
     configuration
 outsidecoremodel(csf::CSF, potential) = outsidecoremodel(get_config(csf), potential)
 

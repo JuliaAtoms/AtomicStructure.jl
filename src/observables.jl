@@ -23,7 +23,7 @@ of common integrals, and `integral_map` is a mapping from symbolic
 integrals to [`OrbitalIntegral`](@ref)s. `selector` selects those
 orbitals not modelled by the potential, e.g. all orbitals in case of a
 nuclear potential, fewer in case of a
-pseudopotential. `double_counted` can be used to only return those
+pseudo-potential. `double_counted` can be used to only return those
 terms of the sum that would be double-counted if simply summing over
 orbital contributions (applicable to two-body operators only). Half
 the result of the double-counted term is then subtracted the sum over

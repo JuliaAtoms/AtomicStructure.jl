@@ -1,10 +1,9 @@
 using Atoms
+import Atoms: ECPs
 using CoulombIntegrals
 import CoulombIntegrals: locs
 using AtomicLevels
 using HalfIntegers
-using AtomicPotentials
-using PseudoPotentials
 using AngularMomentumAlgebra
 
 using SCF

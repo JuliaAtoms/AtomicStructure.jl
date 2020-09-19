@@ -6,21 +6,21 @@ exact_energies = Dict(
     pc"C" => [-37.688619, [o"1s" => -22.651038/2, o"2s" => -1.4112549/2, o"2p" => -0.8666811/12]],
 
     pc"Ne" => [-128.54710, [o"1s" => -32.7724455, o"2s" => -1.93039095, o"2p" => -0.85040965]],
-    PseudoPotentials.NeonHF => [-34.685316, [o"2s" => -1.93039095, o"2p" => -0.85040965]],
-    PseudoPotentials.NeonWB => [-34.708785, [o"2s" => -1.93039095, o"2p" => -0.85040965]],
+    ECPs.NeonHF => [-34.685316, [o"2s" => -1.93039095, o"2p" => -0.85040965]],
+    ECPs.NeonWB => [-34.708785, [o"2s" => -1.93039095, o"2p" => -0.85040965]],
 
     pc"Mg" => [-199.61463, [o"1s" => -49.0317255, o"2s" => -3.767718, o"2p" => -2.2822236, o"3s" => -0.25305275]],
 
     pc"Ar" => [-526.81751, [o"1s" => -237.22070/2, o"2s" => -24.644306/2, o"2p" => -19.142932/2,
                             o"3s" => -2.5547063/2, o"3p" => -1.1820348/2]],
-    PseudoPotentials.ArgonHF => [-20.849867, [o"3s" => -2.5547063/2, o"3p" => -1.1820348/2]],
-    PseudoPotentials.ArgonWB => [-20.884584, [o"3s" => -2.5547063/2, o"3p" => -1.1820348/2]],
+    ECPs.ArgonHF => [-20.849867, [o"3s" => -2.5547063/2, o"3p" => -1.1820348/2]],
+    ECPs.ArgonWB => [-20.884584, [o"3s" => -2.5547063/2, o"3p" => -1.1820348/2]],
 
     pc"Ca" => [-676.75818, [o"1s" => -298.72744/2, o"2s" => -33.645481/2, o"2p" => -27.258531/2,
                             o"3s" => -4.4907488/2, o"3p" => -2.6814114/2, o"4s" => -0.3910594/2]],
-    PseudoPotentials.CalciumDF => [-36.44769593,
-                                   [o"3s" => -4.4907488/2, # HF limit, above
-                                    o"3p" => -(2*1.346583638 + 4*1.332801306)/6, o"4s" => -0.196693786]],
+    ECPs.CalciumDF => [-36.44769593,
+                       [o"3s" => -4.4907488/2, # HF limit, above
+                        o"3p" => -(2*1.346583638 + 4*1.332801306)/6, o"4s" => -0.196693786]],
 
     pc"Zn" => [-1777.8481, [o"1s" => -706.60909/2, o"2s" => -88.723452/2, o"2p" => -77.849691/2,
                             o"3s" => -11.275642/2, o"3p" => -7.6787581/2, o"3d" => -1.5650843/2,
@@ -33,11 +33,11 @@ exact_energies = Dict(
                             o"3s" => -80.351324/2, o"3p" => -70.443321/2, o"3d" => -52.237736/2,
                             o"4s" => -15.712602/2, o"4p" => -12.016674, o"4d" => -5.5557597,
                             o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]],
-    PseudoPotentials.XenonHF => [-14.989100, [o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]],
-    PseudoPotentials.XenonWB => [-15.277055, [o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]],
-    PseudoPotentials.XenonDF => [-328.74543, [o"4s" => -15.712602/2, o"4p" => -12.016674, o"4d" => -5.5557597,
-                                              o"5s" => -1.0097, ro"5p-" => -0.4915, ro"5p" => -0.4398]],
-    PseudoPotentials.XenonDF2c => [-328.36818, [o"5s" => -1.0097, ro"5p-" => -0.4915, ro"5p" => -0.4398]],
+    ECPs.XenonHF => [-14.989100, [o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]],
+    ECPs.XenonWB => [-15.277055, [o"5s" => -1.8888279/2, o"5p" => -0.9145793/2]],
+    ECPs.XenonDF => [-328.74543, [o"4s" => -15.712602/2, o"4p" => -12.016674, o"4d" => -5.5557597,
+                                  o"5s" => -1.0097, ro"5p-" => -0.4915, ro"5p" => -0.4398]],
+    ECPs.XenonDF2c => [-328.36818, [o"5s" => -1.0097, ro"5p-" => -0.4915, ro"5p" => -0.4398]],
 )
 
 function shift_unit(u::U, d) where {U<:Unitful.Unit}
@@ -184,7 +184,7 @@ end
 
     @testset "Neon" begin
         @testset "$nucleus" for (nucleus,Δ,δ) in [(pc"Ne",0.005,0.005),
-                                                  (PseudoPotentials.NeonHF,0.2,0.05)]
+                                                  (ECPs.NeonHF,0.2,0.05)]
             atom_calc(nucleus, :fedvr, 10.0, (k=10,intervals=6,), Δ, δ,
                       ω=0.999, ωmax=1.0-1e-3, scf_method=:arnoldi)
         end
@@ -198,9 +198,9 @@ end
 
     @testset "Xenon" begin
         @testset "$nucleus — $(grid_type)" for (nucleus,grid_type,grid_kwargs,Δ,δ,config_transform) in [
-            (PseudoPotentials.XenonHF,   :fedvr,    (intervals=10, k=5,),     3e-2, 5e-3, identity)
-            (PseudoPotentials.XenonDF2c, :fedvr,    (intervals=10, k=5,),     3e-2, 5e-3, relconfigurations)
-            # (PseudoPotentials.XenonDF2c, :bsplines, (intervals=10, k=4, m=2), 1e-3, 3e-3, relconfigurations)
+            (ECPs.XenonHF,   :fedvr,    (intervals=10, k=5,),     3e-2, 5e-3, identity)
+            (ECPs.XenonDF2c, :fedvr,    (intervals=10, k=5,),     3e-2, 5e-3, relconfigurations)
+            # (ECPs.XenonDF2c, :bsplines, (intervals=10, k=4, m=2), 1e-3, 3e-3, relconfigurations)
         ]
             atom_calc(nucleus, grid_type, 7.0, grid_kwargs, Δ, δ,
                       ω=0.999, ωmax=1.0-1e-3,

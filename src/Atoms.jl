@@ -3,10 +3,11 @@ module Atoms
 using Compat
 
 using AtomicLevels
-import AtomicLevels: AbstractOrbital
+import AtomicLevels: AbstractOrbital, spectroscopic_label
+using WignerSymbols
 using HalfIntegers
 using AngularMomentumAlgebra
-import AngularMomentumAlgebra: jmⱼ
+import AngularMomentumAlgebra: jmⱼ, spin
 using EnergyExpressions
 import EnergyExpressions: NBodyMatrixElement, OrbitalMatrixElement,
     orbital_equation, MCEquationSystem, QuantumOperator
@@ -34,12 +35,10 @@ import SCF: norm_rot!, update!, KrylovWrapper, print_block
 using CoulombIntegrals
 import CoulombIntegrals: locs
 
-using AtomicPotentials
-using PseudoPotentials
-
+using PrettyTables
 using Formatting
 using UnicodeFun
-using ProgressMeter
+import ProgressMeter: Progress
 
 function unique_orbitals(configurations::Vector{C}) where {O,C<:Configuration{O}}
     map(configurations) do config
@@ -54,6 +53,7 @@ getn(orb::AbstractOrbital) = getspatialorb(orb).n
 getℓ(orb::AbstractOrbital) = getspatialorb(orb).ℓ
 
 
+include("potentials/potentials.jl")
 include("radial_orbitals.jl")
 include("atom_types.jl")
 include("one_body.jl")

@@ -36,7 +36,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
         Q = num_electrons(outsidecoremodel(first(atom.configurations),
                                            atom.potential))
         # This is a heuristic to get energy shifts that work for both
-        # point charge nuclei and pseudopotentials; the latter screen
+        # point charge nuclei and pseudo-potentials; the latter screen
         # the bare charge but not fully, and thus we admix with a
         # little bit of the unscreened charge.
         hydrogen_like_eng = n -> -(0.3Z+0.7Q)^2/(2n^2)
@@ -160,7 +160,7 @@ function screened_hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) 
         Z = charge(atom.potential)
         Q = num_electrons(outsidecoremodel(cfg, atom.potential))
         # This is a heuristic to get energy shifts that work for both
-        # point charge nuclei and pseudopotentials; the latter screen
+        # point charge nuclei and pseudo-potentials; the latter screen
         # the bare charge but not fully, and thus we admix with a
         # little bit of the unscreened charge.
         hydrogen_like_eng = σ -> -(0.3Z+0.7Q-σ)^2/2
