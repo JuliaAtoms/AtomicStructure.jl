@@ -38,6 +38,7 @@ import CoulombIntegrals: locs
 using PrettyTables
 using Formatting
 using UnicodeFun
+import ProgressMeter
 import ProgressMeter: Progress
 
 function unique_orbitals(configurations::Vector{C}) where {O,C<:Configuration{O}}
