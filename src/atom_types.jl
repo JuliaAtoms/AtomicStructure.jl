@@ -21,7 +21,7 @@ The `potential` can be used to model either the nucleus by itself (a
 point charge or a nucleus of finite extent) or the core orbitals
 (i.e. a pseudo-potential).
 """
-mutable struct Atom{T,B<:Basis,O<:AbstractOrbital,TC<:ManyElectronWavefunction,CV<:AbstractVector,P<:AbstractPotential,
+mutable struct Atom{T,B<:Basis,O<:AbstractOrbital,TC,CV<:AbstractVector,P<:AbstractPotential,
                     Metric, MatrixElementMetric} <: AbstractQuantumSystem
     radial_orbitals::RadialOrbitals{T,B}
     orbitals::Vector{O}
@@ -41,7 +41,7 @@ function Base.copy(atom::A) where {A<:Atom}
     R,Φ = atom.radial_orbitals.args
     A(applied(*, R, copy(Φ)), copy(atom.orbitals),
       copy(atom.configurations), copy(atom.mix_coeffs),
-      atom.potential)
+      atom.potential, atom.S, atom.S̃)
 end
 
 """
@@ -59,6 +59,17 @@ outsidecoremodel(configuration::Configuration, ::PointCharge) =
 outsidecoremodel(configuration::Configuration, ::Yukawa) =
     configuration
 outsidecoremodel(csf::CSF, potential) = outsidecoremodel(get_config(csf), potential)
+
+function Atom(P::RadialOrbitals, orbitals::Vector{<:AbstractOrbital},
+              configurations::Vector, mix_coeffs::AbstractVector,
+              potential::AbstractPotential)
+    R = first(P.args)
+
+    S = metric(R)
+    S̃ = matrix_element_metric(R)
+
+    Atom(P, orbitals, configurations, mix_coeffs, potential, S, S̃)
+end
 
 """
     Atom(undef, ::Type{T}, R::AbstractQuasiMatrix, configurations, potential, ::Type{C}[, mix_coeffs])
@@ -93,10 +104,7 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
     Φ = Matrix{T}(undef, size(R,2), length(orbs))
     RΦ = applied(*, R, Φ)
 
-    S = metric(R)
-    S̃ = matrix_element_metric(R)
-
-    Atom(RΦ, orbs, configurations, mix_coeffs, potential, S, S̃)
+    Atom(RΦ, orbs, configurations, mix_coeffs, potential)
 end
 
 """
