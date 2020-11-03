@@ -52,6 +52,43 @@ Base.hash(atom::Atom, h::UInt) =
     hash(eltype(atom), hash(eltype(atom.mix_coeffs),
                             hash(radial_basis(atom), hash(atom.orbitals, hash(atom.configurations, hash(atom.potential, h))))))
 
+
+function Base.write(io::IO, atom::Atom)
+    Φ = atom.radial_orbitals.args[2]
+    c = atom.mix_coeffs
+    write(io, length(Φ), length(c), Φ, c)
+end
+
+function Base.read!(io::IO, atom::Atom)
+    Φ = atom.radial_orbitals.args[2]
+    c = atom.mix_coeffs
+    nΦ,nc = length(Φ),length(c)
+    T = typeof(length(Φ))
+    fnΦ,fnc = read(io,T),read(io,T)
+    fnΦ == nΦ && fnc == nc ||
+        throw(DimensionMismatch("Require $(nΦ) radial coefficients and $(nc) mixing coefficients, file has $(fnΦ) + $(fnc)"))
+    read!(io, Φ)
+    read!(io, c)
+end
+
+atom_filename(atom::Atom, prefix, dir) =
+    joinpath(dir, (isempty(prefix) ? "" : prefix*"-")*string(hash(atom))*".wfn")
+
+function save(atom::Atom; prefix="", dir=".",
+              filename=atom_filename(prefix, dir),
+              verbose=false)
+    verbose && @info "Saving atom to $(filename)"
+    mkpath(dirname(filename))
+    open(file -> write(file, atom), filename, "w")
+end
+
+function load!(atom::Atom; prefix="", dir=".",
+               filename=atom_filename(prefix, dir),
+               verbose=false)
+    verbose && @info "Loading atom from $(filename)"
+    open(file -> read!(file, atom), filename)
+end
+
 get_config(config::Configuration) = config
 get_config(csf::CSF) = csf.config
 
