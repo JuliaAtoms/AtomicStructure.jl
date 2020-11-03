@@ -2,6 +2,10 @@ abstract type AbstractPotential{T} end
 
 include("table_of_elements.jl")
 
+# Effective nuclear charge, subtracting those core electrons that are
+# modelled by e.g. a pseudopotential.
+effective_charge(p::AbstractPotential) = charge(p) - num_electrons(core(ground_state(p)))
+
 # * Point charge nucleus
 
 struct PointCharge{T} <: AbstractPotential{T}
@@ -70,5 +74,5 @@ export AbstractPotential,
     EffectiveCorePotential, RelativisticEffectiveCorePotential,
     @pc_str, @ECP_str,
     element_number,
-    charge, ground_state, islocal,
+    charge, effective_charge, ground_state, islocal,
     spin_orbit_potential
