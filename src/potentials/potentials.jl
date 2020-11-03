@@ -14,6 +14,8 @@ end
 
 PointCharge(s::Symbol) = PointCharge(element_number(s))
 
+Base.hash(p::PointCharge, h::UInt) = hash(p.Z, h)
+
 macro pc_str(s)
     :(PointCharge(Symbol($s)))
 end
@@ -46,6 +48,8 @@ struct Yukawa{T} <: AbstractPotential{T}
     α::T
     m::T
 end
+
+Base.hash(p::Yukawa, h::UInt) = hash(p.g, hash(p.α, hash(p.m, h)))
 
 (p::Yukawa)( ::O, r::U) where {O,U} = -p.g^2*exp(-p.α*p.m*r)/r
 (p::Yukawa)(o::O, r::VU) where {O,VU<:AbstractVector} = p.(Ref(o), r)

@@ -7,6 +7,13 @@ struct RelativisticEffectiveCorePotential{T} <: AbstractEffectiveCorePotential{T
     reference::String
 end
 
+Base.:(==)(a::RelativisticEffectiveCorePotential, b::RelativisticEffectiveCorePotential) =
+    a.gst_config == b.gst_config && a.Q == b.Q &&
+    a.V₋ == b.V₋ && a.V₊ == b.V₊
+
+Base.hash(pp::RelativisticEffectiveCorePotential, h::UInt) =
+    hash((pp.gst_config, pp.Q, pp.V₋, pp.V₊), h)
+
 charge(pp::RelativisticEffectiveCorePotential) = num_electrons(pp.gst_config)
 ground_state(pp::RelativisticEffectiveCorePotential) = pp.gst_config
 

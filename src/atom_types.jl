@@ -34,6 +34,24 @@ end
 
 Base.eltype(::Atom{T}) where T = T
 
+"""
+    hash(atom::Atom, h::UInt)
+
+This computes a hash for `atom`, mixed with the hash seed `h`,
+considering only the fixed quantities, i.e. which radial grid is used,
+which orbitals are present (but _not_ their radial coefficients), and
+which potential describes the nucleus. The usage is then not to
+identify a particular state of the atom, but rather the basis for its
+Hilbert space. This is useful if one would like to store the radial
+and mixing coefficients to a uniquely named file, after e.g. a lengthy
+Hartree–Fock solution; one would then set up the [`Atom`](@ref)
+structure as usual, but instead of running the SCF procedure again,
+compute the hash and load the data from the corresponding file.
+"""
+Base.hash(atom::Atom, h::UInt) =
+    hash(eltype(atom), hash(eltype(atom.mix_coeffs),
+                            hash(radial_basis(atom), hash(atom.orbitals, hash(atom.configurations, hash(atom.potential, h))))))
+
 get_config(config::Configuration) = config
 get_config(csf::CSF) = csf.config
 
