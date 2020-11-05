@@ -252,13 +252,7 @@ function Base.diff(atom::Atom,
         end
     end
 
-    integrals = Vector{OrbitalIntegral}()
-    integral_map = Dict{Any,Int}()
-    poisson_cache = Dict{Int,CoulombIntegrals.PoissonCache}()
-    append_common_integrals!(integrals, integral_map,
-                             atom, eqs.integrals;
-                             poisson_cache=poisson_cache,
-                             verbosity=verbosity, kwargs...)
+    integrals, integral_map, poisson_cache = common_integrals(atom, eqs; verbosity=verbosity, kwargs...)
     modify_integrals!(eqs, integrals, integral_map)
 
     hfeqs = generate_atomic_orbital_equations(atom, eqs,
