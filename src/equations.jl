@@ -74,9 +74,9 @@ SCF.symmetries(atom::Atom) =
 
 function get_operator(::FieldFreeOneBodyHamiltonian, atom::Atom,
                       orbital::aO, source_orbital::bO; kwargs...) where {aO,bO}
-    orbital == source_orbital ||
-        throw(ArgumentError("FieldFreeOneBodyHamiltonian not pertaining to $(orbital)"))
-    AtomicOneBodyHamiltonian(atom, orbital)
+    symmetry(orbital) == symmetry(source_orbital) ||
+        throw(ArgumentError("FieldFreeOneBodyHamiltonian between orbitals of different symmetries: ⟨$(orbital)|𝔥₀|$(source_orbital)⟩"))
+    AtomicOneBodyHamiltonian(atom, source_orbital)
 end
 
 for (i,HT) in enumerate([:KineticEnergyHamiltonian, :PotentialEnergyHamiltonian])
