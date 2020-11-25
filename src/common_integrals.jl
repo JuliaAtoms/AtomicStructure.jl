@@ -71,13 +71,13 @@ function append_common_integrals!(integrals::Vector, integral_map::Dict, atom::A
     end
 end
 
-function common_integrals(atom::Atom, eqs; kwargs...)
+function common_integrals(atom::Atom, equation_integrals; kwargs...)
     integrals = Vector{OrbitalIntegral}()
     integral_map = Dict{Any,Int}()
     poisson_cache = Dict{Int,CoulombIntegrals.PoissonCache}()
 
     append_common_integrals!(integrals, integral_map,
-                             atom, eqs.integrals;
+                             atom, equation_integrals;
                              poisson_cache=poisson_cache, kwargs...)
 
     integrals, integral_map, poisson_cache

@@ -252,7 +252,7 @@ function Base.diff(atom::Atom,
         end
     end
 
-    integrals, integral_map, poisson_cache = common_integrals(atom, eqs; verbosity=verbosity, kwargs...)
+    integrals, integral_map, poisson_cache = common_integrals(atom, eqs.integrals; verbosity=verbosity, kwargs...)
     modify_integrals!(eqs, integrals, integral_map)
 
     hfeqs = generate_atomic_orbital_equations(atom, eqs,
