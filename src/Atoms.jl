@@ -47,7 +47,7 @@ function unique_orbitals(configurations::Vector{C}) where {O,C<:Configuration{O}
     end |> o -> Vector{O}(vcat(o...)) |> unique |> sort
 end
 
-getspatialorb(orb::Orbital) = orb
+getspatialorb(orb::Union{Orbital,RelativisticOrbital}) = orb
 getspatialorb(orb::SpinOrbital) = orb.orb
 
 getn(orb::AbstractOrbital) = getspatialorb(orb).n

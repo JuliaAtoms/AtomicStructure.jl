@@ -8,9 +8,9 @@ Atoms.jl (and the whole JuliaAtoms cluster of libraries) is _research
 grade software_. This means, that although we try our best to ensure
 that the individual components behave as they should, and we do have a
 fair amount of complete calculations that we compare against values
-from the literature. However, Atoms.jl is not and _expert system_, in
-that if the calculation does not converge, it will try another route
-(such as e.g. [ATSP](https://github.com/compas/atsp-book) or
+from the literature. However, Atoms.jl is not an _expert system_, in
+that if the calculation does not converge, it will not try another
+route (such as e.g. [ATSP](https://github.com/compas/atsp-book) or
 [Grasp](https://github.com/compas/grasp) would); it also does not
 adapt the grid to the problem, this has to be set by the user before
 the calculation starts.
