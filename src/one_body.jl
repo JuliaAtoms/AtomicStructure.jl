@@ -15,12 +15,18 @@ tuple) for the orbital `orb` of `atom`.
 """
 function one_body_hamiltonian(::Type{Tuple}, R::AbstractQuasiMatrix,
                               potential, orb)
+    ℓ = getℓ(orb)
+    Z = float(effective_charge(potential))
+
+    # This way we can apply the correct boundary condition at r = 0.
     D = Derivative(axes(R,1))
-    T = apply(*, R', D', D, R)
+    CD = (potential isa PointCharge && R isa AbstractFiniteDifferences
+          ? CoulombDerivative(D, Z, ℓ) : D)
+
+    T = apply(*, R', CD', CD, R)
     T /= -2
 
     # Add in centrifugal part
-    ℓ = getℓ(orb)
     T += potential_matrix(r -> ℓ*(ℓ+1)/(2r^2), R)
 
     V = potential_matrix(r -> potential(orb, r), R)
