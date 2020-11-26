@@ -6,6 +6,8 @@ include("table_of_elements.jl")
 # modelled by e.g. a pseudopotential.
 effective_charge(p::AbstractPotential) = charge(p) - num_electrons(core(ground_state(p)))
 
+isspinlocal(::AbstractPotential) = true
+
 # * Point charge nucleus
 
 struct PointCharge{T} <: AbstractPotential{T}
@@ -67,6 +69,7 @@ include("gaussian_expansions.jl")
 include("nonrelativistic_effective_core_potentials.jl")
 include("relativistic_effective_core_potentials.jl")
 const FullOrScalarRelativisticEffectiveCorePotential = Union{RelativisticEffectiveCorePotential,ScalarSORelativisticEffectiveCorePotential}
+isspinlocal(::FullOrScalarRelativisticEffectiveCorePotential) = false
 
 include("parse.jl")
 include("misc_effective_core_potentials.jl")
@@ -78,5 +81,5 @@ export AbstractPotential,
     EffectiveCorePotential, RelativisticEffectiveCorePotential,
     @pc_str, @ECP_str,
     element_number,
-    charge, effective_charge, ground_state, islocal,
+    charge, effective_charge, ground_state, islocal, isspinlocal,
     spin_orbit_potential
