@@ -217,6 +217,10 @@ function SCF.update!(p::DirectPotential{aO,bO,T,OV,Density,Potential}, atom::Ato
     SCF.update!(p; kwargs...)
 end
 
+LinearAlgebra.mul!(y::AbstractVecOrMat, p::DirectPotential, x::AbstractVecOrMat,
+                   α::Number=true, β::Number=false) =
+                       mul!(y, p.V̂, x, α, β)
+
 """
     materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest})
 
@@ -225,8 +229,8 @@ Materialize the lazy multiplication–addition of the type `y ←
 precomputed direct potential computed via `SCF.update!`) and `x` and
 `y` are [`RadialOrbital`](@ref)s.
 """
-LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:DirectPotential, Source, Dest}) where {T,Source,Dest} =
-    mul!(ma.C.args[2], ma.A.V̂, ma.B.args[2], ma.α, ma.β)
+LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, <:Any, <:DirectPotential, <:Any, <:Any}) =
+    mul!(ma.C.args[2], ma.A, ma.B.args[2], ma.α, ma.β)
 
 # *** Exchange potential
 
@@ -253,6 +257,15 @@ function SCF.update!(p::ExchangePotential, atom::Atom; kwargs...)
     p
 end
 
+function LinearAlgebra.mul!(y::AbstractVecOrMat, p::ExchangePotential, x::AbstractVecOrMat,
+                            α::Number=true, β::Number=false)
+    # Form exchange potential from the mutual density conj(p.a)*x
+    copyto!(p.ρ, p.av.args[2], x)
+    copyto!(p.V̂, p.ρ)
+    # Act with the exchange potential on p.bv
+    mul!(y, p.V̂, p.bv.args[2], α, β)
+end
+
 """
     materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest})
 
@@ -261,14 +274,8 @@ Materialize the lazy multiplication–addition of the type `y ← α*V̂*x +
 Poisson problem with `x` as one of the constituent source orbitals in
 the mutual density) and `x` and `y` are [`RadialOrbital`](@ref)s.
 """
-function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:ExchangePotential, Source, Dest}) where {T,Source,Dest}
-    p = ma.A
-    # Form exchange potential from the mutual density conj(p.a)*b
-    copyto!(p.ρ, p.av, ma.B)
-    copyto!(p.V̂, p.ρ)
-    # Act with the exchange potential on p.bv
-    mul!(ma.C.args[2], p.V̂, p.bv.args[2], ma.α, ma.β)
-end
+LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, <:Any, <:ExchangePotential, <:Any, <:Any}) =
+    mul!(ma.C.args[2], ma.A, ma.B.args[2], ma.α, ma.β)
 
 # * Source terms
 
