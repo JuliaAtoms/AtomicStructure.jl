@@ -35,6 +35,9 @@ import SCF: norm_rot!, update!, KrylovWrapper, print_block
 using CoulombIntegrals
 import CoulombIntegrals: locs
 
+using Unitful
+using UnitfulAtomic
+
 using PrettyTables
 using Formatting
 using UnicodeFun
@@ -69,5 +72,6 @@ include("common_integrals.jl")
 include("observables.jl")
 include("spin_orbit.jl")
 include("equations.jl")
+include("report.jl")
 
 end # module
