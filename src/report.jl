@@ -25,7 +25,7 @@ function si_round(q::Quantity; fspec="{1:+9.4f} {2:s}")
     format(fspec, ustrip(q), unit(q))
 end
 
-function report(io::IO, fock::Fock{<:Atom{T}}) where T
+function report(io::IO, fock::Fock{<:Atom{T}}; powers = (2,1,-1,-2,-3)) where T
     atom = fock.quantum_system
     show(io, atom.potential)
     println(io)
@@ -54,7 +54,6 @@ function report(io::IO, fock::Fock{<:Atom{T}}) where T
     R = radial_basis(atom)
     r = axes(R,1)
 
-    powers = (2,1,-1,-2,-3)
     rᵏ = collect(R'*QuasiDiagonal(r.^k)*R for k in powers)
     radial_moments = zeros(T, length(atom.orbitals), length(powers))
     for i = eachindex(atom.orbitals)
@@ -73,4 +72,4 @@ function report(io::IO, fock::Fock{<:Atom{T}}) where T
                  tf=tf_borderless)
 end
 
-report(fock::Fock) = report(stdout, fock)
+report(fock::Fock; kwargs...) = report(stdout, fock; kwargs...)
