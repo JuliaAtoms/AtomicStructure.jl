@@ -22,10 +22,20 @@ macro pc_str(s)
     :(PointCharge(Symbol($s)))
 end
 
-function Base.show(io::IO, p::PointCharge{I}) where {I<:Integer}
-    element = table_of_elements[p.Z]
-    write(io, "Z = $(p.Z) [$(element[2][1])]")
+function find_element(Z::Real)
+    isinteger(Z) && (Z = Int(Z))
+    Z ∈ eachindex(table_of_elements) || return nothing
+    table_of_elements[Z]
 end
+
+function element_name(p::PointCharge)
+    iszero(p.Z) && return "vacuum"
+    element = find_element(p.Z)
+    isnothing(element) ? "unknown" : element[2][1]
+end
+
+Base.show(io::IO, p::PointCharge{I}) where {I<:Integer} =
+    write(io, "Z = $(p.Z) [$(element_name(p))]")
 
 Base.show(io::IO, p::PointCharge) =
     write(io, "Z = $(p.Z)")
@@ -35,11 +45,7 @@ Base.show(io::IO, p::PointCharge) =
 
 charge(p::PointCharge) = p.Z
 
-ground_state(p::PointCharge{<:Integer}) =
-    table_of_elements[p.Z][2][2]
-
-ground_state(p::PointCharge) =
-    throw(ArgumentError("Ground state configuration for nuclear charge of Z = $(p.Z) unknown"))
+ground_state(p::PointCharge) = find_element(p.Z)[2][2]
 
 islocal(::PointCharge) = true
 
