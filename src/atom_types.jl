@@ -71,8 +71,8 @@ function Base.read!(io::IO, atom::Atom)
     read!(io, c)
 end
 
-atom_filename(atom::Atom, prefix, dir) =
-    joinpath(dir, (isempty(prefix) ? "" : prefix*"-")*string(hash(atom))*".wfn")
+atom_filename(atom::Atom, prefix, dir, args...) =
+    joinpath(dir, (isempty(prefix) ? "" : prefix*"-")*string(hash(atom, args...))*".wfn")
 
 function save(atom::Atom; prefix="", dir=".",
               filename=atom_filename(prefix, dir),
@@ -292,7 +292,7 @@ radial_basis(atom::Atom) = first(atom.radial_orbitals.args)
 
 function orbital_index(atom::Atom{T,B,O}, orb::O) where {T,B,O}
     i = findfirst(isequal(orb),atom.orbitals)
-    i === nothing && throw(BoundsError("$(orb) not present among $(atom.orbitals)"))
+    i === nothing && throw(BoundsError(atom.orbitals, [orb]))
     i
 end
 
