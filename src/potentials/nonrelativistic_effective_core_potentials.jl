@@ -11,6 +11,10 @@ Base.:(==)(a::EffectiveCorePotential{<:Any,ra}, b::EffectiveCorePotential{<:Any,
     ra == rb && a.gst_config == b.gst_config && a.Q == b.Q &&
     a.Vℓ == b.Vℓ && a.Vℓ′ == b.Vℓ′
 
+Base.:(≈)(a::EffectiveCorePotential{<:Any,ra}, b::EffectiveCorePotential{<:Any,rb}) where {ra,rb} =
+    ra == rb && a.gst_config == b.gst_config && a.Q == b.Q &&
+    a.Vℓ ≈ b.Vℓ && a.Vℓ′ ≈ b.Vℓ′
+
 Base.hash(pp::EffectiveCorePotential{<:Any,relativistic}, h::UInt) where relativistic =
     hash((relativistic, pp.gst_config, pp.Q, pp.Vℓ, pp.Vℓ′), h)
 
@@ -44,12 +48,12 @@ function Base.show(io::IO, ::MIME"text/plain", pp::EffectiveCorePotential)
         nk = length(pp.Vℓ′[i])
         [[spectroscopic_label(ℓ′);repeat([""],nk-1)] 1:nk]
     end |> v -> vcat(v...)
-    data = [ℓk vcat([[V.n V.β V.B]
+    data = [ℓk vcat([Any[V.n V.β V.B]
                      for V in pp.Vℓ]...)]
     headers = ["ℓ", "k", "n", "β", "B"]
     if ℓmax′ > 0
         data = [data vcat(repeat([""], length(pp.Vℓ[1]), 5),
-                          [ℓ′k vcat([[V.n V.β V.B]
+                          [ℓ′k vcat([Any[V.n V.β V.B]
                                      for V in pp.Vℓ′]...)],
                           repeat([""], 1, 5))]
         headers = vcat(headers, ["ℓ′", "k", "n", "β", "B"])
@@ -70,12 +74,12 @@ r^{n_k-2}
 function (pp::ScalarSORelativisticEffectiveCorePotential{T})(orb::SpinOrbital, r::AbstractVector{T}) where T
     # This returns the diagonal, average part of the relativistic ECP.
     V = -pp.Q./r
-    
+
     ℓ = orb.orb.ℓ
     ℓ >= length(pp.Vℓ) && return V
 
     V += pp.Vℓ[ℓ+1](r)
-    
+
     V
 end
 

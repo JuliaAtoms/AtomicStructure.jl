@@ -7,9 +7,47 @@ struct RelativisticEffectiveCorePotential{T} <: AbstractEffectiveCorePotential{T
     reference::String
 end
 
+function RelativisticEffectiveCorePotential(p::EffectiveCorePotential{T,true}; threshold=1e-4) where T
+    isempty(p.Vℓ′) && throw(ArgumentError("No spin–orbit (difference) potential present"))
+
+    V₋ = Vector{GaussianExpansion{T}}()
+    V₊ = Vector{GaussianExpansion{T}}()
+
+    push!(V₋, p.Vℓ[1])
+
+    Vℓ = p.Vℓ[2:findlast(!iszero, p.Vℓ)]
+    Vℓ′ = p.Vℓ′[1:end]
+
+    length(Vℓ) == length(Vℓ′) && length.(Vℓ) == length.(Vℓ′) || throw(ArgumentError("Cannot join expansion of different lengths"))
+
+    function push_ge!(V, n, β, d)
+        sel = abs.(d) .> threshold
+        push!(V, GaussianExpansion(n[sel], β[sel], d[sel]))
+    end
+
+    for (ℓ,(Vℓ,Vℓ′)) in enumerate(zip(Vℓ, Vℓ′))
+        Vℓ.n == Vℓ′.n && Vℓ.β == Vℓ′.β || throw(ArgumentError("Gaussian expansion exponents and radial monomials must agree"))
+
+        # Convert from average + spin–orbit (difference) potentials to
+        # V₋ and V₊ potentials; the spin-orbit potentials are
+        # pre-multiplied by 2/(2ℓ+1), so we have to undo this.
+        d = ([ℓ/(2ℓ+1) (ℓ+1)/(2ℓ+1); -1 1] \ [Vℓ.B (2ℓ+1)/2*Vℓ′.B]')
+
+        push_ge!(V₋, Vℓ.n, Vℓ.β, d[2,:])
+        push_ge!(V₊, Vℓ.n, Vℓ.β, d[1,:])
+    end
+
+    RelativisticEffectiveCorePotential(p.name, p.gst_config, p.Q, filter(!isempty, V₋), filter(!isempty, V₊), p.reference)
+end
+
 Base.:(==)(a::RelativisticEffectiveCorePotential, b::RelativisticEffectiveCorePotential) =
     a.gst_config == b.gst_config && a.Q == b.Q &&
     a.V₋ == b.V₋ && a.V₊ == b.V₊
+
+Base.isapprox(a::RelativisticEffectiveCorePotential, b::RelativisticEffectiveCorePotential; rtol=1e-6) =
+    a.gst_config == b.gst_config && a.Q == b.Q  &&
+    all(isapprox.(a.V₋, b.V₋; rtol=rtol)) &&
+    all(isapprox.(a.V₊, b.V₊; rtol=rtol))
 
 Base.hash(pp::RelativisticEffectiveCorePotential, h::UInt) =
     hash((pp.gst_config, pp.Q, pp.V₋, pp.V₊), h)

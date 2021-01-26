@@ -1,5 +1,5 @@
 module ECPs
-import ..@ECP_str
+import ..@ECP_str, ..RelativisticEffectiveCorePotential
 
 # * Neon
 
@@ -13,7 +13,7 @@ ECP,Ne,2,3,0;
 ! References:
 ! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""
 
-NeonWB = ECP"""! [He] 2s2 2p6
+NeonWBav = ECP"""! [He] 2s2 2p6
 !  Q=8., MEFIT, WB, Ref 22.
 ECP,Ne,2,3,0;
 1; 2,1.000000,0.00000000;
@@ -22,6 +22,24 @@ ECP,Ne,2,3,0;
 1; 2,0.850385,-0.18408921;
 ! References:
 ! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""
+
+# The ΔB (≡ Vℓ′) entries are multiplied by 2/(2ℓ+1), relative to the
+# values quoted in the article, since the routines expects the values
+# to be the prefactors of the 𝐥⋅𝐬 operator, in consistency with the
+# other SSO ECPs available from the Stuttgart ECP repository.
+NeonWB = ECP"""! [He] 2s2 2p6
+!  Q=8., MEFIT, WB, Ref 22.
+ECP,Ne,2,3,2;
+1; 2,1.000000,0.00000000;
+2; 2,31.860162,112.52543566; 2,12.362219,28.30083454;
+2; 2,21.508034,-11.12658543; 2,12.910447,3.38754919;
+1; 2,0.850385,-0.18408921;
+2; 2,21.508034,0.0813682; 2,12.910447,0.01608975;
+1; 2,0.850385,0.000413248;
+! References:
+! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""sso
+
+NeonDF2c = RelativisticEffectiveCorePotential(NeonWB)
 
 # * Argon
 
@@ -108,7 +126,7 @@ ECP,Xe,46,4,0;
 ! References:
 ! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""
 
-XenonWB = ECP"""! [Ar] 3d10c 4s2c 4p6c 4d10c 5s2 5p6
+XenonWBav = ECP"""! [Ar] 3d10c 4s2c 4p6c 4d10c 5s2 5p6
 !  Q=8., MEFIT, WB, Ref 22; CPP: alpha=0.8345;delta=0.97391;ncut=1.
 ECP,Xe,46,5,0;
 1; 2,1.000000,0.00000000;
@@ -118,7 +136,24 @@ ECP,Xe,46,5,0;
 2; 2,6.164360,-47.70319876; 2,1.542374,-6.54113991;
 1; 2,1.847892,-7.10585060;
 ! References:
-! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""
+! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""sso
+
+# Same thing applies here as for NeonWB (see above).
+XenonWB = ECP"""! [Ar] 3d10c 4s2c 4p6c 4d10c 5s2 5p6
+!  Q=8., MEFIT, WB, Ref 22; CPP: alpha=0.8345;delta=0.97391;ncut=1.
+ECP,Xe,46,5,4;
+1; 2,1.000000,0.00000000;
+2; 2,3.940263,122.76382934; 2,2.277264,8.30885115;
+2; 2,3.028373,68.82300437; 2,1.394319,3.64674223;
+2; 2,2.122605,23.65207854; 2,0.798669,3.25844113;
+2; 2,6.164360,-47.70319876; 2,1.542374,-6.54113991;
+1; 2,1.847892,-7.10585060;
+2; 2,3.028373,-1.16406; 2,1.394319,1.46325;
+2; 2,2.122605,-0.41827; 2,0.798669,0.108797;
+2; 2,6.164360,0.0593492; 2,1.542374,0.0;
+1; 2,1.847892,0.0;
+! References:
+! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""sso
 
 XenonDF = ECP"""! [Ar] 3d10c 4s2 4p6 4d10 5s2 5p6
 !  Q=26., MEFIT, MCDHF+Breit, Ref 36.

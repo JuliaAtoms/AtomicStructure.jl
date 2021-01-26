@@ -5,9 +5,15 @@ struct GaussianExpansion{T}
 end
 
 Base.length(ge::GaussianExpansion) = length(ge.n)
+Base.isempty(ge::GaussianExpansion) = length(ge) == 0
+
+Base.iszero(ge::GaussianExpansion) = all(iszero, ge.B)
 
 Base.:(==)(a::GaussianExpansion, b::GaussianExpansion) =
     a.n == b.n && a.β == b.β && a.B == b.B
+
+Base.isapprox(a::GaussianExpansion, b::GaussianExpansion; kwargs...) =
+    a.n == b.n && isapprox(a.β, b.β; kwargs...) && isapprox(a.B, b.B; kwargs...)
 
 Base.hash(ge::GaussianExpansion, h::UInt) = hash((ge.n, ge.β, ge.B), h)
 
