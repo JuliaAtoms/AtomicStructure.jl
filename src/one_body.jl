@@ -126,16 +126,6 @@ SCF.update!(::AtomicOneBodyHamiltonian, ::Atom) = nothing
 matrix(ĥ::AtomicOneBodyHamiltonian) = matrix(ĥ.op)
 
 """
-    ĥ ⋆ ϕ
-
-Return the lazy multiplicative action of the
-[`AtomicOneBodyHamiltonian`](@ref) `ĥ` on the radial orbital
-coefficient vector `ϕ`.
-"""
-LazyArrays.:(⋆)(ĥ::AtomicOneBodyHamiltonian, ϕ::AbstractVector) =
-    ĥ.op.args[2] ⋆ ϕ
-
-"""
     materialize!(::MulAdd{<:Any, <:Any, <:Any, T, <:AtomicOneBodyHamiltonian, Source, Dest})
 
 Materialize the lazy multiplication–addition of the type `y ← α*H*x +

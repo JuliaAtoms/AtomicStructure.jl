@@ -200,7 +200,7 @@ function Base.copyto!(dest::RadialOrbitals,
     n = size(dv,2)
     for j = 1:n
         copyto!(applied(*, hamiltonian.R, view(dv, :, j)),
-                hamiltonian ⋆ applied(*, hamiltonian.R, view(bv, :, j)))
+                applied(*, hamiltonian, applied(*, hamiltonian.R, view(bv, :, j))))
     end
     dest
 end
@@ -231,7 +231,7 @@ function LazyArrays.materialize(matel::OrbitalHamiltonianMatrixElement)
     a,op,b = matel.args
     op.R isa CompactBases.BSplineOrRestricted &&
         @warn "Implementation not correct for non-orthogonal bases"
-    materialize(applied(*, a, materialize(op⋆b)))
+    apply(*, a, apply(*, op, b))
 end
 
 # *** Materialization into a matrix
