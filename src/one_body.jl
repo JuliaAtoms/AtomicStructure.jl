@@ -145,6 +145,24 @@ Base.show(io::IO, ĥ::AtomicOneBodyHamiltonian) =
 
 # * Diagonalization of one-body Hamiltonian
 
+symmetric_transform(H::AbstractMatrix, U::AbstractMatrix) = U*H*U
+symmetric_transform(H::SymTridiagonal, U::Diagonal) = SymTridiagonal(U*H*U)
+
+function symmetric_orthogonalization(H, ::Type{<:Diagonal}, R)
+    S = Diagonal(metric(R))
+    S⁻¹ᐟ² = inv(√(S))
+    symmetric_transform(H, S⁻¹ᐟ²), S⁻¹ᐟ²
+end
+
+function symmetric_orthogonalization(H, ::Any, R)
+    S = metric(R)
+    S⁻¹ᐟ² = inv(√(Symmetric(S)))
+    symmetric_transform(H, S⁻¹ᐟ²), S⁻¹ᐟ²
+end
+
+symmetric_orthogonalization(H::AbstractMatrix, R::AbstractQuasiMatrix) =
+    symmetric_orthogonalization(H, metric_shape(R), R)
+
 """
     diagonalize_one_body(H, nev; method=:arnoldi_shift_invert, tol=1e-10, σ=-1)
 
@@ -180,8 +198,13 @@ function diagonalize_one_body(H::RadialOperator, R, nev::Int;
             error("Could not converge the requested orbitals: $(history)")
         λ,schur.Q
     elseif method == :eigen
-        ee = eigen(Hm)
-        ee.values[1:nev],ee.vectors[:,1:nev]
+        H′, U = symmetric_orthogonalization(Hm, R)
+
+        !(metric_shape(R) <: Diagonal) && size(Hm,1) > 1000 &&
+            @warn "Attempting to diagonalize a matrix of size $(size(Hm)), prepare to wait"
+
+        ee = eigen(H′)
+        ee.values[1:nev], U*ee.vectors[:,1:nev]
     else
         throw(ArgumentError("Unknown diagonalization method $(method)"))
     end
