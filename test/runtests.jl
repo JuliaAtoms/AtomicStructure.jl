@@ -39,20 +39,17 @@ function get_atom_grid(grid_type, rmax, nucleus; ρ=0.1, ρmax=0.6, α=0.002, in
     Z = float(charge(nucleus)) - num_electrons(core(ground_state(nucleus)))
     ρ /= Z
 
-    singular_origin = nucleus isa PointCharge
-    fd_args = singular_origin ? () : (zero(ρ),)
-
     if grid_type == :fd_uniform
         N = ceil(Int, rmax/ρ)
         FiniteDifferences(N, ρ)
     elseif grid_type == :fd_staggered
         N = ceil(Int, rmax/ρ-1/2)
-        StaggeredFiniteDifferences(N, ρ, Z, fd_args...)
+        StaggeredFiniteDifferences(N, ρ)
     elseif grid_type == :fd_loglin
-        StaggeredFiniteDifferences(ρ, ρmax, α, rmax, Z, fd_args...)
+        StaggeredFiniteDifferences(ρ, ρmax, α, rmax)
     elseif grid_type == :implicit_fd
         N = ceil(Int, rmax/ρ)
-        ImplicitFiniteDifferences(N, ρ, singular_origin, Z)
+        ImplicitFiniteDifferences(N, ρ)
     elseif grid_type == :fedvr
         t = range(0, stop=rmax, length=intervals)
         FEDVR(t, Vcat(k+5,Fill(k,length(t)-2)))[:,2:end-1]

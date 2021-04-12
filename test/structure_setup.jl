@@ -96,7 +96,7 @@ end
 
         @testset "Helium" begin
             nucleus = pc"He"
-            R = StaggeredFiniteDifferences(N, ρ, float(charge(nucleus)))
+            R = StaggeredFiniteDifferences(N, ρ)
             atom = Atom(R, spin_configurations(c"1s2"), nucleus, verbosity=Inf)
 
             @testset "Arnoldi" begin
@@ -130,10 +130,8 @@ end
         @testset "Beryllium" begin
             nucleus = pc"Be"
             Z = charge(nucleus)
-            rₘₐₓ = 50
-            ρ = 0.15
-            N = ceil(Int, rₘₐₓ/ρ + 1/2)
-            R = StaggeredFiniteDifferences(N, ρ, float(charge(nucleus)))
+            rₘₐₓ = 15.0
+            R = StaggeredFiniteDifferences(0.05, 0.2, 0.01, rₘₐₓ)
             atom = Atom(R, spin_configurations(c"1s2 2s2"),
                         nucleus, verbosity=Inf)
 
@@ -155,12 +153,14 @@ end
                 end
             end
 
-            scf!(fock, ω=0.1, verbosity=2, num_printouts=typemax(Int))
+            scf!(fock, ω=0.9, verbosity=2, num_printouts=typemax(Int))
             display(fock)
             println()
 
-            @test isapprox(27.211energy(fock.equations.equations[3]), -9.3227, rtol=0.04)
-            @test isapprox(27.211energy(fock.equations.equations[4]), -9.3227, rtol=0.04)
+            @test isapprox(energy(fock.equations.equations[1]), -4.7326698, rtol=1e-4)
+            @test isapprox(energy(fock.equations.equations[2]), -4.7326698, rtol=1e-4)
+            @test isapprox(energy(fock.equations.equations[3]), -0.3092695, rtol=1e-4)
+            @test isapprox(energy(fock.equations.equations[4]), -0.3092695, rtol=1e-4)
         end
     end
 end

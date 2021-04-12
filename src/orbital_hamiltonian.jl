@@ -153,15 +153,15 @@ end
 # ** Materialization
 
 const OrbitalHamiltonianMatrixElement{aO,bO,O,T} =
-    Mul{<:Any,<:Tuple{<:AdjointRadialOrbital{T},
-                      <:OrbitalHamiltonian{aO,bO,O,T},
-                      <:RadialOrbital{T}}}
+    Applied{<:Any,typeof(*),<:Tuple{<:AdjointRadialOrbital{T},
+                                    <:OrbitalHamiltonian{aO,bO,O,T},
+                                    <:RadialOrbital{T}}}
 
 const OrbitalHamiltonianMatrixVectorProduct{aO,bO,O,T} =
-    Mul{<:Any,<:Tuple{<:OrbitalHamiltonian{aO,bO,O,T},<:RadialOrbital{T}}}
+    Applied{<:Any,typeof(*),<:Tuple{<:OrbitalHamiltonian{aO,bO,O,T},<:RadialOrbital{T}}}
 
 const OrbitalHamiltonianMatrixMatrixProduct{aO,bO,O,T} =
-    Mul{<:Any,<:Tuple{<:OrbitalHamiltonian{aO,bO,O,T},<:RadialOrbitals{T}}}
+    Applied{<:Any,typeof(*),<:Tuple{<:OrbitalHamiltonian{aO,bO,O,T},<:RadialOrbitals{T}}}
 
 Base.eltype(::OrbitalHamiltonianMatrixVectorProduct{aO,bO,O,T}) where {aO,bO,O,T} = T
 

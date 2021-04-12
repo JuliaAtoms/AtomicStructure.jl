@@ -298,8 +298,8 @@ Base.show(io::IO, st::SourceTerm) = write(io, "SourceTerm($(st.operator)|$(st.so
 Base.iszero(::SourceTerm) = false
 Base.similar(st::SourceTerm) = similar(st.ov)
 
-function Base.copyto!(dest::Mul{<:Any,<:Tuple{<:AbstractQuasiMatrix,<:AbstractArray{<:Any,N}}},
-                      src::Mul{<:Any,<:Tuple{<:AbstractQuasiMatrix,<:AbstractArray{<:Any,N}}}) where N
+function Base.copyto!(dest::Applied{<:Any,typeof(*),<:Tuple{<:AbstractQuasiMatrix,<:AbstractArray{<:Any,N}}},
+                      src::Applied{<:Any,typeof(*),<:Tuple{<:AbstractQuasiMatrix,<:AbstractArray{<:Any,N}}}) where N
     d = last(dest.args)
     s = last(src.args)
     copyto!(IndexStyle(d), d, IndexStyle(s), s)

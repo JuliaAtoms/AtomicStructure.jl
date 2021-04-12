@@ -117,7 +117,7 @@ function atom_calc(nucleus::AbstractPotential, grid_type::Symbol, rₘₐₓ, gr
     R = get_atom_grid(grid_type, rₘₐₓ, nucleus; grid_kwargs...)
 
     atom = Atom(R, spin_configurations(config_transform(ground_state(nucleus))),
-                nucleus, eltype(R), verbosity=Inf)
+                nucleus, eltype(R), verbosity=0)
     # For open-shell atoms, we simply assume an equal distribution
     # among the available spin-configurations. This is correct for
     # e.g. lithium.
