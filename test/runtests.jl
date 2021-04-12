@@ -16,6 +16,7 @@ using Formatting
 
 using CompactBases
 
+using LinearAlgebra
 using FillArrays
 using LazyArrays
 
