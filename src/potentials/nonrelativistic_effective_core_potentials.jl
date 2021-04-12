@@ -20,7 +20,7 @@ Base.hash(pp::EffectiveCorePotential{<:Any,relativistic}, h::UInt) where relativ
 
 const ScalarSORelativisticEffectiveCorePotential{T} = EffectiveCorePotential{T,true}
 
-charge(pp::EffectiveCorePotential) = num_electrons(pp.gst_config)
+charge(pp::EffectiveCorePotential) = num_electrons(pp.gst_config) + (pp.Q-num_electrons(peel(pp.gst_config)))
 ground_state(pp::EffectiveCorePotential) = pp.gst_config
 
 function Base.show(io::IO, pp::EffectiveCorePotential{T,relativistic}) where {T,relativistic}

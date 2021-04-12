@@ -33,8 +33,10 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
         end
 
         Z = charge(atom.potential)
-        Q = num_electrons(outsidecoremodel(first(atom.configurations),
-                                           atom.potential))
+        Q = num_electrons(outsidecoremodel(first(atom.configurations), atom.potential)) +
+            # Correction needed when dealing with cations
+            max(0, (num_electrons(ground_state(atom.potential)) - num_electrons(first(atom.configurations))))
+
         # This is a heuristic to get energy shifts that work for both
         # point charge nuclei and pseudo-potentials; the latter screen
         # the bare charge but not fully, and thus we admix with a

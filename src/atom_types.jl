@@ -144,7 +144,9 @@ are initialized to `[1,0,0,...]`.
 """
 function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, potential::P,
               ::Type{C},
-              mix_coeffs::CV=vcat(one(C), zeros(C, length(configurations)-1))) where {T<:Number,B<:BasisOrRestricted,TC,C,CV<:AbstractVector{<:C},P}
+              mix_coeffs::CV=vcat(one(C), zeros(C, length(configurations)-1)),
+              orbitals=unique_orbitals(outsidecoremodel.(get_config.(configurations), Ref(potential)))
+              ) where {T<:Number,B<:BasisOrRestricted,TC,C,CV<:AbstractVector{<:C},P}
     isempty(configurations) &&
         throw(ArgumentError("At least one configuration required to create an atom"))
     all(isequal(num_electrons(first(configurations))),
@@ -161,12 +163,10 @@ function Atom(::UndefInitializer, ::Type{T}, R::B, configurations::Vector{TC}, p
             throw(ArgumentError("Configuration modelled by nuclear potential ($(pot_cfg)) must belong to the closed set of all configurations"))
     end
 
-    orbs = unique_orbitals(outsidecoremodel.(get_config.(configurations), Ref(potential)))
-
-    Φ = Matrix{T}(undef, size(R,2), length(orbs))
+    Φ = Matrix{T}(undef, size(R,2), length(orbitals))
     RΦ = applied(*, R, Φ)
 
-    Atom(RΦ, orbs, configurations, mix_coeffs, potential)
+    Atom(RΦ, orbitals, configurations, mix_coeffs, potential)
 end
 
 """

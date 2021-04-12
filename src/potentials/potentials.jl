@@ -49,6 +49,11 @@ ground_state(p::PointCharge) = find_element(p.Z)[2][2]
 
 islocal(::PointCharge) = true
 
+Base.:(+)(p::PointCharge, q) =
+    PointCharge(p.Z + q)
+
+Base.:(-)(p::PointCharge, q) = p + (-q)
+
 # * Yukawa
 
 struct Yukawa{T} <: AbstractPotential{T}

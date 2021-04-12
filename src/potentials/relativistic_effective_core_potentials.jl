@@ -52,7 +52,7 @@ Base.isapprox(a::RelativisticEffectiveCorePotential, b::RelativisticEffectiveCor
 Base.hash(pp::RelativisticEffectiveCorePotential, h::UInt) =
     hash((pp.gst_config, pp.Q, pp.V₋, pp.V₊), h)
 
-charge(pp::RelativisticEffectiveCorePotential) = num_electrons(pp.gst_config)
+charge(pp::RelativisticEffectiveCorePotential) = num_electrons(pp.gst_config) + (pp.Q-num_electrons(peel(pp.gst_config)))
 ground_state(pp::RelativisticEffectiveCorePotential) = pp.gst_config
 
 Base.show(io::IO, pp::RelativisticEffectiveCorePotential{T}) where {T} =
@@ -151,7 +151,9 @@ function spin_orbit_potential(pp::RelativisticEffectiveCorePotential{T}, r::Abst
 
     κs = κrange(pp)
 
-    if κ ∈ κs
+    if κ ∈ κs # Is this correct? Perhaps for larger ℓ/j, we should use
+              # the last pseudopotential term, or is it overshadowed
+              # by the centrifugal potential?
         V += (κ > 0 ? pp.V₊[κ] : pp.V₋[-κ])(r)
     end
 
