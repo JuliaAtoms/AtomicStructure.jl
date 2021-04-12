@@ -20,8 +20,9 @@ function one_body_hamiltonian(::Type{Tuple}, R::AbstractQuasiMatrix,
 
     # This way we can apply the correct boundary condition at r = 0.
     D = Derivative(axes(R,1))
-    CD = (potential isa PointCharge && R isa AbstractFiniteDifferences
-          ? CoulombDerivative(D, Z, ℓ) : D)
+    # CD = (potential isa PointCharge && R isa AbstractFiniteDifferences
+    #       ? CoulombDerivative(D, Z, ℓ) : D)
+    CD = (R isa AbstractFiniteDifferences ? CoulombDerivative(D, Z, ℓ) : D)
 
     T = apply(*, R', CD', CD, R)
     T /= -2
