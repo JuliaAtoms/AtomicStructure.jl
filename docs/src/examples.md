@@ -15,7 +15,6 @@ First we load some required packages:
 ```julia
 using Atoms
 using AtomicLevels
-using AtomicPotentials
 using SCF
 
 using LinearAlgebra

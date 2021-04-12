@@ -12,7 +12,6 @@ using Random
 
 using Atoms
 using AtomicLevels
-using AtomicPotentials
 using SCF
 
 using LinearAlgebra
