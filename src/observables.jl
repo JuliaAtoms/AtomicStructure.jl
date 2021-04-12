@@ -60,12 +60,7 @@ function Observable(operator::QuantumOperator, atom::A,
         end
     end
 
-    symbolic_integrals = []
-
-    equation_system = map(atom.orbitals) do orbital
-        corb = conj(orbital)
-        equation = orbital_equation(M, corb, symbolic_integrals)
-
+    equation_system = diff(M, conj(atom.orbitals)) do M,corb
         # We need to filter out those terms that are dependent on
         # corb, to avoid double-counting when computing the
         # observables.
@@ -76,12 +71,11 @@ function Observable(operator::QuantumOperator, atom::A,
                                                    M[i,j].terms))
             end
         end
-        equation
     end
 
     # TODO: Should observables really project out symmetry orbitals?
     eqs = generate_atomic_orbital_equations(
-        atom, MCEquationSystem(equation_system, symbolic_integrals),
+        atom, equation_system,
         integrals, integral_map,
         symmetries; kwargs...)
 
