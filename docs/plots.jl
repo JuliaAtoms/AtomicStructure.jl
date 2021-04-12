@@ -5,7 +5,7 @@ plot_style("ggplot")
 using PyCall
 Cycler = pyimport("cycler")
 plt.rc("axes", prop_cycle=(plt.rcParams["axes.prop_cycle"] +
-                           Cycler.cycler("linestyle", ["-","--",":","-.",".","-","--"])))
+                           Cycler.cycler("linestyle", ["-","--",":","-.",":","-","--"])))
 
 using Statistics
 using Random
