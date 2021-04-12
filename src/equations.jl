@@ -20,6 +20,9 @@ end
 Base.length(hfeqs::AtomicEquations) = length(hfeqs.equations)
 Base.iterate(iter::AtomicEquations, args...) = iterate(iter.equations, args...)
 
+Base.show(io::IO, eqs::AtomicEquations{T}) where T =
+    write(io, "$(length(eqs)) AtomicEquations{$T}")
+
 """
     update!(equations::AtomicEquations[, atom::Atom])
 
@@ -219,7 +222,7 @@ function Base.diff(atom::Atom,
                    configurations = selector.(atom.configurations),
                    orbitals = unique_orbitals(configurations),
                    symmetries = find_symmetries(orbitals),
-                   observables::Dict{Symbol,Tuple{<:QuantumOperator,Bool}} =
+                   observables::Union{Nothing,Dict{Symbol,Tuple{<:QuantumOperator,Bool}}} =
                    Dict{Symbol,Tuple{<:QuantumOperator,Bool}}(
                        :total_energy => (H,false),
                        :double_counted_energy => (H,true),
@@ -261,16 +264,19 @@ function Base.diff(atom::Atom,
                                               poisson_cache=poisson_cache)
     modify_equations!(hfeqs)
 
-    observables = map(collect(pairs(observables))) do (k,(operator,double_counted))
-        verbosity > 3 && println("Observable: $k ($operator)")
-        k => Observable(operator, atom, overlaps,
-                        integrals, integral_map,
-                        symmetries, selector;
-                        double_counted=double_counted,
-                        poisson_cache=poisson_cache,
-                        verbosity=verbosity, kwargs...)
-    end |> Dict{Symbol,Observable}
-
+    observables = if !isnothing(observables)
+        map(collect(pairs(observables))) do (k,(operator,double_counted))
+            verbosity > 3 && println("Observable: $k ($operator)")
+            k => Observable(operator, atom, overlaps,
+                            integrals, integral_map,
+                            symmetries, selector;
+                            double_counted=double_counted,
+                            poisson_cache=poisson_cache,
+                            verbosity=verbosity, kwargs...)
+        end |> Dict{Symbol,Observable}
+    else
+        Dict{Symbol,Observable}()
+    end
     AtomicEquations(atom, hfeqs, integrals, observables)
 end
 
