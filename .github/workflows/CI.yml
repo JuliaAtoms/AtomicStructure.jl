@@ -35,6 +35,10 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
+      - run: |
+          julia --project=. -e '
+            using Pkg
+            pkg"add https://github.com/JuliaAtoms/EnergyExpressions.jl#tests https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl https://github.com/JuliaAtoms/SCF.jl.git"'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
@@ -49,6 +53,10 @@ jobs:
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1'
+      - run: |
+          julia --project=docs -e '
+            using Pkg
+            pkg"add https://github.com/JuliaAtoms/EnergyExpressions.jl#tests https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl https://github.com/JuliaAtoms/SCF.jl.git https://github.com/jagot/Jagot.jl.git"'
       - run: |
           julia --project=docs -e '
             using Pkg
@@ -69,6 +77,10 @@ jobs:
       - uses: julia-actions/setup-julia@v1
         with:
           version: '1'
+      - run: |
+          julia --project=docs -e '
+            using Pkg
+            pkg"add https://github.com/JuliaAtoms/EnergyExpressions.jl#tests https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl https://github.com/JuliaAtoms/SCF.jl.git https://github.com/jagot/Jagot.jl.git"'
       - run: |
           julia --project=docs -e '
             using Pkg
