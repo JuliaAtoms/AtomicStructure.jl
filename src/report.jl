@@ -27,8 +27,12 @@ end
 
 function report(io::IO, fock::Fock{<:Atom{T}}; powers = (2,1,-1,-2,-3)) where T
     atom = fock.quantum_system
+    Z = charge(atom.potential)
+    N = num_electrons(atom)
+    println(io, "Atom{$(T)}")
+    println(io, "R = ", radial_basis(atom))
     show(io, atom.potential)
-    println(io)
+    println(io, ", $(N) e⁻ ⇒ Q = $(Z-N)")
 
     Eₜₒₜ = SCF.energy(fock, :total_energy)*u"hartree"
     Eₖᵢₙ = SCF.energy(fock, :kinetic_energy)*u"hartree"
@@ -48,8 +52,7 @@ function report(io::IO, fock::Fock{<:Atom{T}}; powers = (2,1,-1,-2,-3)) where T
                  noheader=true,
                  alignment=:l,tf=tf_borderless)
 
-    orbital_energies = map(SCF.energy, fock.equations)
-    ϵ = si_round.((orbital_energies ./ degeneracy.(atom.orbitals)) * u"hartree")
+    ϵ = si_round.((SCF.orbital_energies(fock) ./ degeneracy.(atom.orbitals)) * u"hartree")
 
     R = radial_basis(atom)
     r = axes(R,1)

@@ -99,6 +99,13 @@ function Base.copy(atom::A) where {A<:Atom}
       atom.potential, atom.S, atom.S̃)
 end
 
+function Base.complex(atom::Atom)
+    R,Φ = atom.radial_orbitals.args
+    Atom(applied(*, R, complex(Φ)), atom.orbitals,
+         atom.configurations, complex(atom.mix_coeffs),
+         atom.potential, atom.S, atom.S̃)
+end
+
 """
     outsidecoremodel(configuration::Configuration, potential::P)
 
