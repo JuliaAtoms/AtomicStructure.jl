@@ -88,7 +88,7 @@ function Base.show(io::IO, ::MIME"text/plain", pp::RelativisticEffectiveCorePote
 
     headers = ["ℓ", "j", "k", "n", "B", "β"]
 
-    pretty_table(io, data, headers)
+    pretty_table(io, data, header=headers)
 end
 
 function (pp::RelativisticEffectiveCorePotential{T})(orb::RelativisticOrbital, r::AbstractVector{T}) where T

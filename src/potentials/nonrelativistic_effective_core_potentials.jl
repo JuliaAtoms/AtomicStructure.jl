@@ -58,7 +58,7 @@ function Base.show(io::IO, ::MIME"text/plain", pp::EffectiveCorePotential)
                           repeat([""], 1, 5))]
         headers = vcat(headers, ["ℓ′", "k", "n", "β", "B"])
     end
-    pretty_table(io, data, headers)
+    pretty_table(io, data, header=headers)
 end
 
 #=

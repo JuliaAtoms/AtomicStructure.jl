@@ -100,7 +100,7 @@ function energy_errors(fock, exact_energies, Δ, δ)
 
 
     pretty_table([labels exact_energies energies errors 27.211energies 27.211errors errors./abs.(exact_energies)],
-                 ["", "HF limit", "Energy", "Δ", "Energy", "Δ", "Δrel"],
+                 header=["", "HF limit", "Energy", "Δ", "Energy", "Δ", "Δrel"],
                  formatters=((v,i,j) -> j ∈ 2:4 ? si_round(v*u"hartree") : v,
                              (v,i,j) -> j ∈ 5:6 ? si_round(v*u"eV") : v,
                              (v,i,j) -> j == 7 ? si_round(100v*u"percent") : v),

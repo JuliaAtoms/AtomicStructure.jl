@@ -71,7 +71,7 @@ function report(io::IO, fock::Fock{<:Atom{T}}; powers = (2,1,-1,-2,-3)) where T
     println(io)
 
     pretty_table(io, [atom.orbitals ϵ radial_moments],
-                 vcat(["Orbital", "ϵ"], ["⟨r"*(k≠1 ? to_superscript(k) : "")*"⟩" for k in powers]),
+                 header=vcat(["Orbital", "ϵ"], ["⟨r"*(k≠1 ? to_superscript(k) : "")*"⟩" for k in powers]),
                  tf=tf_borderless)
 end
 
