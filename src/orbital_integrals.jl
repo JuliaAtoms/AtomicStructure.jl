@@ -27,16 +27,20 @@ Represents the orbital overlap integral `⟨a|b⟩`, for orbitals `a` and
 `b`, along with `view`s of their radial orbitals `av` and `bv` and the
 current `value` of the integral.
 """
-mutable struct OrbitalOverlapIntegral{aO,bO,T,OV} <: OrbitalIntegral{0,aO,bO,T}
+mutable struct OrbitalOverlapIntegral{aO,bO,T,OV,Metric} <: OrbitalIntegral{0,aO,bO,T}
     a::aO
     b::bO
     av::OV
     bv::OV
     value::T
+    S̃::Metric
 end
 
 function OrbitalOverlapIntegral(a::aO, b::bO, atom::Atom{T}) where {aO,bO,T}
-    oo = OrbitalOverlapIntegral(a, b, view(atom, a), view(atom, b), zero(T))
+    oo = OrbitalOverlapIntegral(a, b,
+                                view(atom, a).args[2],
+                                view(atom, b).args[2],
+                                zero(T), atom.S̃)
     SCF.update!(oo)
     oo
 end
@@ -50,7 +54,7 @@ Base.show(io::IO, oo::OrbitalOverlapIntegral) =
 Update the value of the integral `oo`.
 """
 function SCF.update!(oo::OrbitalOverlapIntegral; kwargs...)
-    oo.value = materialize(applied(*, oo.av', oo.bv))[1]
+    oo.value = dot(oo.av, oo.S̃, oo.bv)
 end
 
 """
