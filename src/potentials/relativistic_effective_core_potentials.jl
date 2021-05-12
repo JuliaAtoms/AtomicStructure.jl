@@ -79,8 +79,8 @@ function Base.show(io::IO, ::MIME"text/plain", pp::RelativisticEffectiveCorePote
     data = map(κs) do κ
         data = κ > 0 ? pp.V₊[κ] : pp.V₋[-κ]
         nk = length(data)
-        ℓ = AtomicLevels.kappa_to_ℓ(κ)
-        j = AtomicLevels.kappa_to_j(κ)
+        ℓ = κ2ℓ(κ)
+        j = κ2j(κ)
         hcat([spectroscopic_label(ℓ);repeat([""],nk-1)],
              [j;repeat([""],nk-1)],
              1:nk, data.n, data.B, data.β)
@@ -125,7 +125,7 @@ function spin_orbit_potential(pp::RelativisticEffectiveCorePotential{T}, r::Abst
     κs = κrange(pp)
 
     for j = [ℓ+s, ℓ-s]
-        κ = AtomicLevels.ℓj_to_kappa(ℓ,j)
+        κ = AtomicLevels.ℓj2κ(ℓ,j)
         j ≥ abs(mℓa+mas) && κ ∈ κs || continue
 
         coeff = clebschgordan(
