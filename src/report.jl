@@ -16,16 +16,39 @@ function shift_unit(u::Unitful.FreeUnits, d)
     Unitful.FreeUnits{(uu,us[2:end]...), ds, a}()
 end
 
-function si_round(q::Quantity; fspec="{1:+9.4f} {2:s}")
+format_number(fspec, v::Real) = format("{1:+$(fspec)}", v)
+function format_number(fspec, v::Complex)
+    iv = imag(v)
+    format("{1:+$(fspec)} {2:s} {3:$(fspec)}im", real(v), iv ≥ 0 ? "+" : "-", abs(iv))
+end
+
+function si_round(q::Quantity; fspec="9.4f")
     v,u = ustrip(q), unit(q)
     if !iszero(v)
         u = shift_unit(u, log10(abs(v)))
         q = u(q)
     end
-    format(fspec, ustrip(q), unit(q))
+    format_number(fspec, ustrip(q))*" $(string(unit(q)))"
 end
 
-function report(io::IO, fock::Fock{<:Atom{T}}; powers = (2,1,-1,-2,-3)) where T
+function radial_moments(atom::Atom{T}, powers) where T
+    R = radial_basis(atom)
+    r = axes(R,1)
+
+    rᵏ = collect(R'*QuasiDiagonal(r.^k)*R for k in powers)
+    rms = zeros(T, length(atom.orbitals), length(powers))
+    for i = eachindex(atom.orbitals)
+        ϕ = view(atom.radial_orbitals.args[2], :, i)
+        for (j,rᵏ) in enumerate(rᵏ)
+            rms[i,j] = dot(ϕ, rᵏ, ϕ)
+        end
+    end
+    rms
+end
+
+function report(io::IO, fock::Fock{<:Atom{T}};
+                orbital_energies=[:total],
+                powers = (2,1,-1,-2,-3)) where T
     atom = fock.quantum_system
     Z = charge(atom.potential)
     N = num_electrons(atom)
@@ -47,31 +70,33 @@ function report(io::IO, fock::Fock{<:Atom{T}}; powers = (2,1,-1,-2,-3)) where T
     total_energy_errors = Any["", "", "", VT+2]
 
     pretty_table(io, hcat(["Total energy", "Kinetic energy", "Potential energy", "Virial ratio"],
-                          vcat(si_round.((Eₜₒₜ, Eₖᵢₙ, Eₚₒₜ), fspec="{1:+15.10f} {2:s}")..., format("{1:+15.10f}", VT)),
+                          vcat(si_round.((Eₜₒₜ, Eₖᵢₙ, Eₚₒₜ), fspec="15.10f")..., format_number("15.10f", VT)),
                           total_energy_errors),
                  noheader=true,
                  alignment=:l,tf=tf_borderless)
 
-    ϵ = si_round.((SCF.orbital_energies(fock) ./ degeneracy.(atom.orbitals)) * u"hartree")
-
-    R = radial_basis(atom)
-    r = axes(R,1)
-
-    rᵏ = collect(R'*QuasiDiagonal(r.^k)*R for k in powers)
-    radial_moments = zeros(T, length(atom.orbitals), length(powers))
-    for i = eachindex(atom.orbitals)
-        ϕ = view(atom.radial_orbitals.args[2], :, i)
-        for (j,rᵏ) in enumerate(rᵏ)
-            radial_moments[i,j] = dot(ϕ, rᵏ, ϕ)
-        end
+    g = degeneracy.(atom.orbitals)
+    ϵ = zeros(T, length(g), length(orbital_energies))
+    for (j,which) in enumerate(orbital_energies)
+        ϵ[:,j] = SCF.orbital_energies(fock, which)
     end
+    ϵ = si_round.((ϵ ./ g) * u"hartree")
+
+    rms = radial_moments(atom, powers)
 
     # Should also compute electron density ρ(0) and Kato cusp
 
     println(io)
 
-    pretty_table(io, [atom.orbitals ϵ radial_moments],
-                 header=vcat(["Orbital", "ϵ"], ["⟨r"*(k≠1 ? to_superscript(k) : "")*"⟩" for k in powers]),
+    orbital_energy_headers = getindex.(Ref(Dict(:total => "ϵ",
+                                                :onebody => "ϵ(1)",
+                                                :twobody => "ϵ(2)",
+                                                :direct => "ϵ(J)",
+                                                :exchange => "ϵ(K)")),
+                                       orbital_energies)
+
+    pretty_table(io, [atom.orbitals ϵ rms],
+                 vcat("Orbital", orbital_energy_headers, ["⟨r"*(k≠1 ? to_superscript(k) : "")*"⟩" for k in powers]),
                  tf=tf_borderless)
 end
 

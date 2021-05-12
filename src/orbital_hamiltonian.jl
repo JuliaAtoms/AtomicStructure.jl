@@ -139,6 +139,8 @@ function Base.getindex(H::OrbitalHamiltonian, term::Symbol)
         DirectPotential
     elseif term == :exchange
         ExchangePotential
+    elseif term == :twobody
+        HFPotential
     elseif term == :source
         SourceTerm
     elseif term == :shift
