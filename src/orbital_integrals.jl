@@ -63,8 +63,8 @@ end
 Update the value of the integral `oo` with respect to `atom`.
 """
 function SCF.update!(oo::OrbitalOverlapIntegral, atom::Atom; kwargs...)
-    oo.av = view(atom, oo.a)
-    oo.bv = view(atom, oo.b)
+    oo.av = view(atom, oo.a).args[2]
+    oo.bv = view(atom, oo.b).args[2]
     SCF.update!(oo; kwargs...)
 end
 

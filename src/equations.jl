@@ -218,7 +218,7 @@ function Base.diff(atom::Atom,
                    energy_expression::EnergyExpression;
                    H::QuantumOperator=atomic_hamiltonian(atom),
                    overlaps::Vector{<:OrbitalOverlap}=OrbitalOverlap[],
-                   selector::Function=cfg -> outsidecoremodel(cfg, atom.potential),
+                   selector::Function=default_selector(atom),
                    configurations = selector.(atom.configurations),
                    orbitals = unique_orbitals(configurations),
                    symmetries = find_symmetries(orbitals),
@@ -269,7 +269,8 @@ function Base.diff(atom::Atom,
             verbosity > 3 && println("Observable: $k ($operator)")
             k => Observable(operator, atom, overlaps,
                             integrals, integral_map,
-                            symmetries, selector;
+                            symmetries;
+                            selector=selector,
                             double_counted=double_counted,
                             poisson_cache=poisson_cache,
                             verbosity=verbosity, kwargs...)
@@ -282,7 +283,7 @@ end
 
 Base.Matrix(H::QuantumOperator, atom::Atom;
             overlaps::Vector{<:OrbitalOverlap}=OrbitalOverlap[],
-            selector::Function=cfg -> outsidecoremodel(cfg, atom.potential),
+            selector::Function=default_selector(atom),
             configurations = selector.(atom.configurations),
             kwargs...) =
     Matrix(H, configurations, overlaps; kwargs...)

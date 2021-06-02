@@ -122,6 +122,8 @@ outsidecoremodel(configuration::Configuration, ::Yukawa) =
     configuration
 outsidecoremodel(csf::CSF, potential) = outsidecoremodel(get_config(csf), potential)
 
+default_selector(atom::Atom) = Base.Fix2(outsidecoremodel, atom.potential)
+
 function Atom(P::RadialOrbitals, orbitals::Vector{<:AbstractOrbital},
               configurations::Vector, mix_coeffs::AbstractVector,
               potential::AbstractPotential)
