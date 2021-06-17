@@ -153,7 +153,7 @@ end
                 end
             end
 
-            scf!(fock, ω=0.9, verbosity=2, num_printouts=typemax(Int))
+            optimize!(fock, ω=0.9, scf_method=:arnoldi, verbosity=2, num_printouts=typemax(Int))
             display(fock)
             println()
 

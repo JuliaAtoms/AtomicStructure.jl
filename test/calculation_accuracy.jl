@@ -151,13 +151,13 @@ end
     end
 
     @testset "Lithium" begin
-        @testset "$(grid_type)" for (grid_type,grid_kwargs,optim_kwargs,Δ,δ) in [
-            (:fd_uniform,   (ρ=0.1,),                (),             3e-2, 1e-2),
-            (:fd_staggered, (ρ=0.1,),                (),             3e-3, 2e-3),
-            (:fd_loglin,    (ρ=0.05,),               (),             5e-4, 3e-4),
-            # (:implicit_fd,  (ρ=0.1,),              (scf_iters=0,), 0.0, 0.0), # This does not converge
-            (:fedvr,        (intervals=10,k=10,),    (),             1e-6, 8e-5),
-            (:bsplines,     (intervals=30,k=4,m=2,), (scf_iters=0,), 2e-4, 3e-5)
+        @testset "$(grid_type)" for (grid_type,grid_kwargs,Δ,δ) in [
+            (:fd_uniform,   (ρ=0.1,),                3e-2, 1e-2),
+            (:fd_staggered, (ρ=0.1,),                3e-3, 2e-3),
+            (:fd_loglin,    (ρ=0.05,),               5e-4, 3e-4),
+            # (:implicit_fd,  (ρ=0.1,),              0.0, 0.0), # This does not converge
+            (:fedvr,        (intervals=10,k=10,),    1e-6, 8e-5),
+            (:bsplines,     (intervals=30,k=4,m=2,), 2e-4, 3e-5)
         ]
             atom_calc(pc"Li", grid_type, 20.0, grid_kwargs, Δ, δ;
                       ω=0.9,
@@ -167,14 +167,14 @@ end
                       # Slater determinants, which would otherwise
                       # collapse into one of the spin projections.
                       update_mixing_coefficients=false,
-                      optim_kwargs...)
+                      scf_iters=0)
         end
     end
 
     @testset "Beryllium" begin
         @testset "$(grid_type)" for (grid_type,grid_kwargs,optim_kwargs,Δ,δ) in [
             (:fedvr,        (k=10,intervals=8,), (scf_iters=0,),        6e-7, 2e-6),
-            (:fd_staggered, (ρ=0.2,),            (scf_method=:lobpcg,), 0.02, 0.009) # This works, but takes forever
+            (:fd_staggered, (ρ=0.2,),            (scf_method=:arnoldi,), 0.02, 0.009) # This works, but takes forever
         ]
             atom_calc(pc"Be", grid_type, 15.0, grid_kwargs, Δ, δ;
                       ω=0.9,
