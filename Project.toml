@@ -54,7 +54,7 @@ SCF = "0.1"
 UnicodeFun = "0.4"
 Unitful = "1.7"
 UnitfulAtomic = "1.0"
-WignerSymbols = "1.1"
+WignerSymbols = "1.1,2"
 julia = "1.5"
 
 [extras]
