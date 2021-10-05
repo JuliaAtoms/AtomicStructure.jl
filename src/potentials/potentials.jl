@@ -44,6 +44,7 @@ Base.show(io::IO, p::PointCharge) =
 (p::PointCharge{T})(o::O, r::VU) where {T,O,U,VU<:AbstractVector{U}} = p.(Ref(o), r)
 
 charge(p::PointCharge) = p.Z
+effective_charge(p::PointCharge) = charge(p)
 
 ground_state(p::PointCharge) = find_element(p.Z)[2][2]
 
