@@ -54,7 +54,7 @@ ECP,Ar,10,4,0;
 ! References:
 ! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""
 
-ArgonWB = ECP"""! [Ne] 3s2 3p6
+ArgonWBav = ECP"""! [Ne] 3s2 3p6
 !  Q=8., MEFIT, WB, Ref 22.
 ECP,Ar,10,4,0;
 1; 2,1.000000,0.00000000;
@@ -64,6 +64,26 @@ ECP,Ar,10,4,0;
 1; 2,5.208459,-3.40009845;
 ! References:
 ! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""
+
+# The ΔB (≡ Vℓ′) entries are multiplied by 2/(2ℓ+1), relative to the
+# values quoted in the article, since the routines expects the values
+# to be the prefactors of the 𝐥⋅𝐬 operator, in consistency with the
+# other SSO ECPs available from the Stuttgart ECP repository.
+ArgonWB = ECP"""! [Ne] 3s2 3p6
+!  Q=8., MEFIT, WB, Ref 22.
+ECP,Ar,10,4,3;
+1; 2,1.000000,0.00000000;
+2; 2,10.261721,68.66778801; 2,3.952725,24.04276629;
+2; 2,5.392714,27.73076331; 2,2.699967,4.04545904;
+2; 2,8.086235,-8.13747696; 2,4.016632,-1.66452808;
+1; 2,5.208459,-3.40009845;
+2; 2,5.392714,-0.0392782467; 2,2.699967,0.1102925267;
+2; 2,8.086235,-0.030895988; 2,4.016632,0.01783596;
+1; 2,5.208459,0.042038826;
+! References:
+! [22] A. Nicklass, M. Dolg, H. Stoll, H. Preuss, J. Chem. Phys. 102, 8942 (1995)."""sso
+
+ArgonDF2c = RelativisticEffectiveCorePotential(ArgonWB)
 
 # * Calcium
 
