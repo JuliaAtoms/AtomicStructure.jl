@@ -64,7 +64,7 @@ function report(io::IO, fock::Fock{<:Atom{T}};
 
     # At some point we will support comparing to reference data, taken from e.g.
     # - Saito, S. L. (2009). Hartree-Fock-Roothaan energies and expectation
-    #   values for the neutral atoms he to uuo: the B-spline expansion
+    #   values for the neutral atoms He to Uuo: the B-spline expansion
     #   method. Atomic Data and Nuclear Data Tables, 95(6),
     #   836–870. http://dx.doi.org/10.1016/j.adt.2009.06.001
     total_energy_errors = Any["", "", "", VT+2]
