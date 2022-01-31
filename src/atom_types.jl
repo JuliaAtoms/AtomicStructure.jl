@@ -380,6 +380,18 @@ iteration).
 SCF.orbitals(atom::A) where {A<:Atom} =
     view(atom.radial_orbitals.args[2], :, :)
 
+function _norm2(atom::Atom{T}, configuration) where T
+    RT = real(T)
+    n = zero(RT)
+    for (orb,occ,state) in outsidecoremodel(get_config(atom.configurations[configuration]),
+                                            atom.potential)
+        j = orbital_index(atom, orb)
+        ϕ = view(atom.radial_orbitals.args[2], :, j)
+        n += occ*dot(ϕ, atom.S, ϕ)
+    end
+    n
+end
+
 """
     norm(atom)
 
@@ -387,6 +399,23 @@ This calculates the _amplitude_ norm of the `atom`, i.e. ``√N`` where
 ``N`` is the number electrons. Each configuration is weighted by its
 mixing coefficient.
 """
+function LinearAlgebra.norm(atom::Atom{T}) where T
+    n = zero(real(T))
+    for (i,c) in enumerate(atom.mix_coeffs)
+        n += c^2*_norm2(atom, i)
+    end
+    Q = num_electrons(outsidecoremodel(first(atom.configurations),
+                                       atom.potential))
+    √(n/Q)
+end
+
+function LinearAlgebra.norm(atom::Atom{T}, configuration::Integer) where T
+    n = _norm2(atom, configuration)
+    Q = num_electrons(outsidecoremodel(first(atom.configurations),
+                                       atom.potential))
+    √(n/Q)
+end
+
 function LinearAlgebra.norm(atom::Atom{T}) where T
     RT = real(T)
     n = zero(RT)

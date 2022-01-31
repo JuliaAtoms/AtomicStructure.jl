@@ -125,7 +125,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
                 printfmtln(io, "$(configfmt) {2:7s}  {3:11s} ", "Cfg", "Norm", "Norm-1")
                 for (i,config) in enumerate(atom.configurations)
                     i > nconfigs && break
-                    n = norm(atom, configuration=i)
+                    n = norm(atom, i)
                     printfmtln(io, linefmt, config, n, n-1)
                 end
                 length(atom.configurations) > nconfigs && println(io, "⋮")
