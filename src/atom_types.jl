@@ -416,22 +416,6 @@ function LinearAlgebra.norm(atom::Atom{T}, configuration::Integer) where T
     √(n/Q)
 end
 
-function LinearAlgebra.norm(atom::Atom{T}) where T
-    RT = real(T)
-    n = zero(RT)
-    for (i,c) in enumerate(atom.mix_coeffs)
-        for (orb,occ,state) in outsidecoremodel(get_config(atom.configurations[i]),
-                                                atom.potential)
-            j = orbital_index(atom, orb)
-            ϕ = view(atom.radial_orbitals.args[2], :, j)
-            n += c^2*occ*dot(ϕ, atom.S, ϕ)
-        end
-    end
-    Q = num_electrons(outsidecoremodel(first(atom.configurations),
-                                       atom.potential))
-    √(n/Q)
-end
-
 LinearAlgebra.normalize!(atom::A, v::V) where {A<:Atom,V<:AbstractVector} =
     ldiv!(√(dot(v, atom.S, v)), v)
 
