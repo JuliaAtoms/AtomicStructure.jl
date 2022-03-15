@@ -76,9 +76,14 @@ function Base.show(io::IO, ::MIME"text/plain", pp::RelativisticEffectiveCorePote
 
     κs = κrange(pp)
 
+    vl = Int[]
+    i = 0
+
     data = map(κs) do κ
         data = κ > 0 ? pp.V₊[κ] : pp.V₋[-κ]
         nk = length(data)
+        i += nk
+        κ < 0 && push!(vl, i)
         ℓ = κ2ℓ(κ)
         j = κ2j(κ)
         hcat([spectroscopic_label(ℓ);repeat([""],nk-1)],
@@ -88,7 +93,8 @@ function Base.show(io::IO, ::MIME"text/plain", pp::RelativisticEffectiveCorePote
 
     headers = ["ℓ", "j", "k", "n", "B", "β"]
 
-    pretty_table(io, data, header=headers)
+    pretty_table(io, data, header=headers,
+                 vlines=[], hlines=vcat(1, 1 .+ vl))
 end
 
 function (pp::RelativisticEffectiveCorePotential{T})(orb::RelativisticOrbital, r::AbstractVector{T}) where T

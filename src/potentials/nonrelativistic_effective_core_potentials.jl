@@ -43,7 +43,8 @@ function Base.show(io::IO, ::MIME"text/plain", pp::EffectiveCorePotential)
     ℓmax′ = length(pp.Vℓ′)
     print(io, "Long-range Q = $(pp.Q), ℓ ∈ 0:$(ℓmax)")
     ℓmax′ > 0 && print(io, ", ℓ′ ∈ 1:$(length(pp.Vℓ′))")
-    println(io, "\nData from \"$(pp.reference)\"")
+    isempty(pp.reference) || print(io, "\nData from \"$(pp.reference)\"")
+    println(io)
     ℓk = map(enumerate(0:ℓmax)) do (i,ℓ)
         nk = length(pp.Vℓ[i])
         [[spectroscopic_label(ℓ);repeat([""],nk-1)] 1:nk]
@@ -62,7 +63,8 @@ function Base.show(io::IO, ::MIME"text/plain", pp::EffectiveCorePotential)
                           repeat([""], 1, 5))]
         headers = vcat(headers, ["ℓ′", "k", "n", "β", "B"])
     end
-    pretty_table(io, data, header=headers)
+    pretty_table(io, data, header=headers,
+                 vlines=(ℓmax′ > 0 ? [5] : []), hlines=vcat(1, 1 .+ cumsum(length.(pp.Vℓ))))
 end
 
 #=
