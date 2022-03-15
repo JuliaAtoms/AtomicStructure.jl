@@ -7,6 +7,10 @@ struct RelativisticEffectiveCorePotential{T,QT} <: AbstractEffectiveCorePotentia
     reference::String
 end
 
+RelativisticEffectiveCorePotential(name, gst_config, Q, V₋, V₊=empty(V₋); reference="") =
+    RelativisticEffectiveCorePotential{eltype(first(V₋)),typeof(Q)}(name, gst_config,
+                                                                    Q, V₋, V₊, reference)
+
 function RelativisticEffectiveCorePotential(p::EffectiveCorePotential{T,true}; threshold=1e-4) where T
     isempty(p.Vℓ′) && throw(ArgumentError("No spin–orbit (difference) potential present"))
 
@@ -72,7 +76,8 @@ function Base.show(io::IO, ::MIME"text/plain", pp::RelativisticEffectiveCorePote
     κ₊max = length(pp.V₊)
     print(io, "Long-range Q = $(pp.Q), κ₋ ∈ -1:-1:$(-κ₋max)")
     κ₊max > 0 && print(io, ", κ₊ ∈ 1:$(κ₊max)")
-    println(io, "\nData from \"$(pp.reference)\"")
+    isempty(pp.reference) || print(io, "\nData from \"$(pp.reference)\"")
+    println(io)
 
     κs = κrange(pp)
 

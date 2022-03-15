@@ -9,7 +9,7 @@ end
 
 EffectiveCorePotential(name, gst_config, Q, Vℓ, Vℓ′=empty(Vℓ); relativistic=false, reference="") =
     EffectiveCorePotential{eltype(first(Vℓ)),relativistic,typeof(Q)}(name, gst_config,
-                                                              Q, Vℓ, Vℓ′, reference)
+                                                                     Q, Vℓ, Vℓ′, reference)
 
 Base.:(==)(a::EffectiveCorePotential{<:Any,ra}, b::EffectiveCorePotential{<:Any,rb}) where {ra,rb} =
     ra == rb && a.gst_config == b.gst_config && a.Q == b.Q &&
