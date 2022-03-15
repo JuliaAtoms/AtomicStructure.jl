@@ -7,6 +7,8 @@ end
 Base.length(ge::GaussianExpansion) = length(ge.n)
 Base.isempty(ge::GaussianExpansion) = length(ge) == 0
 
+Base.eltype(ge::GaussianExpansion{T}) where T = T
+
 Base.iszero(ge::GaussianExpansion) = all(iszero, ge.B)
 
 Base.:(==)(a::GaussianExpansion, b::GaussianExpansion) =

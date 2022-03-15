@@ -57,7 +57,7 @@ function parse_effective_core_potential(::Type{T}, pp_string::String, relativist
         parse_effective_core_potential_line(T, lines[ii+=1])
     end |> Vector{GaussianExpansion{T}}
     reference = parse_reference(lines[ii+2:end])
-    EffectiveCorePotential{T,relativistic}(element, gst_config, Q, Vℓ, Vℓ′, reference)
+    EffectiveCorePotential{T,relativistic,typeof(Q)}(element, gst_config, Q, Vℓ, Vℓ′, reference)
 end
 
 function parse_relativistic_effective_core_potential(::Type{T}, pp_string::String) where T
@@ -73,7 +73,7 @@ function parse_relativistic_effective_core_potential(::Type{T}, pp_string::Strin
         parse_effective_core_potential_line(T, lines[ii+=1])
     end # |> Vector{GaussianExpansion{T}}
     reference = parse_reference(lines[ii+2:end])
-    RelativisticEffectiveCorePotential{T}(element, gst_config, Q, V₋, V₊, reference)
+    RelativisticEffectiveCorePotential{T,typeof(Q)}(element, gst_config, Q, V₋, V₊, reference)
 end
 
 macro ECP_str(pp_string, suffix="")

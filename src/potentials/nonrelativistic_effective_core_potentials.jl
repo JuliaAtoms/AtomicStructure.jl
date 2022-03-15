@@ -1,11 +1,15 @@
-struct EffectiveCorePotential{T,relativistic} <: AbstractEffectiveCorePotential{T}
+struct EffectiveCorePotential{T,relativistic,QT} <: AbstractEffectiveCorePotential{T}
     name::String
     gst_config::Configuration{Orbital{Int}}
-    Q::Int
+    Q::QT
     Vℓ::Vector{GaussianExpansion{T}} # ℓ ∈ 0:ℓmax
     Vℓ′::Vector{GaussianExpansion{T}} # ℓ′ ∈ 1:ℓmax′
     reference::String
 end
+
+EffectiveCorePotential(name, gst_config, Q, Vℓ, Vℓ′=empty(Vℓ); relativistic=false, reference="") =
+    EffectiveCorePotential{eltype(first(Vℓ)),relativistic,typeof(Q)}(name, gst_config,
+                                                              Q, Vℓ, Vℓ′, reference)
 
 Base.:(==)(a::EffectiveCorePotential{<:Any,ra}, b::EffectiveCorePotential{<:Any,rb}) where {ra,rb} =
     ra == rb && a.gst_config == b.gst_config && a.Q == b.Q &&

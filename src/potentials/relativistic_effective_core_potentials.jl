@@ -1,7 +1,7 @@
-struct RelativisticEffectiveCorePotential{T} <: AbstractEffectiveCorePotential{T}
+struct RelativisticEffectiveCorePotential{T,QT} <: AbstractEffectiveCorePotential{T}
     name::String
     gst_config::Configuration{Orbital{Int}}
-    Q::Int
+    Q::QT
     V₋::Vector{GaussianExpansion{T}} # For negative κ
     V₊::Vector{GaussianExpansion{T}} # For positive κ
     reference::String
