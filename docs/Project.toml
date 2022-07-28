@@ -16,4 +16,4 @@ SCF = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"
 SolverTraces = "619b3e1a-df4a-11e8-3b0b-a997e0925a8d"
 
 [compat]
-Documenter = "0.25"
+Documenter = "0.27"
