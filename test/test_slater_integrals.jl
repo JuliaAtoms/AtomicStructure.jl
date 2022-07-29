@@ -27,7 +27,8 @@ function test_hydrogenic_slater_integrals(fun::Function, fock::Fock, do_test::Bo
     pass = Highlighter((data,i,j) -> j == 8 && data[i,j], bold = true, foreground = :green)
     fail = Highlighter((data,i,j) -> j == 8 && !data[i,j], bold = true, foreground = :red)
     pretty_table(vcat(data...), header=["Orbital", "Term", "Expected", "Expected", "Actual", "Error", "Relative error", "Pass"],
-                 highlighters=(pass,fail))
+                 highlighters=(pass,fail),
+                 vlines=[1], hlines=[1])
     do_test || return
     for test in tests
         @eval @test $test

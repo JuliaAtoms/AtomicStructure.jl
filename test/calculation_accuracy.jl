@@ -105,7 +105,8 @@ function energy_errors(fock, exact_energies, Δ, δ)
                              (v,i,j) -> j ∈ 5:6 ? si_round(v*u"eV") : v,
                              (v,i,j) -> j == 7 ? si_round(100v*u"percent") : v),
                  highlighters=(Highlighter((v,i,j) -> abs(v[i,7])>0.2, foreground=:red, bold=true),
-                               Highlighter((v,i,j) -> abs(v[i,7])>0.01, foreground=:yellow, bold=true),))
+                               Highlighter((v,i,j) -> abs(v[i,7])>0.01, foreground=:yellow, bold=true),),
+                 vlines=[1,4], hlines=[1])
 
     @test abs(errors[1]) < Δ
     @test all(abs.(errors[2:end]) .< δ)
