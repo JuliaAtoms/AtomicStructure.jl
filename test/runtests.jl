@@ -65,8 +65,10 @@ function get_atom_grid(grid_type, rmax, nucleus;
     end
 end
 
-include("test_slater_integrals.jl")
-include("structure_setup.jl")
-include("calculation_accuracy.jl")
-include("spin_orbit.jl")
-include("projectors.jl")
+@testset "Atoms.jl" begin
+    include("test_slater_integrals.jl")
+    include("structure_setup.jl")
+    include("calculation_accuracy.jl")
+    include("spin_orbit.jl")
+    include("projectors.jl")
+end
