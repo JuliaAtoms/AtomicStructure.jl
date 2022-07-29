@@ -117,6 +117,9 @@ function atom_calc(nucleus::AbstractPotential, grid_type::Symbol, rₘₐₓ, gr
                    config_transform=identity, kwargs...)
     R = get_atom_grid(grid_type, rₘₐₓ, nucleus; grid_kwargs...)
 
+    println()
+    @info "HF accuracy check for" nucleus R
+
     atom = Atom(R, spin_configurations(config_transform(ground_state(nucleus))),
                 nucleus, eltype(R), verbosity=0)
     # For open-shell atoms, we simply assume an equal distribution
