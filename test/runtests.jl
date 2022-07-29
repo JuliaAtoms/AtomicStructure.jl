@@ -34,7 +34,10 @@ function bspline_atomic_grid(k, m, rmax, Z)
     ArbitraryKnotSet(k, r)
 end
 
-function get_atom_grid(grid_type, rmax, nucleus; ρ=0.1, ρmax=0.6, α=0.002, intervals=30, k=4, m=2)
+function get_atom_grid(grid_type, rmax, nucleus;
+                       ρ=0.1, ρmax=0.6, α=0.002,
+                       intervals=30, k=4, m=2,
+                       fedvr_extra=5)
     # Effective nuclear charge, subtracting those core electrons that
     # are modelled by e.g. a pseudopotential.
     Z = float(charge(nucleus)) - num_electrons(core(ground_state(nucleus)))
@@ -53,7 +56,7 @@ function get_atom_grid(grid_type, rmax, nucleus; ρ=0.1, ρmax=0.6, α=0.002, in
         ImplicitFiniteDifferences(N, ρ)
     elseif grid_type == :fedvr
         t = range(0, stop=rmax, length=intervals)
-        FEDVR(t, Vcat(k+5,Fill(k,length(t)-2)))[:,2:end-1]
+        FEDVR(t, Vcat(k+fedvr_extra,Fill(k,length(t)-2)))[:,2:end-1]
     elseif grid_type == :bsplines
         t = bspline_atomic_grid(k, m, rmax, Z)
         BSpline(t)[:,2:end-1]

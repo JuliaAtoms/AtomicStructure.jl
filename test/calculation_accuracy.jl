@@ -192,9 +192,12 @@ end
     end
 
     @testset "Argon" begin
-        atom_calc(pc"Ar", :bsplines, 8.0, (intervals=30,k=4,m=2), 8e-3, 2e-3;
-                  g_tol=1e-8, scf_iters=0, opt_iters=1000,
-                  linesearch=LineSearches.MoreThuente())
+        # atom_calc(pc"Ar", :bsplines, 13.0, (k=4,m=2), 8e-3, 2e-3;
+        #           g_tol=1e-8, scf_iters=0, opt_iters=1000,
+        #           linesearch=LineSearches.MoreThuente())
+
+        atom_calc(pc"Ar", :fedvr, 13.0, (intervals=35,k=5,fedvr_extra=10), 8e-3, 2e-3;
+                  g_tol=1e-8, scf_iters=0, opt_iters=1000)
     end
 
     @testset "Xenon" begin
