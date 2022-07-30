@@ -12,7 +12,7 @@ using Random
 
 using Atoms
 using AtomicLevels
-using SCF
+using Atoms.SCF
 
 using LinearAlgebra
 using CompactBases

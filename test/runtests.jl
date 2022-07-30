@@ -6,7 +6,7 @@ using AtomicLevels
 using HalfIntegers
 using AngularMomentumAlgebra
 
-using SCF
+using Atoms.SCF
 using LineSearches
 
 using PrettyTables

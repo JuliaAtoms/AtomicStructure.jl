@@ -12,7 +12,6 @@ LazyArrays = "5078a376-72f3-5289-bfd5-ec5146d43c02"
 PyCall = "438e738f-606a-5dbb-bf0a-cddfbfd45ab0"
 PyPlot = "d330b81b-6aea-500a-939a-2ce795aea3ee"
 QuasiArrays = "c4ea9172-b204-11e9-377d-29865faadc5c"
-SCF = "6d1ec750-0562-11e9-273f-e1a7ef9cf2ad"
 SolverTraces = "619b3e1a-df4a-11e8-3b0b-a997e0925a8d"
 
 [compat]

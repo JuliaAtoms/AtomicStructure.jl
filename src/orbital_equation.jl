@@ -71,5 +71,5 @@ function Base.show(io::IO, ::MIME"text/plain", hfeq::AtomicOrbitalEquation)
     write(io, "\n")
 end
 
-import SCF: energy
+import .SCF: energy
 export energy
