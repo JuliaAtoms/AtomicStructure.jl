@@ -43,7 +43,6 @@ jobs:
             ${{ runner.os }}-test-${{ env.cache-name }}-
             ${{ runner.os }}-test-
             ${{ runner.os }}-
-      - run: julia --project=. -e 'using Pkg; pkg"add https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl"'
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
@@ -61,7 +60,7 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Pkg
-            pkg"add https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl https://github.com/jagot/Jagot.jl"'
+            pkg"add https://github.com/jagot/Jagot.jl"'
       - run: |
           julia --project=docs -e '
             using Pkg
@@ -85,7 +84,7 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Pkg
-            pkg"add https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl https://github.com/jagot/Jagot.jl"'
+            pkg"add https://github.com/jagot/Jagot.jl"'
       - run: |
           julia --project=docs -e '
             using Pkg
