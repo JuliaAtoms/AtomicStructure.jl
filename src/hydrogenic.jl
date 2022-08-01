@@ -33,10 +33,12 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
         end
 
         Z = charge(atom.potential)
-        Q = num_electrons(outsidecoremodel(first(atom.configurations),
-                                           atom.potential))
+        Q = num_electrons(outsidecoremodel(first(atom.configurations), atom.potential)) +
+            # Correction needed when dealing with cations
+            max(0, (num_electrons(ground_state(atom.potential)) - num_electrons(first(atom.configurations))))
+
         # This is a heuristic to get energy shifts that work for both
-        # point charge nuclei and pseudopotentials; the latter screen
+        # point charge nuclei and pseudo-potentials; the latter screen
         # the bare charge but not fully, and thus we admix with a
         # little bit of the unscreened charge.
         hydrogen_like_eng = n -> -(0.3Z+0.7Q)^2/(2n^2)
@@ -49,6 +51,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
 
         for ℓ in keys(orbitals)
             ℓ > find_lowest_ℓmax && continue
+            verbosity > 1 && println(io)
             print_block(io) do io
                 min_n,max_n,nev = if any(!isbound, orbitals[ℓ])
                     ℓ+1,0,1
@@ -73,7 +76,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
                     println(io, "Target eigenvalue: ≤ $(Iₚℓ) Ha")
 
                 H = one_body_hamiltonian(atom, first(orbitals[ℓ]))
-                λᴴ,Φᴴ = diagonalize_one_body(H, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
+                λᴴ,Φᴴ = diagonalize_one_body(H, R, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
                 if find_lowest
                     if first(λᴴ) < λmin
                         λmin = first(λᴴ)
@@ -91,42 +94,46 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
                 end
 
                 if verbosity > 2 && max_n > 0
+                    println(io)
                     λᴴₐ = hydrogen_like_eng.(min_n:max_n)
-                    println(io, "Hydrogenic energies $(fmt_eng_vec(eng_fmt, λᴴ)) Ha")
-                    println(io, "Analytic energies   $(fmt_eng_vec(eng_fmt, λᴴₐ)) Ha")
-                    println(io, "Δ                   $(fmt_eng_vec(Δeng_fmt, λᴴ-λᴴₐ)) Ha")
+                    iioo = IOContext(io, :color=>true)
+                    pretty_table(iioo,
+                                 hcat(λᴴ,λᴴₐ,λᴴ-λᴴₐ),
+                                 header=["Hydrogenic energies [Ha]", "Analytic energies [Ha]", "Δ [Ha]"],
+                                 vlines=[],hlines=[1],
+                                 formatters=((v,i,j)->j∈1:2 ? fmt(eng_fmt,v) : v,
+                                             (v,i,j)->j==3 ? fmt(Δeng_fmt,v) : v))
                 end
             end
         end
 
-        print_block(io) do io
-            ml = maximum(length.(string.(atom.orbitals)))
-            linefmt = FormatExpr("{1:$(ml)s} {2:<9.7f} {3:12.5e}")
-            verbosity > 2 && printfmtln(io, "{1:$(ml)s} {2:9s}  {3:11s}", "", "Initial n", "1-n")
-            for j in eachindex(atom.orbitals)
-                n₀ = norm(atom[j])
-                iszero(n₀) || norm_rot!(view(atom, j))
-
-                if verbosity > 2
-                    n = norm(atom[j])
-                    printfmtln(io, linefmt, atom.orbitals[j], n₀, 1-n)
-                end
-            end
+        norms = zeros(length(atom.orbitals), 2)
+        for j in eachindex(atom.orbitals)
+            ϕ = view(atom.radial_orbitals.args[2], :, j)
+            n₀ = √(dot(ϕ, atom.S, ϕ))
+            iszero(n₀) || norm_rot!(atom, ϕ)
+            norms[j,1] = n₀
+            norms[j,2] = √(dot(ϕ, atom.S, ϕ))
         end
-        if verbosity > 3
+        if verbosity > 2
             print_block(io) do io
-                nconfigs = min(10, length(atom.configurations))
-                ml = maximum(length.(string.(atom.configurations)))
-                configfmt = "{1:<$(ml+3)s}"
-                linefmt = FormatExpr("$(configfmt) {2:7.5f} {3:12.5e}")
-                N = Q
-                printfmtln(io, "$(configfmt) {2:7s}  {3:11s} ", "Cfg", "√N", "$(N)-N²")
-                for (i,config) in enumerate(atom.configurations)
-                    i > nconfigs && break
-                    n = norm(atom, configuration=i)
-                    printfmtln(io, linefmt, config, n, N-n^2)
+                println(io, "Norms")
+                iioo = IOContext(io, :color=>true)
+                pretty_table(iioo,
+                             hcat(atom.orbitals, norms[:,1], 1 .- norms[:,2]),
+                             header=["Orbital", "Initial n", "1-n"],
+                             vlines=[1], hlines=[1],
+                             formatters = ft_printf("%1.3e", 3))
+
+                if verbosity > 3
+                    println(io)
+                    norms = norm.(Ref(atom), eachindex(atom.configurations))
+                    pretty_table(iioo,
+                                 hcat(atom.configurations, norms, norms .- 1),
+                                 header=["Cfg", "Norm", "Norm-1"],
+                                 vlines=[1], hlines=[1],
+                                 formatters = ft_printf("%1.3e", 3))
                 end
-                length(atom.configurations) > nconfigs && println(io, "⋮")
             end
         end
     end
@@ -160,7 +167,7 @@ function screened_hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) 
         Z = charge(atom.potential)
         Q = num_electrons(outsidecoremodel(cfg, atom.potential))
         # This is a heuristic to get energy shifts that work for both
-        # point charge nuclei and pseudopotentials; the latter screen
+        # point charge nuclei and pseudo-potentials; the latter screen
         # the bare charge but not fully, and thus we admix with a
         # little bit of the unscreened charge.
         hydrogen_like_eng = σ -> -(0.3Z+0.7Q-σ)^2/2
@@ -187,7 +194,7 @@ function screened_hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) 
                     println(io, "Target eigenvalue: ≤ $(Iₚ) Ha")
 
                 H = one_body_hamiltonian(atom, o) + Vsc
-                λᴴ,Φᴴ = diagonalize_one_body(H, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
+                λᴴ,Φᴴ = diagonalize_one_body(H, R, nev; σ=σ, io=io, verbosity=verbosity, kwargs...)
                 copyto!(view(Φ, :, i), view(Φᴴ, :, nev))
 
                 if verbosity > 2
@@ -224,7 +231,7 @@ taken from Eq. (10) of
     Parameters. The Journal of Chemical Physics, 74(6),
     3628–3630. http://dx.doi.org/10.1063/1.441475
 """
-function screening(i::Orbital, j::Orbital)
+function screening(i::AbstractOrbital, j::AbstractOrbital)
     r = (3j.n^2 - j.ℓ*(j.ℓ+1))/(3i.n^2 - i.ℓ*(i.ℓ+1))
     (1 + r^2)^(-3/2)
 end
@@ -259,7 +266,7 @@ julia> Atoms.screening(o"2s", c"1s2 2s2")
 shows that the `2s` electron is screened by both the `1s` electrons
 and a little bit of the the other `2s` electron.
 """
-function screening(i::Orbital, c::Configuration)
+function screening(i::AbstractOrbital, c::Configuration)
     σᵢ = 0.0
     for (j,wⱼ,_) in c
         σᵢ += (wⱼ - (i==j))*screening(i, getspatialorb(j))

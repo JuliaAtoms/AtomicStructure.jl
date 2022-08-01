@@ -2,11 +2,10 @@
 #+AUTHOR: Stefanos Carlström
 #+EMAIL: stefanos.carlstrom@gmail.com
 
-[[https://travis-ci.org/JuliaAtoms/Atoms.jl][https://travis-ci.org/JuliaAtoms/Atoms.jl.svg?branch=master]]
-[[https://ci.appveyor.com/project/juliaatoms/atoms-jl][https://img.shields.io/appveyor/ci/juliaatoms/atoms-jl.svg?logo=appveyor]]
+[[https://juliaatoms.org/Atoms.jl/stable/][https://img.shields.io/badge/docs-stable-blue.svg]]
+[[https://juliaatoms.org/Atoms.jl/dev/][https://img.shields.io/badge/docs-dev-blue.svg]]
+[[https://github.com/JuliaAtoms/Atoms.jl/actions][https://github.com/JuliaAtoms/Atoms.jl/workflows/CI/badge.svg]]
 [[https://codecov.io/gh/JuliaAtoms/Atoms.jl][https://codecov.io/gh/JuliaAtoms/Atoms.jl/branch/master/graph/badge.svg]]
-
-[[https://juliaatoms.github.io/Atoms.jl/dev/index.html][https://img.shields.io/badge/docs-dev-blue.svg]]
 
 #+PROPERTY: header-args:julia :session *julia-README*
 
@@ -16,13 +15,13 @@ combinations of single-particle orbitals.
 * Usage
   The radial coordinate is represented using a basis function
   expansion that fulfils the [[https://github.com/JuliaApproximation/ContinuumArrays.jl][ContinuumArrays.jl]] interface. The
-  examples below use [[https://github.com/jagot/FiniteDifferencesQuasi.jl][FiniteDifferencesQuasi.jl]], but Atoms.jl is not
-  dependent on which basis you choose.
+  examples below use [[https://github.com/JuliaApproximation/CompactBases.jl][CompactBases.jl]], but Atoms.jl is not dependent on
+  which basis you choose.
   
   #+BEGIN_SRC julia :exports code
     using Atoms
     using AtomicLevels
-    using FiniteDifferencesQuasi
+    using CompactBases
   #+END_SRC
 
   #+RESULTS:
@@ -45,7 +44,7 @@ combinations of single-particle orbitals.
      N = ceil(Int, rₘₐₓ/ρ + 1/2)
      # Finite-difference scheme that accounts for the boundary condition at
      # r = 0
-     R = RadialDifferences(N, ρ, charge(nucleus))
+     R = StaggeredFiniteDifferences(N, ρ, float(charge(nucleus)))
    #+END_SRC
 
    #+RESULTS:
