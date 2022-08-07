@@ -96,6 +96,6 @@ jobs:
         run: |
           julia --project=docs -e '
             using Documenter: DocMeta, doctest
-            using Atoms
-            DocMeta.setdocmeta!(Atoms, :DocTestSetup, :(using Atoms, AtomicLevels); recursive=true)
-            doctest(Atoms)'
+            using AtomicStructure
+            DocMeta.setdocmeta!(AtomicStructure, :DocTestSetup, :(using AtomicStructure, AtomicLevels); recursive=true)
+            doctest(AtomicStructure)'

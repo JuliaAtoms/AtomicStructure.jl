@@ -4,12 +4,12 @@
     v = rand(ComplexF64, size(R,2))
     v ./= √(dot(v, S, v))
 
-    p = Atoms.Projector([applied(*, R, v)], [o"1s"], S)
+    p = AtomicStructure.Projector([applied(*, R, v)], [o"1s"], S)
     mp = Matrix(p)
     out = similar(mp)
     mul!(out, p, mp)
     @test out ≈ mp atol=1e-14
 
-    Atoms.projectout!(out, p)
+    AtomicStructure.projectout!(out, p)
     @test norm(out) < 1e-14
 end

@@ -10,9 +10,9 @@ plt.rc("axes", prop_cycle=(plt.rcParams["axes.prop_cycle"] +
 using Statistics
 using Random
 
-using Atoms
+using AtomicStructure
 using AtomicLevels
-using Atoms.SCF
+using AtomicStructure.SCF
 
 using LinearAlgebra
 using CompactBases
@@ -59,7 +59,7 @@ function plot_orbitals(atom::Atom; nrplot=1000, plot_basis=false,
     ℓ = 0
     i = 0
     orbitals = map(atom.orbitals) do o
-        on,oℓ = Atoms.getn(o),Atoms.getℓ(o)
+        on,oℓ = AtomicStructure.getn(o),AtomicStructure.getℓ(o)
         if on == n && oℓ == ℓ
             i
         else
@@ -80,7 +80,7 @@ function plot_orbitals(atom::Atom; nrplot=1000, plot_basis=false,
                 legend(framealpha=0.75,ncol=2)
                 xscale("log")
                 i == m && xlabel(L"$r$ [au]")
-                spatial_orbs = unique([Atoms.getspatialorb(atom.orbitals[j])
+                spatial_orbs = unique([AtomicStructure.getspatialorb(atom.orbitals[j])
                                        for j in js])
                 ylabel(join(string.(spatial_orbs), ", "))
             end

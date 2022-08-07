@@ -1,13 +1,13 @@
 using Documenter
 using EnergyExpressions
 using AtomicLevels
-using Atoms
+using AtomicStructure
 
 isdefined(Main, :NOPLOTS) && NOPLOTS || include("plots.jl")
 
 makedocs(
-    modules = [Atoms],
-    sitename = "Atoms",
+    modules = [AtomicStructure],
+    sitename = "AtomicStructure",
     pages = [
         "Home" => "index.md",
         "Examples" => "examples.md",
@@ -58,6 +58,6 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/JuliaAtoms/Atoms.jl.git",
+    repo = "github.com/JuliaAtoms/AtomicStructure.jl.git",
     push_preview = true,
 )

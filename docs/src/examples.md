@@ -1,7 +1,7 @@
 # Examples
 
 To find the ground state of various atoms, we need a radial grid, a
-set of electronic configurations, and an atomic nucleus. Atoms.jl does
+set of electronic configurations, and an atomic nucleus. AtomicStructure.jl does
 not yet support multi-configurational Hartree–Fock (it is implemented
 but not properly working, yet), and furthermore
 [AngularMomentumAlgebra.jl](https://github.com/JuliaAtoms/AngularMomentumAlgebra.jl)
@@ -13,7 +13,7 @@ are not yet supported.
 
 First we load some required packages:
 ```julia
-using Atoms
+using AtomicStructure
 using AtomicLevels
 using SCF
 

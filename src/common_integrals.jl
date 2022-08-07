@@ -31,7 +31,7 @@ end
 function create_integral(ome::OrbitalMatrixElement{1,aO,<:OneBodyOperator,bO},
                          atom::Atom{T}, integrals, integral_map; kwargs...) where {aO<:SpinOrbital,bO<:SpinOrbital,T}
     a,o,b = ome.a,ome.o,ome.b
-    op = Atoms.get_operator(o, atom, a[1], b[1]; kwargs...)
+    op = AtomicStructure.get_operator(o, atom, a[1], b[1]; kwargs...)
     iszero(op) && return ZeroIntegral{aO,bO,real(T)}()
 
     OperatorMatrixElement(a[1], b[1], op, atom, 1)

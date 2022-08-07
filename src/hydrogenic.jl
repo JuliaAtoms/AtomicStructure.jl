@@ -251,7 +251,7 @@ where ``w_j`` is the occupancy of orbital `j`.
 # Examples
 
 ```jldoctest
-julia> Atoms.screening(o"1s", c"1s2 2s2")
+julia> AtomicStructure.screening(o"1s", c"1s2 2s2")
 0.3820869935387247
 ```
 
@@ -259,7 +259,7 @@ The `1s` orbital is only slightly screened by the other `1s` electron
 and the 2 `2s` electrons, whereas
 
 ```jldoctest
-julia> Atoms.screening(o"2s", c"1s2 2s2")
+julia> AtomicStructure.screening(o"2s", c"1s2 2s2")
 2.179703979102134
 ```
 

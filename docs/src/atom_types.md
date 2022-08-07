@@ -1,9 +1,9 @@
 # Atom types
 
 ```@meta
-CurrentModule = Atoms
+CurrentModule = AtomicStructure
 DocTestSetup = quote
-    using Atoms
+    using AtomicStructure
 end
 ```
 
@@ -26,7 +26,7 @@ num_electrons
 ## Internals
 
 ```@meta
-CurrentModule = Atoms
+CurrentModule = AtomicStructure
 ```
 
 ```@docs

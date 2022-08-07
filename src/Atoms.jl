@@ -1,4 +1,4 @@
-module Atoms
+module AtomicStructure
 
 using Compat
 

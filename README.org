@@ -1,11 +1,11 @@
-#+TITLE: Atoms.jl
+#+TITLE: AtomicStructure.jl
 #+AUTHOR: Stefanos Carlström
 #+EMAIL: stefanos.carlstrom@gmail.com
 
-[[https://juliaatoms.org/Atoms.jl/stable/][https://img.shields.io/badge/docs-stable-blue.svg]]
-[[https://juliaatoms.org/Atoms.jl/dev/][https://img.shields.io/badge/docs-dev-blue.svg]]
-[[https://github.com/JuliaAtoms/Atoms.jl/actions][https://github.com/JuliaAtoms/Atoms.jl/workflows/CI/badge.svg]]
-[[https://codecov.io/gh/JuliaAtoms/Atoms.jl][https://codecov.io/gh/JuliaAtoms/Atoms.jl/branch/master/graph/badge.svg]]
+[[https://juliaatoms.org/AtomicStructure.jl/stable/][https://img.shields.io/badge/docs-stable-blue.svg]]
+[[https://juliaatoms.org/AtomicStructure.jl/dev/][https://img.shields.io/badge/docs-dev-blue.svg]]
+[[https://github.com/JuliaAtoms/AtomicStructure.jl/actions][https://github.com/JuliaAtoms/AtomicStructure.jl/workflows/CI/badge.svg]]
+[[https://codecov.io/gh/JuliaAtoms/AtomicStructure.jl][https://codecov.io/gh/JuliaAtoms/AtomicStructure.jl/branch/master/graph/badge.svg]]
 
 #+PROPERTY: header-args:julia :session *julia-README*
 
@@ -15,11 +15,11 @@ combinations of single-particle orbitals.
 * Usage
   The radial coordinate is represented using a basis function
   expansion that fulfils the [[https://github.com/JuliaApproximation/ContinuumArrays.jl][ContinuumArrays.jl]] interface. The
-  examples below use [[https://github.com/JuliaApproximation/CompactBases.jl][CompactBases.jl]], but Atoms.jl is not dependent on
+  examples below use [[https://github.com/JuliaApproximation/CompactBases.jl][CompactBases.jl]], but AtomicStructure.jl is not dependent on
   which basis you choose.
   
   #+BEGIN_SRC julia :exports code
-    using Atoms
+    using AtomicStructure
     using AtomicLevels
     using CompactBases
   #+END_SRC
@@ -149,7 +149,7 @@ combinations of single-particle orbitals.
    #+END_SRC
 
    #+RESULTS:
-   : Atom{Atoms.TwoComponent{Float64},RadialDifferences{Float64,Int64}}(Z = 2 [He]) with 1 CSF: 1s²(0|0)+
+   : Atom{AtomicStructure.TwoComponent{Float64},RadialDifferences{Float64,Int64}}(Z = 2 [He]) with 1 CSF: 1s²(0|0)+
 
 * TODO/Ideas
   - [ ] Multiple eigenvalues per symmetry and/or Lagrange multipliers

@@ -82,8 +82,8 @@ end
 
             # # Set up energy expression manually.
             # eng = DiagonalIntegral(o"1s")
-            # equations = map(Atoms.hf_equations(first(atom.configurations), eng)) do (orb,equation)
-            #     Atoms.HFEquation(atom, equation, orb)
+            # equations = map(AtomicStructure.hf_equations(first(atom.configurations), eng)) do (orb,equation)
+            #     AtomicStructure.HFEquation(atom, equation, orb)
             # end
 
             # fock = Fock(atom, equations)

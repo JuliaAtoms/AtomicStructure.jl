@@ -1,9 +1,9 @@
 # One-body Hamiltonians
 
 ```@meta
-CurrentModule = Atoms
+CurrentModule = AtomicStructure
 DocTestSetup = quote
-    using Atoms
+    using AtomicStructure
 end
 ```
 

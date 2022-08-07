@@ -1,14 +1,14 @@
-# Atoms.jl
+# AtomicStructure.jl
 
-Documentation for Atoms.jl
+Documentation for AtomicStructure.jl
 
 ## A note on usage
 
-Atoms.jl (and the whole JuliaAtoms cluster of libraries) is _research
+AtomicStructure.jl (and the whole JuliaAtoms cluster of libraries) is _research
 grade software_. This means, that although we try our best to ensure
 that the individual components behave as they should, and we do have a
 fair amount of complete calculations that we compare against values
-from the literature, we give no guarantees. Furthermore, Atoms.jl is
+from the literature, we give no guarantees. Furthermore, AtomicStructure.jl is
 not an _expert system_, in that if the calculation does not converge,
 it will not try another route (such as
 e.g. [ATSP](https://github.com/compas/atsp-book) or

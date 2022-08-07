@@ -1,12 +1,12 @@
-using Atoms
-import Atoms: ECPs
+using AtomicStructure
+import AtomicStructure: ECPs
 using CoulombIntegrals
 import CoulombIntegrals: locs
 using AtomicLevels
 using HalfIntegers
 using AngularMomentumAlgebra
 
-using Atoms.SCF
+using AtomicStructure.SCF
 using LineSearches
 
 using PrettyTables
@@ -65,7 +65,7 @@ function get_atom_grid(grid_type, rmax, nucleus;
     end
 end
 
-@testset "Atoms.jl" begin
+@testset "AtomicStructure.jl" begin
     include("test_slater_integrals.jl")
     include("structure_setup.jl")
     include("calculation_accuracy.jl")

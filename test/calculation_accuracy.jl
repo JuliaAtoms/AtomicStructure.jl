@@ -92,11 +92,11 @@ function energy_errors(fock, exact_energies, Δ, δ)
     energies = vcat(total_energy(fock),
                     collect(SCF.energy(fock.equations.equations[i])/degeneracy(o)
                             for (i,o) in enumerate(atom.orbitals)
-                            if nonrelorbital(Atoms.getspatialorb(o)) ∈ orbital_refs))
+                            if nonrelorbital(AtomicStructure.getspatialorb(o)) ∈ orbital_refs))
     errors = energies - exact_energies
 
     labels = vcat("Total", string.(collect(o for o in atom.orbitals
-                                           if nonrelorbital(Atoms.getspatialorb(o)) ∈ orbital_refs)))
+                                           if nonrelorbital(AtomicStructure.getspatialorb(o)) ∈ orbital_refs)))
 
 
     pretty_table([labels exact_energies energies errors 27.211energies 27.211errors errors./abs.(exact_energies)],

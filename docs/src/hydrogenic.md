@@ -9,9 +9,9 @@ screening of orbital ``i`` due to all the other electrons in the
 configuration.
 
 ```@meta
-CurrentModule = Atoms
+CurrentModule = AtomicStructure
 DocTestSetup = quote
-    using Atoms
+    using AtomicStructure
     using AtomicLevels
 end
 ```
@@ -26,7 +26,7 @@ hydrogenic!
 
 ```@docs
 screened_hydrogenic!
-Atoms.screening
+AtomicStructure.screening
 ```
 
 ```@meta
