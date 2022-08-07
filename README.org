@@ -141,15 +141,6 @@ combinations of single-particle orbitals.
     3d²(₂³P|³P)+          
     3d²(₂³F|³F)+
    #+end_example
-   
-   Relativistic helium, one configuration state function
-   (initialization not yet supported):
-   #+BEGIN_SRC julia :exports both :results verbatim
-     DiracAtom(undef, R, csfs(rc"1s2"), nucleus)
-   #+END_SRC
-
-   #+RESULTS:
-   : Atom{AtomicStructure.TwoComponent{Float64},RadialDifferences{Float64,Int64}}(Z = 2 [He]) with 1 CSF: 1s²(0|0)+
 
 * TODO/Ideas
   - [ ] Multiple eigenvalues per symmetry and/or Lagrange multipliers
