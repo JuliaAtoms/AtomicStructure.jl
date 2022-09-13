@@ -30,7 +30,7 @@ const RadialOrbitals{T,B<:Basis} = RadialOrbitalArray{T,2,B}
 const AdjointRadialOrbitals{T,B<:Basis} = AdjointRadialOrbitalArray{T,2,B}
 
 const RadialOperator{T,B<:Basis,M<:AbstractMatrix{T}} =
-    Applied{<:Any,typeof(*),<:Tuple{<:BasisOrRestricted{B},M,<:AdjointBasisOrRestricted{B}}}
+    Applied{<:Any,typeof(*),<:Tuple{BasisOrRestricted{B},M,AdjointBasisOrRestricted{B}}}
 
 function LinearAlgebra.adjoint(op::RadialOperator)
     Ac,M,B = op.args
