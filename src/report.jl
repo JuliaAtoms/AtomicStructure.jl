@@ -96,8 +96,11 @@ function report(io::IO, fock::Fock{<:Atom{T}};
                                        orbital_energies)
 
     pretty_table(io, [atom.orbitals ϵ rms],
-                 vcat("Orbital", orbital_energy_headers, ["⟨r"*(k≠1 ? to_superscript(k) : "")*"⟩" for k in powers]),
+                 header=vcat("Orbital", orbital_energy_headers, ["⟨r"*(k≠1 ? to_superscript(k) : "")*"⟩" for k in powers]),
                  tf=tf_borderless)
 end
 
 report(fock::Fock; kwargs...) = report(stdout, fock; kwargs...)
+
+report(io::IO, atom::Atom; H=atomic_hamiltonian(atom), kwargs...) = report(io, Fock(atom, H=H); kwargs...)
+report(atom::Atom; kwargs...) = report(stdout, atom; kwargs...)

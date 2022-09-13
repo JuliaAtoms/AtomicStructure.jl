@@ -92,6 +92,28 @@ end
 
             @test length(fock.equations) == 1
             @test isapprox(energy(first(fock.equations)), -0.5, atol=2e-5)
+
+            rep = let io = IOBuffer()
+                AtomicStructure.report(io, atom)
+                String(take!(io))
+            end
+
+            ref = [r"Atom\{Float64\}",
+                   Regex("R = Staggered finite differences basis \\{Float64\\} on 0.0..$(rₘₐₓ).[0-9]+ with 1201 points spaced by ρ = 0.25"),
+                   string(nucleus)*r", 1 e⁻ ⇒ Q = 0",
+                   r"  Total energy       -[0-9]+.[0-9]+ mEₕ",
+                   r"  Kinetic energy     \+[0-9]+.[0-9]+ mEₕ",
+                   r"  Potential energy     -[0-9]+.[0-9]+ Eₕ",
+                   r"  Virial ratio         -[0-9]+.[0-9]+       [0-9]+.[0-9]+",
+                   r"",
+                   r"  Orbital               ϵ      ⟨r²⟩       ⟨r⟩     ⟨r⁻¹⟩     ⟨r⁻²⟩     ⟨r⁻³⟩",
+                   r"",
+                   r"     1s₀α   -[0-9]+.[0-9]+ mEₕ   [0-9]+.[0-9]+   [0-9]+.[0-9]+   [0-9]+.[0-9]+   [0-9]+.[0-9]+   [0-9]+.[0-9]+"]
+
+            for (l,r) in zip(split(rep, "\n"), ref)
+                isnothing(match(r, l)) && @error "Report does not match report" l r
+                @test !isnothing(match(r, l))
+            end
         end
 
         @testset "Helium" begin
