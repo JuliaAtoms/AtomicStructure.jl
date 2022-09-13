@@ -72,7 +72,7 @@ function report(io::IO, fock::Fock{<:Atom{T}};
     pretty_table(io, hcat(["Total energy", "Kinetic energy", "Potential energy", "Virial ratio"],
                           vcat(si_round.((Eₜₒₜ, Eₖᵢₙ, Eₚₒₜ), fspec="15.10f")..., format_number("15.10f", VT)),
                           total_energy_errors),
-                 noheader=true,
+                 show_header=false,
                  alignment=:l,tf=tf_borderless)
 
     g = degeneracy.(atom.orbitals)
