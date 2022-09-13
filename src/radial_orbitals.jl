@@ -29,8 +29,13 @@ corresponds to a single radial orbital.
 const RadialOrbitals{T,B<:Basis} = RadialOrbitalArray{T,2,B}
 const AdjointRadialOrbitals{T,B<:Basis} = AdjointRadialOrbitalArray{T,2,B}
 
+if VERSION >= v"1.8.1"
 const RadialOperator{T,B<:Basis,M<:AbstractMatrix{T}} =
     Applied{<:Any,typeof(*),<:Tuple{BasisOrRestricted{B},M,AdjointBasisOrRestricted{B}}}
+else
+const RadialOperator{T,B<:Basis,M<:AbstractMatrix{T}} =
+    Applied{<:Any,typeof(*),<:Tuple{<:BasisOrRestricted{B},M,<:AdjointBasisOrRestricted{B}}}
+end
 
 function LinearAlgebra.adjoint(op::RadialOperator)
     Ac,M,B = op.args
