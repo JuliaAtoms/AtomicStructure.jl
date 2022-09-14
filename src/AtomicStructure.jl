@@ -9,7 +9,8 @@ using HalfIntegers
 using AngularMomentumAlgebra
 import AngularMomentumAlgebra: jmⱼ, spin
 using EnergyExpressions
-import EnergyExpressions: NBodyMatrixElement, OrbitalMatrixElement,
+import EnergyExpressions: NBodyMatrixElement, NBodyTerm,
+    OrbitalMatrixElement, OrbitalOverlap,
     orbital_equation, MCEquationSystem, QuantumOperator
 
 using ContinuumArrays
@@ -33,7 +34,8 @@ using ArnoldiMethod
 
 include("SCF/SCF.jl")
 using .SCF
-import .SCF: norm_rot!, update!, KrylovWrapper, print_block
+import .SCF: norm_rot!, update!, KrylovWrapper, print_block,
+    energy_matrix!, energy
 
 using CoulombIntegrals
 import CoulombIntegrals: locs
@@ -67,11 +69,13 @@ include("one_body.jl")
 include("utils.jl")
 include("hydrogenic.jl")
 include("projectors.jl")
+include("lazy_matmuls.jl")
 include("orbital_integrals.jl")
 include("orbital_hamiltonian.jl")
 include("orbital_equation.jl")
 include("common_integrals.jl")
 include("observables.jl")
+include("evaluate_matrix_elements.jl")
 include("spin_orbit.jl")
 include("equations.jl")
 include("report.jl")

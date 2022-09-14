@@ -4,6 +4,7 @@ using CoulombIntegrals
 import CoulombIntegrals: locs
 using AtomicLevels
 using HalfIntegers
+using EnergyExpressions
 using AngularMomentumAlgebra
 
 using AtomicStructure.SCF

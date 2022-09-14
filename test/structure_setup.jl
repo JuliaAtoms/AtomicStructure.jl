@@ -50,6 +50,15 @@ end
                     atom = Atom(R, csfs([c"1s", c"2s", c"2p", c"3s", c"3p", c"3d"]),
                                 nucleus, method=method, verbosity=4)
                     test_hydrogenic_orbitals(atom, tol)
+                    for os = [[o"1s", o"2s", o"3s"],
+                              [o"2p", o"3p"],
+                              [o"3d"]]
+                        for a ∈ os
+                            for b ∈ os
+                                @test AtomicStructure.evaluate(OrbitalOverlap(a,b), atom, nothing, nothing) ≈ (a == b) atol=1e-10
+                            end
+                        end
+                    end
                 end
             end
         end
