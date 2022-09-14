@@ -1,5 +1,4 @@
 function evaluate(oo::OrbitalOverlap, atom::Atom{T}, integrals, integral_map) where {N,T}
-    b
     a,b = oo.a,oo.b
     av,bv = view(atom,a),view(atom,b)
     dot(av.args[2], atom.S̃, bv.args[2])
