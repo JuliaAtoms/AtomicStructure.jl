@@ -130,8 +130,6 @@ integral_value(ome::OperatorMatrixElement) = ome.value
 
 # ** Hartree–Fock potentials
 
-const HFPotentialOperator{T,B<:Basis} = RadialOperator{T,B,Diagonal{T,<:AbstractVector{T}}}
-
 """
     HFPotential(k, a, b, av, bv, V̂, poisson)
 
