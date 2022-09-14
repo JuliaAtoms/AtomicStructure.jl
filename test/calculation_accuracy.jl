@@ -110,6 +110,10 @@ function energy_errors(fock, exact_energies, Δ, δ)
 
     @test abs(errors[1]) < Δ
     @test all(abs.(errors[2:end]) .< δ)
+
+    @test energy(atom) ≈ total_energy(fock)
+    c = atom.mix_coeffs
+    @test dot(c, energy_matrix(atom), c) ≈ total_energy(fock)
 end
 
 function atom_calc(nucleus::AbstractPotential, grid_type::Symbol, rₘₐₓ, grid_kwargs,
