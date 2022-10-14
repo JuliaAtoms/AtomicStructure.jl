@@ -67,6 +67,7 @@ function get_atom_grid(grid_type, rmax, nucleus;
 end
 
 @testset "AtomicStructure.jl" begin
+    include("potentials.jl")
     include("test_slater_integrals.jl")
     include("structure_setup.jl")
     include("calculation_accuracy.jl")
