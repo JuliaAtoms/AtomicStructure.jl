@@ -1,7 +1,7 @@
 name = "AtomicStructure"
 uuid = "e24b7630-0518-11e9-1346-1188d3abce50"
 authors = ["Stefanos Carlström <stefanos.carlstrom@gmail.com>"]
-version = "0.1.4"
+version = "0.1.5"
 
 [deps]
 AngularMomentumAlgebra = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -38,7 +38,7 @@ UnitfulAtomic = "a7773ee8-282e-5fa2-be4e-bd808c38a91a"
 WignerSymbols = "9f57e263-0b3d-5e2e-b1be-24f2bb48858b"
 
 [compat]
-AngularMomentumAlgebra = "0.1, 0.2"
+AngularMomentumAlgebra = "0.1, 0.2, 0.3"
 ArnoldiMethod = "0.2"
 ArrayLayouts = "0.7, 0.8"
 AtomicLevels = "0.1.3"

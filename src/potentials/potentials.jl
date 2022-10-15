@@ -68,7 +68,17 @@ Base.hash(p::Yukawa, h::UInt) = hash(p.g, hash(p.α, hash(p.m, h)))
 (p::Yukawa)( ::O, r::U) where {O,U} = -p.g^2*exp(-p.α*p.m*r)/r
 (p::Yukawa)(o::O, r::VU) where {O,VU<:AbstractVector} = p.(Ref(o), r)
 
+charge(p::Yukawa) = p.g^2
+effective_charge(p::Yukawa) = charge(p)
+
+ground_state(p::Yukawa) = c"1s"
+
 islocal(::Yukawa) = true
+
+Base.show(io::IO, p::Yukawa{T}) where T =
+    printfmt(io, "Yukawa{{{1:s}}}({2:0.3f}, {3:0.3f}, {4:0.3f}): -{5:0.3f}*exp(-{6:0.3f}*r)/r",
+             T, p.g, p.α, p.m,
+             p.g^2, p.α*p.m)
 
 # * ECPs
 
