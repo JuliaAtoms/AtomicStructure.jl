@@ -20,8 +20,10 @@ function evaluate(ome::OrbitalMatrixElement{N}, atom::Atom{T}, integrals, integr
     dot(av.args[2], atom.S̃, tmp.args[2])
 end
 
-evaluate(nbt::NBodyTerm, atom::Atom, integrals, integral_map) =
+function evaluate(nbt::NBodyTerm, atom::Atom, integrals, integral_map)
+    isempty(nbt.factors)&& return nbt.coeff
     nbt.coeff*prod(evaluate(f, atom, integrals, integral_map) for f in nbt.factors)
+end
 
 evaluate(nbme::NBodyMatrixElement, atom::Atom, integrals, integral_map) =
     sum(evaluate(t, atom, integrals, integral_map) for t in nbme.terms)
