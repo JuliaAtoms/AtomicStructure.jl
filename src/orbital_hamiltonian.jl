@@ -97,6 +97,20 @@ Base.size(hamiltonian::OrbitalHamiltonian) =
 Base.size(hamiltonian::OrbitalHamiltonian, i) = size(hamiltonian)[i]
 
 
+Base.show(io::IO, h::OrbitalHamiltonian) =
+    write(io, "OrbitalHamiltonian for $(h.orbital) with $(length(h.terms)) individual terms")
+
+function Base.show(io::IO, ::MIME"text/plain", h::OrbitalHamiltonian)
+    show(io, h)
+    println(io)
+    nd = length(digits(length(h.terms)))
+    for (i,t) in enumerate(h.terms)
+        print(io, "- "*lpad(string(i), nd)*" ")
+        show(io, t)
+        println(io)
+    end
+end
+
 update!(h::OrbitalHamiltonian) = foreach(t -> update!(t), h.terms)
 function update!(h::OrbitalHamiltonian, atom::Atom)
     foreach(t -> update!(t, atom), h.terms)
