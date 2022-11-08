@@ -322,8 +322,26 @@ LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:SourceTerm, Source,
     materialize!(MulAdd(ma.α, ma.A.operator, ma.A.ov, ma.β, ma.C))
 
 function LazyArrays.materialize!(ma::MulAdd{<:Any, <:Any, <:Any, T, <:IdentityOperator{1}, Source, Dest}) where {T,Source,Dest}
-    isone(ma.β) || lmul!(ma.β, ma.C.args[2])
+    if iszero(ma.β)
+        ma.C.args[2] .= false
+    else
+        isone(ma.β) || lmul!(ma.β, ma.C.args[2])
+    end
     BLAS.axpy!(ma.α, ma.B.args[2], ma.C.args[2])
+end
+
+LinearAlgebra.mul!(y::AbstractVecOrMat, p::SourceTerm, x::AbstractVecOrMat,
+                   α::Number=true, β::Number=false) =
+                       mul!(y, p.operator, p.ov, α, β)
+
+function LinearAlgebra.mul!(y::AbstractVecOrMat, p::IdentityOperator{1}, x::AbstractVecOrMat,
+                            α::Number=true, β::Number=false)
+    if iszero(β)
+        y .= false
+    else
+        isone(β) || lmul!(β, y)
+    end
+    BLAS.axpy!(α, x, y)
 end
 
 # * Shift terms

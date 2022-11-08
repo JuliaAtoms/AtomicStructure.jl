@@ -13,7 +13,8 @@ function get_or_create_integral!(integrals, integral_map, symbolic_integral, ato
     end
 end
 
-function create_integral(symbolic_integral::OrbitalOverlap, atom::Atom, integrals, integral_map; kwargs...)
+function create_integral(symbolic_integral::Union{OrbitalOverlap,AngularMomentumAlgebra.OrbitalRadialOverlap},
+                         atom::Atom, integrals, integral_map; kwargs...)
     a,b = symbolic_integral.a,symbolic_integral.b
     OrbitalOverlapIntegral(a, b, atom)
 end
