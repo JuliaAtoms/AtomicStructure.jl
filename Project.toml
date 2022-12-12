@@ -1,7 +1,7 @@
 name = "AtomicStructure"
 uuid = "e24b7630-0518-11e9-1346-1188d3abce50"
 authors = ["Stefanos Carlström <stefanos.carlstrom@gmail.com>"]
-version = "0.1.6"
+version = "0.1.7"
 
 [deps]
 AngularMomentumAlgebra = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
@@ -46,7 +46,7 @@ BandedMatrices = "0.16, 0.17"
 BlockBandedMatrices = "0.11"
 CompactBases = "0.3.9"
 Compat = "3.27, 4"
-ContinuumArrays = "0.10, 0.11"
+ContinuumArrays = "0.10, 0.11, 0.12"
 CoulombIntegrals = "0.1.1"
 Crayons = "4.0"
 EnergyExpressions = "0.1"
