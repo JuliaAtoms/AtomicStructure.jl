@@ -1,7 +1,7 @@
 name = "AtomicStructure"
 uuid = "e24b7630-0518-11e9-1346-1188d3abce50"
 authors = ["Stefanos Carlström <stefanos.carlstrom@gmail.com>"]
-version = "0.1.7"
+version = "0.1.8"
 
 [deps]
 AngularMomentumAlgebra = "0bb1b1ac-0216-11e9-361b-bb110c659ce1"
