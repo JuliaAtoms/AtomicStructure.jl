@@ -59,16 +59,9 @@ jobs:
       - run: |
           julia --project=docs -e '
             using Pkg
-            pkg"add https://github.com/jagot/Jagot.jl"'
-      - run: |
-          julia --project=docs -e '
-            using Pkg
-            Pkg.develop(PackageSpec(path=pwd()))
             Pkg.instantiate()
-            pkg"build PyPlot"'
-        env:
-          PYTHON: ""
-      - run: julia --project=docs docs/make.jl
+            pkg"add https://github.com/jagot/Jagot.jl"'
+      - uses: julia-actions/julia-docdeploy@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
