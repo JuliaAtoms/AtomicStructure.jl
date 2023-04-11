@@ -1,11 +1,11 @@
-using PyPlot
+using PythonPlot
 using Jagot.plotting
 plot_style("ggplot")
 
-using PyCall
+using PythonCall
 Cycler = pyimport("cycler")
-plt.rc("axes", prop_cycle=(plt.rcParams["axes.prop_cycle"] +
-                           Cycler.cycler("linestyle", ["-","--",":","-.",":","-","--"])))
+pyplot.rc("axes", prop_cycle=(pyplot.rcParams["axes.prop_cycle"] +
+    Cycler.cycler("linestyle", ["-","--",":","-.",":","-","--"])))
 
 using Statistics
 using Random
@@ -23,29 +23,24 @@ function mean_color(color::String)
     mean([c.r,c.g,c.b])
 end
 
+mean_color(color::Py) = mean_color(pyconvert(String, color))
+
 lerp(a,b,t) = (1-t)*a + t*b
 
 mean_position(x, ϕ) = ϕ'*Diagonal(x)*ϕ/(ϕ'ϕ)
 
-function cfigure(fun::Function, figname; clear=true, tight=true, kwargs...)
-    figure(figname; kwargs...)
-    clear && clf()
-    fun()
-    tight && tight_layout()
-end
-
-function csubplot(fun::Function, args...; nox=false, noy=false)
-    ax = subplot(args...)
-    fun()
-    if nox
-        no_tick_labels(:x)
-        xlabel("")
+function savedocfig(name,dir="figures")
+    fig = gcf()
+    filename = joinpath(@__DIR__, "src", dir, "$(name).svg")
+    savefig(filename,
+            transparent=true,
+            facecolor=fig.get_facecolor())
+    PythonPlot.close("all")
+    if isfile(filename)
+        println("Saved $(name) to $(filename)")
+    else
+        @warn "Saving $(name) to $(filename) failed"
     end
-    if noy
-        no_tick_labels(:y)
-        ylabel("")
-    end
-    ax
 end
 
 function plot_orbitals(atom::Atom; nrplot=1000, plot_basis=false,
@@ -120,7 +115,7 @@ function hydrogen()
     gst = ground_state(nucleus)
     atom = Atom(R, [spin_configurations(gst)[1]], nucleus)
     plot_orbitals(atom)
-    savefig("docs/src/figures/hydrogen.svg")
+    savedocfig("hydrogen")
 end
 
 function helium()
@@ -142,7 +137,7 @@ function helium()
         end
         legend(framealpha=0.75,ncol=2)
     end
-    savefig("docs/src/figures/helium.svg")
+    savedocfig("helium")
 end
 
 function beryllium(grid_type)
@@ -153,7 +148,7 @@ function beryllium(grid_type)
     fock = Fock(atom)
     optimize!(fock,ω=0.999,ωmax=1-1e-3,scf_method=:arnoldi)
     plot_orbitals(atom)
-    savefig("docs/src/figures/beryllium-$(grid_type).svg")
+    savedocfig("beryllium-$(grid_type)")
 end
 
 macro echo(expr)
@@ -162,7 +157,8 @@ macro echo(expr)
 end
 
 @info "Documentation plots"
-mkpath("docs/src/figures")
+fig_dir = joinpath(@__DIR__, "src", "figures")
+mkpath(fig_dir)
 @echo hydrogen()
 @echo helium()
 @echo beryllium(:fedvr)
