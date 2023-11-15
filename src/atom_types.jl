@@ -179,7 +179,7 @@ electronic `configurations`, with a nucleus modelled by `potential`,
 and initialize the orbitals according to `init`. `T` determines the
 `eltype` of the radial orbitals and `C` the mixing coefficients.
 """
-function Atom(init::Symbol, ::Type{T}, R::B, args...; kwargs...) where {T<:Number,B<:BasisOrRestricted,TC,C,P}
+function Atom(init::Symbol, ::Type{T}, R::B, args...; kwargs...) where {T<:Number,B<:BasisOrRestricted}
     atom = Atom(undef, T, R, args...)
     if init == :hydrogenic
         hydrogenic!(atom; kwargs...)

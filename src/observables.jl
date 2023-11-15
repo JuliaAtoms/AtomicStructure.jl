@@ -99,7 +99,7 @@ end
 
 function Observable(operator::QuantumOperator, atom::Atom,
                     overlaps::Vector{<:OrbitalOverlap};
-                    kwargs...) where T
+                    kwargs...)
     eqs = observable_eqs(operator, atom, overlaps)
     integrals, integral_map, poisson_cache =
         common_integrals(atom, eqs.integrals)
