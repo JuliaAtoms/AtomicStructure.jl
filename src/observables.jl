@@ -15,8 +15,8 @@ end
 function observable_eqs(operator::QuantumOperator, atom::Atom{T},
                         overlaps::Vector{<:OrbitalOverlap};
                         selector::Function=default_selector(atom),
-                        double_counted::Bool=false) where T
-    M = Matrix(operator, selector.(atom.configurations), overlaps)
+                        double_counted::Bool=false, verbosity=0, kwargs...) where T
+    M = Matrix(operator, selector.(atom.configurations), overlaps, verbosity=verbosity)
 
     m,n = size(M)
 
@@ -37,7 +37,7 @@ function observable_eqs(operator::QuantumOperator, atom::Atom{T},
         end
     end
 
-    diff(M, conj(atom.orbitals)) do M,corb
+    diff(M, conj(atom.orbitals), verbosity=verbosity) do M,corb
         # We need to filter out those terms that are dependent on
         # corb, to avoid double-counting when computing the
         # observables.
@@ -93,14 +93,14 @@ function Observable(operator::QuantumOperator, atom::Atom{T},
                     integral_map::Dict{Any,Int},
                     symmetries::Dict;
                     kwargs...) where T
-    eqs = observable_eqs(operator, atom, overlaps)
+    eqs = observable_eqs(operator, atom, overlaps; kwargs...)
     _Observable(atom, eqs, integrals, integral_map, symmetries; kwargs...)
 end
 
 function Observable(operator::QuantumOperator, atom::Atom,
                     overlaps::Vector{<:OrbitalOverlap};
                     kwargs...)
-    eqs = observable_eqs(operator, atom, overlaps)
+    eqs = observable_eqs(operator, atom, overlaps; kwargs...)
     integrals, integral_map, poisson_cache =
         common_integrals(atom, eqs.integrals)
 
