@@ -13,7 +13,7 @@ using LineSearches
 using PrettyTables
 using Unitful
 using UnitfulAtomic
-using Formatting
+using Format
 
 using CompactBases
 

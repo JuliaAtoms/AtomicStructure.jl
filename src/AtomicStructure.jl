@@ -44,7 +44,7 @@ using Unitful
 using UnitfulAtomic
 
 using PrettyTables
-using Formatting
+using Format
 using UnicodeFun
 import ProgressMeter
 import ProgressMeter: Progress

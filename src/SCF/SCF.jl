@@ -14,7 +14,7 @@ using SolverTraces
 import SolverTraces: base_exp
 
 using UnicodeFun
-using Formatting
+using Format
 using Crayons
 
 using Compat

@@ -45,7 +45,7 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
 
         eng_fmt = FormatSpec("+10.7f")
         Δeng_fmt = FormatSpec("+10.3e")
-        fmt_eng_vec(fspec, v) = "["*join(fmt.(Ref(fspec), v), ", ")*"]"
+        fmt_eng_vec(fspec, v) = "["*join(pyfmt.(Ref(fspec), v), ", ")*"]"
 
         λmin = Inf
 
@@ -101,8 +101,8 @@ function hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, find_lowest::Bool=fa
                                  hcat(λᴴ,λᴴₐ,λᴴ-λᴴₐ),
                                  header=["Hydrogenic energies [Ha]", "Analytic energies [Ha]", "Δ [Ha]"],
                                  vlines=[],hlines=[1],
-                                 formatters=((v,i,j)->j∈1:2 ? fmt(eng_fmt,v) : v,
-                                             (v,i,j)->j==3 ? fmt(Δeng_fmt,v) : v))
+                                 formatters=((v,i,j)->j∈1:2 ? pyfmt(eng_fmt,v) : v,
+                                             (v,i,j)->j==3 ? pyfmt(Δeng_fmt,v) : v))
                 end
             end
         end
@@ -198,9 +198,9 @@ function screened_hydrogenic!(atom::Atom{T,B,O,TC,C,P}; verbosity=0, kwargs...) 
                 copyto!(view(Φ, :, i), view(Φᴴ, :, nev))
 
                 if verbosity > 2
-                    println(io, "Hydrogenic energy $(fmt(eng_fmt, λᴴ[1])) Ha")
-                    println(io, "Target energy     $(fmt(eng_fmt, Iₚ)) Ha")
-                    println(io, "Δ                 $(fmt(Δeng_fmt, λᴴ[1]-Iₚ)) Ha")
+                    println(io, "Hydrogenic energy $(pyfmt(eng_fmt, λᴴ[1])) Ha")
+                    println(io, "Target energy     $(pyfmt(eng_fmt, Iₚ)) Ha")
+                    println(io, "Δ                 $(pyfmt(Δeng_fmt, λᴴ[1]-Iₚ)) Ha")
                 end
             end
         end
