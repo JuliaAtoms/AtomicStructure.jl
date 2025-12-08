@@ -103,6 +103,8 @@ ECP,Ca,10,4,3;
 ! [41] I.S. Lim, H. Stoll, P. Schwerdtfeger, J. Chem. Phys. 124, 034107 (2006).
 """sso
 
+CalciumDF2c = RelativisticEffectiveCorePotential(CalciumDF)
+
 # * Krypton
 
 KryptonDF = ECP"""! [Ne] 3s2 3p6 3d10 4s2 4p6

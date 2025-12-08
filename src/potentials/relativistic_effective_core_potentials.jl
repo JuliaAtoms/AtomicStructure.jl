@@ -19,7 +19,7 @@ function RelativisticEffectiveCorePotential(p::EffectiveCorePotential{T,true}; t
 
     push!(V₋, p.Vℓ[1])
 
-    Vℓ = p.Vℓ[2:findlast(!iszero, p.Vℓ)]
+    Vℓ = p.Vℓ[2:something(findlast(!iszero, p.Vℓ), length(p.Vℓ)-1)]
     Vℓ′ = p.Vℓ′[1:end]
 
     length(Vℓ) == length(Vℓ′) && length.(Vℓ) == length.(Vℓ′) || throw(ArgumentError("Cannot join expansion of different lengths"))
